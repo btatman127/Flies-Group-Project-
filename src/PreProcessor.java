@@ -12,6 +12,8 @@ public class PreProcessor {
 
     /**
      * Crops all the images
+     * @param point1 An integer array {x,y} of one coordinate to crop.
+     * @param point2 An integer array {x,y} of one coordinate to crop.
      * @param frames The total number of frames in the video to crop.
      */
     public static void crop(int[] point1, int[] point2, int frames) {
@@ -26,6 +28,9 @@ public class PreProcessor {
         }
     }
 
+    /**
+     * @return An integer array {x,y} of the top left point, given any two points.
+     */
     static int[] topLeft(int[] point1, int[]point2) {
         int point[] = new int[2];
         if (point1[0] <= point2[0]) {
@@ -41,6 +46,11 @@ public class PreProcessor {
         return point;
     }
 
+    /**
+     * Crops a given image.
+     * @param image The image to crop.
+     * @return A cropped image.
+     */
     static BufferedImage cropImage(BufferedImage image, int[] point1, int[]point2) {
         int[] topLeft = topLeft(point1, point2);
         return image.getSubimage(topLeft[0], topLeft[1], Math.abs(point1[0] - point2[0]), Math.abs(point1[1] - point2[1]));
