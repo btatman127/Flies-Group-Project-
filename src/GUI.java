@@ -1,46 +1,56 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.*;
+import java.awt.geom.*;
 
 public class GUI extends JFrame{
     private int currentFrame;
     private JPanel buttonPanel;
     private JButton nextFrame;
     private JButton prevFrame;
+    private JButton crop;
+    private double[] point1;
+    private double[] point2;
     public ImageComponent frame;
-    private static final int DEFAULT_WIDTH = 200;
+    private static final int DEFAULT_WIDTH = 100;
     private static final int DEFAULT_HEIGHT = 100;
 
     public GUI(){
+        GridBagLayout layout = new GridBagLayout();
+        setLayout(layout);
+
+        point1 = new double[2];
+        point2 = new double[2];
+
+        //construct components
         currentFrame = 0;
-        setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
         //make buttons for frames
         nextFrame = new JButton("Next Frame");
         prevFrame = new JButton("Previous Frame");
+        crop = new JButton("Crop");
 
         //make new panel for buttons
         buttonPanel = new JPanel();
-
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         //add the buttons to the panel
         buttonPanel.add(nextFrame);
         buttonPanel.add(prevFrame);
-
+        buttonPanel.add(crop);
         //add an image component and make it draw the first image
         frame = new ImageComponent("pic0.png");
-
+        frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
-        add(frame);
-        pack();
 
-        //add the button panel to the screen
-        add(buttonPanel);
 
+        //buttonPanel.setLayout(layout);
 
         //create actions for the buttons
         Action nextAction = new StepAction(1);
         Action prevAction = new StepAction(-1);
-
+        CropAction cropAction = new CropAction();
         //create a map of inputs and name them
         InputMap imap = buttonPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         imap.put(KeyStroke.getKeyStroke("RIGHT"), "panel.next");
@@ -54,7 +64,13 @@ public class GUI extends JFrame{
         //attach the actions to the buttons
         nextFrame.addActionListener(nextAction);
         prevFrame.addActionListener(prevAction);
+        crop.addActionListener(cropAction);
 
+
+
+        add(buttonPanel, new GBC(1,0).setFill(GBC.EAST).setWeight(100,0).setInsets(1));
+        add(frame, new GBC(2,0,1,4).setFill(GBC.BOTH).setWeight(500,500));
+        pack();
     }
 
     public static void main(String[] args) {
@@ -91,6 +107,24 @@ public class GUI extends JFrame{
         }
     }
 
+    private class CropAction implements ActionListener
+    {
+
+        public CropAction(){
+        }
+
+        public void actionPerformed(ActionEvent event) {
+
+                point1[0] = frame.squares.get(0).getCenterX();
+                point1[1] = frame.squares.get(0).getCenterY();
+
+                point2[0] = frame.squares.get(1).getCenterX();
+                point2[1] = frame.squares.get(1).getCenterY();
+
+                //PreProcessor.crop(point1, point2, NUMBER_OF_FRAMES);
+                repaint();
+        }
+    }
 
     public void drawImage(String fileName){
         add(new ImageComponent(fileName));
@@ -105,14 +139,22 @@ public class GUI extends JFrame{
  */
 class ImageComponent extends JComponent {
 
-    private static final int DEFAULT_WIDTH = 800;
-    private static final int DEFAULT_HEIGHT = 800;
-
+    private static final int DEFAULT_WIDTH = 600;
+    private static final int DEFAULT_HEIGHT = 600;
+    private static final int SIDELENGTH = 7;
+    public ArrayList<Rectangle2D> squares;
+    private Rectangle2D current; // the square containing the mouse cursor
     private Image image;
 
     public ImageComponent(String fileName)
     {
+
         image = new ImageIcon(fileName).getImage();
+        squares = new ArrayList<>();
+        current = null;
+
+        addMouseListener(new MouseHandler());
+        addMouseMotionListener(new MouseMotionHandler());
     }
 
     public void setImage(String fileName){
@@ -129,10 +171,102 @@ class ImageComponent extends JComponent {
 
         // draw the image in the upper-left corner
 
-        g.drawImage(image, 150, 300, null);
+        g.drawImage(image, 0, 0, null);
         // tile the image across the component
+        Graphics2D g2 = (Graphics2D) g;
+
+        // draw all squares
+        for (Rectangle2D r : squares)
+            g2.draw(r);
 
     }
-
     public Dimension getPreferredSize() { return new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT); }
-}
+
+
+
+        /**
+         * Finds the first square containing a point.
+         * @param p a point
+         * @return the first square that contains p
+         */
+        public Rectangle2D find(Point2D p)
+        {
+            for (Rectangle2D r : squares)
+            {
+                if (r.contains(p)) return r;
+            }
+            return null;
+        }
+
+        /**
+         * Adds a square to the collection.
+         * @param p the center of the square
+         */
+        public void add(Point2D p)
+        {
+            double x = p.getX();
+            double y = p.getY();
+
+            current = new Rectangle2D.Double(x - SIDELENGTH / 2, y - SIDELENGTH / 2, SIDELENGTH,
+                    SIDELENGTH);
+            squares.add(current);
+            repaint();
+        }
+
+        /**
+         * Removes a square from the collection.
+         * @param s the square to remove
+         */
+        public void remove(Rectangle2D s)
+        {
+            if (s == null) return;
+            if (s == current) current = null;
+            squares.remove(s);
+            repaint();
+        }
+
+        private class MouseHandler extends MouseAdapter
+        {
+            public void mousePressed(MouseEvent event)
+            {
+                // add a new square if the cursor isn't inside a square
+                current = find(event.getPoint());
+                if (squares.size() < 2) {
+                    if (current == null) add(event.getPoint());
+                }
+            }
+
+            public void mouseClicked(MouseEvent event)
+            {
+                // remove the current square if double clicked
+                current = find(event.getPoint());
+                if (current != null && event.getClickCount() >= 2) remove(current);
+            }
+        }
+
+        private class MouseMotionHandler implements MouseMotionListener
+        {
+            public void mouseMoved(MouseEvent event)
+            {
+                // set the mouse cursor to cross hairs if it is inside
+                // a rectangle
+
+                if (find(event.getPoint()) == null) setCursor(Cursor.getDefaultCursor());
+                else setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            }
+
+            public void mouseDragged(MouseEvent event)
+            {
+                if (current != null)
+                {
+                    int x = event.getX();
+                    int y = event.getY();
+
+                    // drag the current rectangle to center it at (x, y)
+                    current.setFrame(x - SIDELENGTH / 2, y - SIDELENGTH / 2, SIDELENGTH, SIDELENGTH);
+                    repaint();
+                }
+            }
+        }
+    }
+
