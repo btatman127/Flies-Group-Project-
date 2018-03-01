@@ -121,7 +121,7 @@ public class GUI extends JFrame{
                 point2[0] = frame.squares.get(1).getCenterX();
                 point2[1] = frame.squares.get(1).getCenterY();
 
-                //PreProcessor.crop(point1, point2, NUMBER_OF_FRAMES);
+                PreProcessor.crop(point1, point2, NUMBER_OF_FRAMES);
                 repaint();
         }
     }
