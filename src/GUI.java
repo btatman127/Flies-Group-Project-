@@ -1,5 +1,5 @@
-import com.sun.tools.javadoc.Start;
-import javafx.scene.paint.Stop;
+//import com.sun.tools.javadoc.Start;
+//import javafx.scene.paint.Stop;
 
 import java.awt.*;
 import javax.imageio.ImageIO;
@@ -52,6 +52,7 @@ public class GUI extends JFrame {
         //make new panel for buttons
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+
         //add the buttons to the panel
         buttonPanel.add(nextFrame);
         buttonPanel.add(prevFrame);
@@ -60,9 +61,11 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
 
+        startLarvaeSelection.setEnabled(false);
+        endLarvaeSelection.setEnabled(false);
+        endCrop.setEnabled(false);
         //add an image component and make it draw the first image
-
-        frame = new ImageComponent("assets/img001.png");
+        frame = new ImageComponent("pic0.png");
 
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
@@ -99,7 +102,7 @@ public class GUI extends JFrame {
 
 
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
-        add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(500, 500));
+        add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(800, 800));
         pack();
     }
 
@@ -126,11 +129,13 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            currentFrame += number;
-            String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
-            frame.setImage(frameToDraw);
-            revalidate();
-            repaint();
+            if(currentFrame+number > 0) {
+                currentFrame += number;
+                String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
+                frame.setImage(frameToDraw);
+                revalidate();
+                repaint();
+            }
         }
     }
 
@@ -144,6 +149,8 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
                 frame.maxSquares = 2;
+                startLarvaeSelection.setEnabled(false);
+                endCrop.setEnabled(true);
                 repaint();
 
         }
@@ -157,20 +164,27 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
 
-            point1[0] = (int) frame.squares.get(0).getCenterX();
-            point1[1] = (int) frame.squares.get(0).getCenterY();
+            if(frame.squares.size() == 2) {
+                point1[0] = (int) frame.squares.get(0).getCenterX();
+                point1[1] = (int) frame.squares.get(0).getCenterY();
 
-            point2[0] = (int) frame.squares.get(1).getCenterX();
-            point2[1] = (int) frame.squares.get(1).getCenterY();
+                point2[0] = (int) frame.squares.get(1).getCenterX();
+                point2[1] = (int) frame.squares.get(1).getCenterY();
 
-            frame.remove(frame.squares.get(1));
-            frame.remove(frame.squares.get(0));
+                frame.remove(frame.squares.get(1));
+                frame.remove(frame.squares.get(0));
 
-            frame.maxSquares = 0;
+                frame.maxSquares = 0;
 
-            PreProcessor.crop(point1, point2, 90);
-            revalidate();
-            repaint();
+                PreProcessor.crop(point1, point2, 90);
+
+                startLarvaeSelection.setEnabled(true);
+
+                revalidate();
+                repaint();
+            } else {
+                System.out.println("Need to have 2 squares to crop the image.");
+            }
 
         }
 
@@ -185,6 +199,9 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             frame.maxSquares = 4;
+            startCrop.setEnabled(false);
+            endCrop.setEnabled(false);
+            endLarvaeSelection.setEnabled(true);
             repaint();
 
         }
@@ -201,12 +218,13 @@ public class GUI extends JFrame {
                 Larva addition = new Larva(r.getCenterX(), r.getCenterY());
                 larvae.add(addition);
             }
-            frame.remove(frame.squares.get(3));
-            frame.remove(frame.squares.get(2));
-            frame.remove(frame.squares.get(1));
-            frame.remove(frame.squares.get(0));
+            for(int i = frame.squares.size() - 1; i >= 0 ; i--){
+                frame.remove(frame.squares.get(i));
+            }
 
             frame.maxSquares = 0;
+            startLarvaeSelection.setEnabled(false);
+            endLarvaeSelection.setEnabled(false);
             repaint();
 
         }
@@ -220,8 +238,8 @@ public class GUI extends JFrame {
  */
 class ImageComponent extends JComponent {
 
-    private static final int DEFAULT_WIDTH = 600;
-    private static final int DEFAULT_HEIGHT = 600;
+    private static final int DEFAULT_WIDTH = 1000;
+    private static final int DEFAULT_HEIGHT = 800;
     private static final int SIDELENGTH = 7;
     public int maxSquares;
     public ArrayList<Rectangle2D> squares;
@@ -315,23 +333,21 @@ class ImageComponent extends JComponent {
         repaint();
     }
 
-
-
-        public void mouseClicked(MouseEvent event) {
-            // remove the current square if double clicked
-            current = find(event.getPoint());
-            if (current != null && event.getClickCount() >= 2) remove(current);
-        }
-
-
-
     private class MouseHandler extends MouseAdapter {
+
         public void mousePressed(MouseEvent event) {
             // add a new square if the cursor isn't inside a square
             current = find(event.getPoint());
             if (squares.size() < maxSquares) {
                 if (current == null) add(event.getPoint());
             }
+        }
+
+
+        public void mouseClicked(MouseEvent event) {
+            // remove the current square if double clicked
+            current = find(event.getPoint());
+            if (current != null && event.getClickCount() >= 2) remove(current);
         }
     }
 
