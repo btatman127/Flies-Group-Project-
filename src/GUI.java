@@ -1,3 +1,6 @@
+import com.sun.tools.javadoc.Start;
+import javafx.scene.paint.Stop;
+
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -12,14 +15,21 @@ public class GUI extends JFrame {
     private JPanel buttonPanel;
     private JButton nextFrame;
     private JButton prevFrame;
-    private JButton crop;
+    private JButton startCrop;
+    private JButton endCrop;
+    private JButton startLarvaeSelection;
+    private JButton endLarvaeSelection;
     private int[] point1;
     private int[] point2;
+    private ArrayList<Larva> larvae;
     public ImageComponent frame;
     private static final int DEFAULT_WIDTH = 100;
     private static final int DEFAULT_HEIGHT = 100;
 
-    public GUI() {
+
+    public GUI(){
+        larvae = new ArrayList<>();
+
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
 
@@ -33,7 +43,11 @@ public class GUI extends JFrame {
         //make buttons for frames
         nextFrame = new JButton("Next Frame");
         prevFrame = new JButton("Previous Frame");
-        crop = new JButton("Crop");
+        startCrop = new JButton("Start Crop");
+        endCrop = new JButton("End Crop");
+        startLarvaeSelection = new JButton("Start Larvae Selection");
+        endLarvaeSelection = new JButton("End Larvae Selection");
+
 
         //make new panel for buttons
         buttonPanel = new JPanel();
@@ -41,9 +55,15 @@ public class GUI extends JFrame {
         //add the buttons to the panel
         buttonPanel.add(nextFrame);
         buttonPanel.add(prevFrame);
-        buttonPanel.add(crop);
+        buttonPanel.add(startCrop);
+        buttonPanel.add(endCrop);
+        buttonPanel.add(startLarvaeSelection);
+        buttonPanel.add(endLarvaeSelection);
+
         //add an image component and make it draw the first image
+
         frame = new ImageComponent("assets/img001.png");
+
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
 
@@ -53,7 +73,12 @@ public class GUI extends JFrame {
         //create actions for the buttons
         Action nextAction = new StepAction(1);
         Action prevAction = new StepAction(-1);
-        CropAction cropAction = new CropAction();
+        StartCropAction startCropAction = new StartCropAction();
+        StopCropAction stopCropAction = new StopCropAction();
+        StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
+        StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
+
+
         //create a map of inputs and name them
         InputMap imap = buttonPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         imap.put(KeyStroke.getKeyStroke("RIGHT"), "panel.next");
@@ -67,7 +92,10 @@ public class GUI extends JFrame {
         //attach the actions to the buttons
         nextFrame.addActionListener(nextAction);
         prevFrame.addActionListener(prevAction);
-        crop.addActionListener(cropAction);
+        startCrop.addActionListener(startCropAction);
+        endCrop.addActionListener(stopCropAction);
+        startLarvaeSelection.addActionListener(startLarvaeAction);
+        endLarvaeSelection.addActionListener(stopLarvaeAction);
 
 
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -106,9 +134,25 @@ public class GUI extends JFrame {
         }
     }
 
-    private class CropAction implements ActionListener {
 
-        public CropAction() {
+    private class StartCropAction implements ActionListener
+    {
+
+        public StartCropAction() {
+
+        }
+
+        public void actionPerformed(ActionEvent event) {
+                frame.maxSquares = 2;
+                repaint();
+
+        }
+
+    }
+    private class StopCropAction implements ActionListener
+    {
+
+        public StopCropAction(){
         }
 
         public void actionPerformed(ActionEvent event) {
@@ -120,18 +164,56 @@ public class GUI extends JFrame {
             point2[1] = (int) frame.squares.get(1).getCenterY();
 
 
+            frame.remove(frame.squares.get(1));
+            frame.remove(frame.squares.get(0));
+
+            frame.maxSquares = 0;
+
+
             PreProcessor.crop(point1, point2, 90);
             revalidate();
             repaint();
 
         }
+
     }
 
-    public void drawImage(String fileName) {
-        add(new ImageComponent(fileName));
-        pack();
+
+    private class StartLarvaeAction implements ActionListener
+    {
+
+        public StartLarvaeAction(){
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            frame.maxSquares = 4;
+            repaint();
+
+        }
+
     }
 
+    private class StopLarvaeAction implements ActionListener {
+
+        public StopLarvaeAction() {
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            for (Rectangle2D r : frame.squares) {
+                Larva addition = new Larva(r.getCenterX(), r.getCenterY());
+                larvae.add(addition);
+            }
+            frame.remove(frame.squares.get(3));
+            frame.remove(frame.squares.get(2));
+            frame.remove(frame.squares.get(1));
+            frame.remove(frame.squares.get(0));
+
+            frame.maxSquares = 0;
+            repaint();
+
+        }
+
+    }
 }
 
 
@@ -143,16 +225,18 @@ class ImageComponent extends JComponent {
     private static final int DEFAULT_WIDTH = 600;
     private static final int DEFAULT_HEIGHT = 600;
     private static final int SIDELENGTH = 7;
+    public int maxSquares;
     public ArrayList<Rectangle2D> squares;
     private Rectangle2D current; // the square containing the mouse cursor
     private Image image;
 
-    public ImageComponent(String fileName) {
+    public ImageComponent(String fileName)
+    {
 
+        maxSquares = 0;
         image = new ImageIcon(fileName).getImage();
         squares = new ArrayList<>();
         current = null;
-
         addMouseListener(new MouseHandler());
         addMouseMotionListener(new MouseMotionHandler());
     }
@@ -167,7 +251,10 @@ class ImageComponent extends JComponent {
 
     }
 
-    public void paintComponent(Graphics g) {
+
+    public void paintComponent(Graphics g)
+    {
+
         if (image == null) return;
 
         int imageWidth = image.getWidth(null);
@@ -230,19 +317,23 @@ class ImageComponent extends JComponent {
         repaint();
     }
 
-    private class MouseHandler extends MouseAdapter {
-        public void mousePressed(MouseEvent event) {
-            // add a new square if the cursor isn't inside a square
-            current = find(event.getPoint());
-            if (squares.size() < 2) {
-                if (current == null) add(event.getPoint());
-            }
-        }
+
 
         public void mouseClicked(MouseEvent event) {
             // remove the current square if double clicked
             current = find(event.getPoint());
             if (current != null && event.getClickCount() >= 2) remove(current);
+        }
+
+
+
+    private class MouseHandler extends MouseAdapter {
+        public void mousePressed(MouseEvent event) {
+            // add a new square if the cursor isn't inside a square
+            current = find(event.getPoint());
+            if (squares.size() < maxSquares) {
+                if (current == null) add(event.getPoint());
+            }
         }
     }
 
@@ -250,6 +341,7 @@ class ImageComponent extends JComponent {
         public void mouseMoved(MouseEvent event) {
             // set the mouse cursor to cross hairs if it is inside
             // a rectangle
+
 
             if (find(event.getPoint()) == null) setCursor(Cursor.getDefaultCursor());
             else setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
