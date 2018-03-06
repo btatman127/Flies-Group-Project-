@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -150,20 +151,29 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
 
-            point1[0] = (int) frame.squares.get(0).getCenterX();
-            point1[1] = (int) frame.squares.get(0).getCenterY();
+            try {
+                BufferedImage image = ImageIO.read(new File("assets/img001.png"));
+                double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
+                double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
-            point2[0] = (int) frame.squares.get(1).getCenterX();
-            point2[1] = (int) frame.squares.get(1).getCenterY();
+                point1[0] = (int) (frame.squares.get(0).getCenterX() * xratio);
+                point1[1] = (int) (frame.squares.get(0).getCenterY() * yratio);
 
-            frame.remove(frame.squares.get(1));
-            frame.remove(frame.squares.get(0));
+                point2[0] = (int) (frame.squares.get(1).getCenterX() * xratio);
+                point2[1] = (int) (frame.squares.get(1).getCenterY() * yratio);
 
-            frame.maxSquares = 0;
+                frame.remove(frame.squares.get(1));
+                frame.remove(frame.squares.get(0));
 
-            PreProcessor.crop(point1, point2, 90);
-            revalidate();
-            repaint();
+                frame.maxSquares = 0;
+
+                PreProcessor.crop(point1, point2, 90);
+                revalidate();
+                repaint();
+
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
         }
     }
 
@@ -232,11 +242,11 @@ class ImageComponent extends JComponent {
     }
 
     public void setImage(String fileName) {
-        try {
-            image = ImageIO.read(new File(fileName));
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
+        image = PreProcessor.scale(fileName, this.getWidth(), this.getHeight());
+    }
+
+    public Image getImage() {
+        return image;
     }
 
 
