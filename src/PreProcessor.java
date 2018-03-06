@@ -10,7 +10,24 @@ import java.util.LinkedList;
 public class PreProcessor {
 
     public static void main(String[] args) {
-        colorCorrectFrames(2);
+        scale(90);
+    }
+
+    public static void scale(int frames){
+        for (int i = 0; i < frames; i++) {
+            try {
+                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i + 1) + ".png"));
+                Image scaleImage = image.getScaledInstance((int) (Toolkit.getDefaultToolkit().getScreenSize().width * .8),-1,Image.SCALE_DEFAULT);
+
+                BufferedImage subimage = new BufferedImage(scaleImage.getWidth(null), scaleImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
+                subimage.getGraphics().drawImage(scaleImage, 0, 0, null);
+
+                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i + 1) + ".png"));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
     }
 
     /**
@@ -23,9 +40,9 @@ public class PreProcessor {
     public static void crop(int[] point1, int[] point2, int frames) {
         for (int i = 0; i < frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i+1) + ".png"));
+                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i + 1) + ".png"));
                 BufferedImage subimage = cropImage(image, point1, point2);
-                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i+1) + ".png"));
+                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i + 1) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -62,7 +79,6 @@ public class PreProcessor {
     }
 
     /**
-     *
      * @param frames
      */
     static void colorCorrectFrames(int frames) {
