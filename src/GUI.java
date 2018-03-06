@@ -10,6 +10,9 @@ import java.awt.geom.*;
 public class GUI extends JFrame {
     private int currentFrame;
     private JPanel buttonPanel;
+    private String fileName;
+    private String movieDir;
+    private JButton openMovie;
     private JButton nextFrame;
     private JButton prevFrame;
     private JButton startCrop;
@@ -38,6 +41,7 @@ public class GUI extends JFrame {
         //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
         //make buttons for frames
+        openMovie = new JButton("Open Movie");
         nextFrame = new JButton("Next Frame");
         prevFrame = new JButton("Previous Frame");
         startCrop = new JButton("Start Crop");
@@ -51,6 +55,7 @@ public class GUI extends JFrame {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
         //add the buttons to the panel
+        buttonPanel.add(openMovie);
         buttonPanel.add(nextFrame);
         buttonPanel.add(prevFrame);
         buttonPanel.add(startCrop);
@@ -58,7 +63,17 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
 
-        //make sure some of the buttons can't be pressed yet
+        // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
+//        //make sure some of the buttons can't be pressed yet
+//        nextFrame.setVisible(false);
+//        prevFrame.setVisible(false);
+//        startCrop.setVisible(false);
+//        endCrop.setVisible(false);
+//        startLarvaeSelection.setVisible(false);
+//        endLarvaeSelection.setVisible(false);
+
+        // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
+        openMovie.setEnabled(false);
         startLarvaeSelection.setEnabled(false);
         endLarvaeSelection.setEnabled(false);
         endCrop.setEnabled(false);
@@ -69,6 +84,7 @@ public class GUI extends JFrame {
         frame.setBorder(BorderFactory.createEtchedBorder());
 
         //create actions for the buttons
+        OpenL openAction = new OpenL();
         Action nextAction = new StepAction(1);
         Action prevAction = new StepAction(-1);
         StartCropAction startCropAction = new StartCropAction();
@@ -88,6 +104,7 @@ public class GUI extends JFrame {
         amap.put("panel.prev", prevAction);
 
         //attach the actions to the buttons
+        openMovie.addActionListener(openAction);
         nextFrame.addActionListener(nextAction);
         prevFrame.addActionListener(prevAction);
         startCrop.addActionListener(startCropAction);
@@ -101,6 +118,44 @@ public class GUI extends JFrame {
         pack();
     }
 
+    /**
+     * Allows the user to select a file from the computer
+     * Saves the file name to the global variable fileName
+     * Saves the directory of the file to the global variable movieDir
+     * If a file is selected then all other buttons are made visible and the initially useful ones are enabled
+     * If cancel is selected nothing happens
+     */
+    class OpenL implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+
+
+            JFileChooser c = new JFileChooser();
+            // Demonstrate "Open" dialog:
+            int rVal = c.showOpenDialog(GUI.this);
+            if (rVal == JFileChooser.APPROVE_OPTION) {
+                fileName = c.getSelectedFile().getName();
+                movieDir= c.getCurrentDirectory().toString();
+
+                openMovie.setVisible(false);
+                openMovie.setEnabled(false);
+
+                nextFrame.setVisible(true);
+                prevFrame.setVisible(true);
+                startCrop.setVisible(true);
+                endCrop.setVisible(true);
+                startLarvaeSelection.setVisible(true);
+                endLarvaeSelection.setVisible(true);
+
+                startLarvaeSelection.setEnabled(false);
+                endLarvaeSelection.setEnabled(false);
+                endCrop.setEnabled(false);
+                pack();
+            }
+            if (rVal == JFileChooser.CANCEL_OPTION) {
+
+            }
+        }
+    }
     public static void main(String[] args) {
         System.out.println("Hello World!");
 
