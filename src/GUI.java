@@ -1,6 +1,3 @@
-//import com.sun.tools.javadoc.Start;
-//import javafx.scene.paint.Stop;
-
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -61,17 +58,15 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
 
+        //make sure some of the buttons can't be pressed yet
         startLarvaeSelection.setEnabled(false);
         endLarvaeSelection.setEnabled(false);
         endCrop.setEnabled(false);
+
         //add an image component and make it draw the first image
         frame = new ImageComponent("pic0.png");
 
         frame.setBorder(BorderFactory.createEtchedBorder());
-        //add the image component to the screen
-
-
-        //buttonPanel.setLayout(layout);
 
         //create actions for the buttons
         Action nextAction = new StepAction(1);
@@ -81,7 +76,7 @@ public class GUI extends JFrame {
         StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
 
-
+        //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
         InputMap imap = buttonPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         imap.put(KeyStroke.getKeyStroke("RIGHT"), "panel.next");
@@ -100,7 +95,7 @@ public class GUI extends JFrame {
         startLarvaeSelection.addActionListener(startLarvaeAction);
         endLarvaeSelection.addActionListener(stopLarvaeAction);
 
-
+        //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
         add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(800, 800));
         pack();
@@ -119,9 +114,14 @@ public class GUI extends JFrame {
 
     }
 
+    /**
+     * action that, when activated, changes the image being drawn
+     * implements AbstractAction so that it works with Input map we made and the on screen buttons
+     */
     private class StepAction extends AbstractAction {
         private int number;
         private ImageComponent ourFrame;
+
 
         public StepAction(int direction) {
             number = direction;
@@ -139,9 +139,11 @@ public class GUI extends JFrame {
         }
     }
 
-
-    private class StartCropAction implements ActionListener
-    {
+    /**
+     * When activated, the action allows a maximum of 2 squares to be made on the Image component
+     * Enables the end crop button, and disables the start crop button
+     */
+    private class StartCropAction implements ActionListener {
 
         public StartCropAction() {
 
@@ -156,8 +158,14 @@ public class GUI extends JFrame {
         }
 
     }
-    private class StopCropAction implements ActionListener
-    {
+
+    /**
+     * Stores the location of the center of the two squares on the screen
+     * Removes the squares from the image component and prevents more from being drawn
+     * Sends the cropping dimensions to a function that will crop the images
+     * Enables "Start Larvae Selection" button, and disables "End Crop" button
+     */
+    private class StopCropAction implements ActionListener {
 
         public StopCropAction(){
         }
@@ -179,6 +187,7 @@ public class GUI extends JFrame {
                 PreProcessor.crop(point1, point2, 90);
 
                 startLarvaeSelection.setEnabled(true);
+                endCrop.setEnabled(false);
 
                 revalidate();
                 repaint();
@@ -190,9 +199,12 @@ public class GUI extends JFrame {
 
     }
 
-
-    private class StartLarvaeAction implements ActionListener
-    {
+    /**
+     * Allows a maximum of 4 squares to be added to the Image component
+     * Disables "Start Crop" and "End Crop" buttons
+     * Enables "End Larvae" selection button
+     */
+    private class StartLarvaeAction implements ActionListener {
 
         public StartLarvaeAction(){
         }
@@ -208,6 +220,11 @@ public class GUI extends JFrame {
 
     }
 
+    /**
+     * Searches through all the squares in the Image Component and adds their locations as new Larvae to larvae array
+     * Removes all the squares from the Image Component and prevent more from being made
+     * Disable "Start Larvae Selection" and "End Larvae Selection" buttons
+     */
     private class StopLarvaeAction implements ActionListener {
 
         public StopLarvaeAction() {
@@ -234,7 +251,7 @@ public class GUI extends JFrame {
 
 
 /**
- * A component that displays a tiled image
+ * A component that displays a tiled image and allows for movable squares to be painted on it
  */
 class ImageComponent extends JComponent {
 
