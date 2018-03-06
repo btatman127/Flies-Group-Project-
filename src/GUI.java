@@ -126,11 +126,13 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            currentFrame += number;
-            String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
-            frame.setImage(frameToDraw);
-            revalidate();
-            repaint();
+            if (currentFrame + number >0) {
+                currentFrame += number;
+                String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
+                frame.setImage(frameToDraw);
+                revalidate();
+                repaint();
+            }
         }
     }
 
