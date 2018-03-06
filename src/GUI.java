@@ -118,6 +118,19 @@ public class GUI extends JFrame {
         pack();
     }
 
+    public static void main(String[] args) {
+        System.out.println("Hello World!");
+
+        EventQueue.invokeLater(() ->
+        {
+            JFrame frame = new GUI();
+            frame.setTitle("GUI");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setVisible(true);
+        });
+
+    }
+
     /**
      * Allows the user to select a file from the computer
      * Saves the file name to the global variable fileName
@@ -134,7 +147,7 @@ public class GUI extends JFrame {
             int rVal = c.showOpenDialog(GUI.this);
             if (rVal == JFileChooser.APPROVE_OPTION) {
                 fileName = c.getSelectedFile().getName();
-                movieDir= c.getCurrentDirectory().toString();
+                movieDir = c.getCurrentDirectory().toString();
 
                 openMovie.setVisible(false);
                 openMovie.setEnabled(false);
@@ -156,18 +169,7 @@ public class GUI extends JFrame {
             }
         }
     }
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
 
-        EventQueue.invokeLater(() ->
-        {
-            JFrame frame = new GUI();
-            frame.setTitle("GUI");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setVisible(true);
-        });
-
-    }
 
     /**
      * action that, when activated, changes the image being drawn
@@ -206,7 +208,7 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
                 frame.maxSquares = 2;
-                startLarvaeSelection.setEnabled(false);
+                startCrop.setEnabled(false);
                 endCrop.setEnabled(true);
                 repaint();
 
@@ -242,6 +244,7 @@ public class GUI extends JFrame {
                 PreProcessor.crop(point1, point2, 90);
 
                 startLarvaeSelection.setEnabled(true);
+                startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
 
                 revalidate();
