@@ -5,6 +5,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.lang.Math;
 import java.util.LinkedList;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 
 public class PreProcessor {
@@ -114,15 +116,19 @@ public class PreProcessor {
 	* @param outputDir   this String should end with a / character
 	* @param fps    a value of 1 will extract 1 frame for each second of video
 	*/
-	public void extractFrames(String inputPath, String outputDir, int fps) throws java.io.IOException, java.lang.InterruptedException {
-        //TODO: check that input file exists, general error handling
-		//TODO: return instance of Video to store information about the extracted frames
+	
+	public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
 		
 		// Get runtime
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
 		
-		//Does outputDir end in /  ??
-		String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps="+fps, outputDir+"img%04d.png"}; 
+		//Path outPath = Paths.get(outputDir);
+		//outPath = outPath.resolve("img%04d.png"); 
+		
+		String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps="+fps, outputPath}; 
+		for (int i = 0; i < command.length; i++) {
+			System.out.println(command[i]);
+		}
 			//= {"ffmpeg", "-i", "2016_06_09_974.mov", "-vf", "fps=1", "a%03d.png"};
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
