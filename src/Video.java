@@ -1,19 +1,20 @@
 public class Video {
-    private String dir;
-    private String fileName;
-    private String folderName;
+    private String movieDir;
+    private String movieName;
+    private String imgDir;
 
 
     /**
      * Constructor for a Video object
-     * @param dir   the directory where the movie is located
-     * @param fileName  the name of the movie
-     * @param folderName    the name of the folder the generated png images will be put in
+     * @param movieDir   the movieDir file where the movie is located
+     * @param movieName  the name of the movie
+     * @param imgDir    the name of the folder the generated png images will be put in
      */
-    public Video(String dir, String fileName, String folderName){
-        this.dir = dir;
-        this.fileName = fileName;
-        this.folderName = folderName;
+    public Video(String movieDir, String movieName, String imgDir){
+        this.movieDir = movieDir;
+        this.movieName = movieName;
+        this.imgDir = imgDir;
+
 
         //call the preprocessor function to make the images from the movie
         //use the folder name that is given to the video class as the outputPath
@@ -22,20 +23,20 @@ public class Video {
     public String getPathToFrame(int index){
         String path;
 
-        path = folderName + "/img" + String.format("%03d", index) + ".png";
+        path = imgDir + "/img" + String.format("%03d", index) + ".png";
 
         return path;
     }
 
-    public String getFolderName() {
-        return folderName;
+    public String getImgDir() {
+        return imgDir;
     }
 
-    public String getDir() {
-        return dir;
+    public String getMovieDir() {
+        return movieDir;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getMovieName() {
+        return movieName;
     }
 }
