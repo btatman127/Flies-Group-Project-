@@ -1,6 +1,3 @@
-//import com.sun.tools.javadoc.Start;
-//import javafx.scene.paint.Stop;
-
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -14,6 +11,9 @@ import java.awt.geom.*;
 public class GUI extends JFrame {
     private int currentFrame;
     private JPanel buttonPanel;
+    private String fileName;
+    private String movieDir;
+    private JButton openMovie;
     private JButton nextFrame;
     private JButton prevFrame;
     private JButton startCrop;
@@ -42,6 +42,7 @@ public class GUI extends JFrame {
         //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
         //make buttons for frames
+        openMovie = new JButton("Open Movie");
         nextFrame = new JButton("Next Frame");
         prevFrame = new JButton("Previous Frame");
         startCrop = new JButton("Start Crop");
@@ -53,7 +54,9 @@ public class GUI extends JFrame {
         //make new panel for buttons
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+
         //add the buttons to the panel
+        buttonPanel.add(openMovie);
         buttonPanel.add(nextFrame);
         buttonPanel.add(prevFrame);
         buttonPanel.add(startCrop);
@@ -61,7 +64,20 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
 
-        //add an image component and make it draw the first image
+        // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
+//        //make sure some of the buttons can't be pressed yet
+//        nextFrame.setVisible(false);
+//        prevFrame.setVisible(false);
+//        startCrop.setVisible(false);
+//        endCrop.setVisible(false);
+//        startLarvaeSelection.setVisible(false);
+//        endLarvaeSelection.setVisible(false);
+
+        // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
+        openMovie.setEnabled(false);
+        startLarvaeSelection.setEnabled(false);
+        endLarvaeSelection.setEnabled(false);
+        endCrop.setEnabled(false);
 
         frame = new ImageComponent("assets/img001.png");
         frame.setBorder(BorderFactory.createEtchedBorder());
@@ -70,6 +86,7 @@ public class GUI extends JFrame {
         //buttonPanel.setLayout(layout);
 
         //create actions for the buttons
+        OpenL openAction = new OpenL();
         Action nextAction = new StepAction(1);
         Action prevAction = new StepAction(-1);
         StartCropAction startCropAction = new StartCropAction();
@@ -77,6 +94,7 @@ public class GUI extends JFrame {
         StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
 
+        //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
         InputMap imap = buttonPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         imap.put(KeyStroke.getKeyStroke("RIGHT"), "panel.next");
@@ -88,6 +106,7 @@ public class GUI extends JFrame {
         amap.put("panel.prev", prevAction);
 
         //attach the actions to the buttons
+        openMovie.addActionListener(openAction);
         nextFrame.addActionListener(nextAction);
         prevFrame.addActionListener(prevAction);
         startCrop.addActionListener(startCropAction);
@@ -95,8 +114,9 @@ public class GUI extends JFrame {
         startLarvaeSelection.addActionListener(startLarvaeAction);
         endLarvaeSelection.addActionListener(stopLarvaeAction);
 
+        //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
-        add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(500, 500));
+        add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(800, 800));
         pack();
     }
 
@@ -113,9 +133,54 @@ public class GUI extends JFrame {
 
     }
 
+    /**
+     * Allows the user to select a file from the computer
+     * Saves the file name to the global variable fileName
+     * Saves the directory of the file to the global variable movieDir
+     * If a file is selected then all other buttons are made visible and the initially useful ones are enabled
+     * If cancel is selected nothing happens
+     */
+    class OpenL implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+
+
+            JFileChooser c = new JFileChooser();
+            // Demonstrate "Open" dialog:
+            int rVal = c.showOpenDialog(GUI.this);
+            if (rVal == JFileChooser.APPROVE_OPTION) {
+                fileName = c.getSelectedFile().getName();
+                movieDir = c.getCurrentDirectory().toString();
+
+                openMovie.setVisible(false);
+                openMovie.setEnabled(false);
+
+                nextFrame.setVisible(true);
+                prevFrame.setVisible(true);
+                startCrop.setVisible(true);
+                endCrop.setVisible(true);
+                startLarvaeSelection.setVisible(true);
+                endLarvaeSelection.setVisible(true);
+
+                startLarvaeSelection.setEnabled(false);
+                endLarvaeSelection.setEnabled(false);
+                endCrop.setEnabled(false);
+                pack();
+            }
+            if (rVal == JFileChooser.CANCEL_OPTION) {
+
+            }
+        }
+    }
+
+
+    /**
+     * action that, when activated, changes the image being drawn
+     * implements AbstractAction so that it works with Input map we made and the on screen buttons
+     */
     private class StepAction extends AbstractAction {
         private int number;
         private ImageComponent ourFrame;
+
 
         public StepAction(int direction) {
             number = direction;
@@ -132,7 +197,10 @@ public class GUI extends JFrame {
         }
     }
 
-
+    /**
+     * When activated, the action allows a maximum of 2 squares to be made on the Image component
+     * Enables the end crop button, and disables the start crop button
+     */
     private class StartCropAction implements ActionListener {
 
         public StartCropAction() {
@@ -140,9 +208,18 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             frame.maxSquares = 2;
+            startCrop.setEnabled(false);
+            endCrop.setEnabled(true);
             repaint();
         }
     }
+
+    /**
+     * Stores the location of the center of the two squares on the screen
+     * Removes the squares from the image component and prevents more from being drawn
+     * Sends the cropping dimensions to a function that will crop the images
+     * Enables "Start Larvae Selection" button, and disables "End Crop" button
+     */
 
     private class StopCropAction implements ActionListener {
 
@@ -168,15 +245,26 @@ public class GUI extends JFrame {
                 frame.maxSquares = 0;
 
                 PreProcessor.crop(point1, point2, 90);
+
+                startLarvaeSelection.setEnabled(true);
+                startCrop.setEnabled(true);
+                endCrop.setEnabled(false);
+
                 revalidate();
                 repaint();
 
             } catch (IOException ioe) {
                 ioe.printStackTrace();
+                System.out.println("Need to have 2 squares to crop the image.");
             }
         }
     }
 
+    /**
+     * Allows a maximum of 4 squares to be added to the Image component
+     * Disables "Start Crop" and "End Crop" buttons
+     * Enables "End Larvae" selection button
+     */
 
     private class StartLarvaeAction implements ActionListener {
 
@@ -185,10 +273,18 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             frame.maxSquares = 4;
+            startCrop.setEnabled(false);
+            endCrop.setEnabled(false);
+            endLarvaeSelection.setEnabled(true);
             repaint();
         }
     }
 
+    /**
+     * Searches through all the squares in the Image Component and adds their locations as new Larvae to larvae array
+     * Removes all the squares from the Image Component and prevent more from being made
+     * Disable "Start Larvae Selection" and "End Larvae Selection" buttons
+     */
     private class StopLarvaeAction implements ActionListener {
 
         public StopLarvaeAction() {
@@ -199,12 +295,13 @@ public class GUI extends JFrame {
                 Larva addition = new Larva(r.getCenterX(), r.getCenterY());
                 larvae.add(addition);
             }
-            frame.remove(frame.squares.get(3));
-            frame.remove(frame.squares.get(2));
-            frame.remove(frame.squares.get(1));
-            frame.remove(frame.squares.get(0));
+            for (int i = frame.squares.size() - 1; i >= 0; i--) {
+                frame.remove(frame.squares.get(i));
+            }
 
             frame.maxSquares = 0;
+            startLarvaeSelection.setEnabled(false);
+            endLarvaeSelection.setEnabled(false);
             repaint();
         }
     }
@@ -212,12 +309,12 @@ public class GUI extends JFrame {
 
 
 /**
- * A component that displays a tiled image
+ * A component that displays a tiled image and allows for movable squares to be painted on it
  */
 class ImageComponent extends JComponent {
 
-    private static final int DEFAULT_WIDTH = 600;
-    private static final int DEFAULT_HEIGHT = 600;
+    private static final int DEFAULT_WIDTH = 1000;
+    private static final int DEFAULT_HEIGHT = 800;
     private static final int SIDELENGTH = 7;
     public int maxSquares;
     public ArrayList<Rectangle2D> squares;
@@ -314,7 +411,6 @@ class ImageComponent extends JComponent {
         repaint();
     }
 
-
     public void mouseClicked(MouseEvent event) {
         // remove the current square if double clicked
         current = find(event.getPoint());
@@ -323,12 +419,20 @@ class ImageComponent extends JComponent {
 
 
     private class MouseHandler extends MouseAdapter {
+
         public void mousePressed(MouseEvent event) {
             // add a new square if the cursor isn't inside a square
             current = find(event.getPoint());
             if (squares.size() < maxSquares) {
                 if (current == null) add(event.getPoint());
             }
+        }
+
+
+        public void mouseClicked(MouseEvent event) {
+            // remove the current square if double clicked
+            current = find(event.getPoint());
+            if (current != null && event.getClickCount() >= 2) remove(current);
         }
     }
 
