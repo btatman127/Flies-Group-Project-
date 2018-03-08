@@ -13,6 +13,7 @@ public class GUI extends JFrame {
     private JPanel buttonPanel;
     private String fileName;
     private String movieDir;
+    private Video movie;
     private JButton openMovie;
     private JButton nextFrame;
     private JButton prevFrame;
@@ -79,7 +80,7 @@ public class GUI extends JFrame {
 //        endLarvaeSelection.setEnabled(false);
 //        endCrop.setEnabled(false);
 
-        frame = new ImageComponent("assets/img001.png");
+        frame = new ImageComponent("pic0.png");
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
 
@@ -126,7 +127,7 @@ public class GUI extends JFrame {
         EventQueue.invokeLater(() ->
         {
             JFrame frame = new GUI();
-            frame.setTitle("GUI");
+            frame.setTitle("The Larvae Tracker 5000");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setVisible(true);
         });
@@ -150,6 +151,14 @@ public class GUI extends JFrame {
             if (rVal == JFileChooser.APPROVE_OPTION) {
                 fileName = c.getSelectedFile().getName();
                 movieDir = c.getCurrentDirectory().toString();
+
+                try {
+                    movie = new Video(movieDir, fileName);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
 
                 openMovie.setVisible(false);
                 openMovie.setEnabled(false);
@@ -189,7 +198,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if (currentFrame + number > 0) {
                 currentFrame += number;
-                String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
+                String frameToDraw = movie.getPathToFrame(currentFrame);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
                 revalidate();
                 repaint();
@@ -229,7 +238,8 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
 
             try {
-                BufferedImage image = ImageIO.read(new File("assets/img001.png"));
+                System.out.println(movie.getImgDir());
+                BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -244,7 +254,7 @@ public class GUI extends JFrame {
 
                 frame.maxSquares = 0;
 
-                PreProcessor.crop(point1, point2, 90);
+                PreProcessor.crop(point1, point2, 3, movie.getImgDir());
 
                 startLarvaeSelection.setEnabled(true);
                 startCrop.setEnabled(true);
