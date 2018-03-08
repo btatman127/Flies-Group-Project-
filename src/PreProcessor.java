@@ -5,12 +5,38 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.lang.Math;
 import java.util.LinkedList;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 
 public class PreProcessor {
 
     public static void main(String[] args) {
-        colorCorrectFrames(2);
+    }
+
+    public static Image scale(String filename, int width, int height) {
+        double displayAngle = Math.atan2(height, width);
+        if(displayAngle < 0){ displayAngle += (2*Math.PI);}
+        try {
+            BufferedImage image = ImageIO.read(new File(filename));
+            double imageAngle = Math.atan2(image.getHeight(),image.getWidth());
+            if(imageAngle < 0){ imageAngle += (2*Math.PI);}
+            Image scaleImage;
+
+            if(displayAngle >= imageAngle){
+                //Giving -1 keeps the Image's original aspect ratio.
+                scaleImage = image.getScaledInstance(width, -1, Image.SCALE_DEFAULT);
+            }else{
+                scaleImage = image.getScaledInstance(-1, height, Image.SCALE_DEFAULT);
+            }
+            return scaleImage;
+            //BufferedImage subimage = new BufferedImage(scaleImage.getWidth(null), scaleImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
+            //subimage.getGraphics().drawImage(scaleImage, 0, 0, null);
+            //ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", frame + 1) + ".png"));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -23,9 +49,9 @@ public class PreProcessor {
     public static void crop(int[] point1, int[] point2, int frames) {
         for (int i = 0; i < frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i+1) + ".png"));
+                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i + 1) + ".png"));
                 BufferedImage subimage = cropImage(image, point1, point2);
-                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i+1) + ".png"));
+                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i + 1) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -62,7 +88,6 @@ public class PreProcessor {
     }
 
     /**
-     *
      * @param frames
      */
     static void colorCorrectFrames(int frames) {
@@ -108,6 +133,40 @@ public class PreProcessor {
         return image;
     }
 
+	/**
+	* Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
+	* @param inputPath
+	* @param outputPath   this String should end with a / character
+	* @param fps    a value of 1 will extract 1 frame for each second of video
+	*/
+	
+	public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
+		
+		// Get runtime
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+		
+		//Path outPath = Paths.get(outputDir);
+		//outPath = outPath.resolve("img%04d.png"); 
+		
+		String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps="+fps, outputPath}; 
+		for (int i = 0; i < command.length; i++) {
+			System.out.println(command[i]);
+		}
+			//= {"ffmpeg", "-i", "2016_06_09_974.mov", "-vf", "fps=1", "a%03d.png"};
+        java.lang.Process p = rt.exec(command);
+        // You can or maybe should wait for the process to complete
+        p.waitFor();
+		/* //CODE TO COLLECT RESULTANT INPUT STREAM:
+        java.io.InputStream is = p.getInputStream();
+        java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+        // And print each line
+        String s = null;
+        while ((s = reader.readLine()) != null) {
+            System.out.println(s);
+        }
+        is.close();
+		*/
+	}
 }
 
 class LimitedQueue extends LinkedList<Integer> {
