@@ -65,18 +65,18 @@ public class GUI extends JFrame {
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        //make sure some of the buttons can't be pressed yet
-//        nextFrame.setVisible(false);
-//        prevFrame.setVisible(false);
-//        startCrop.setVisible(false);
-//        endCrop.setVisible(false);
-//        startLarvaeSelection.setVisible(false);
-//        endLarvaeSelection.setVisible(false);
+        nextFrame.setVisible(false);
+        prevFrame.setVisible(false);
+        startCrop.setVisible(false);
+        endCrop.setVisible(false);
+        startLarvaeSelection.setVisible(false);
+        endLarvaeSelection.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
-        openMovie.setEnabled(false);
-        startLarvaeSelection.setEnabled(false);
-        endLarvaeSelection.setEnabled(false);
-        endCrop.setEnabled(false);
+//        openMovie.setEnabled(false);
+//        startLarvaeSelection.setEnabled(false);
+//        endLarvaeSelection.setEnabled(false);
+//        endCrop.setEnabled(false);
 
         //add an image component and make it draw the first image
         frame = new ImageComponent("pic0.png");
@@ -164,12 +164,12 @@ public class GUI extends JFrame {
                 endCrop.setEnabled(false);
                 pack();
             }
-            if (rVal == JFileChooser.CANCEL_OPTION) {
 
-            }
+//            if (rVal == JFileChooser.CANCEL_OPTION) {
+//
+//            }
         }
     }
-
 
     /**
      * action that, when activated, changes the image being drawn
@@ -189,7 +189,7 @@ public class GUI extends JFrame {
             if(currentFrame+number > 0) {
                 currentFrame += number;
                 String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
-                frame.setImage(frameToDraw);
+                frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
                 revalidate();
                 repaint();
             }
@@ -220,7 +220,7 @@ public class GUI extends JFrame {
      * Stores the location of the center of the two squares on the screen
      * Removes the squares from the image component and prevents more from being drawn
      * Sends the cropping dimensions to a function that will crop the images
-     * Enables "Start Larvae Selection" button, and disables "End Crop" button
+     * Enables "Start Larvae Selection" and "Start Crop" buttons, and disables "End Crop" button
      */
     private class StopCropAction implements ActionListener {
 

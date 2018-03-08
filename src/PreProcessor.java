@@ -3,6 +3,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import java.io.InputStreamReader;
 import java.lang.Math;
 import java.util.LinkedList;
 import java.nio.file.Path;
@@ -113,7 +114,7 @@ public class PreProcessor {
 	/**
 	* Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
 	* @param inputPath
-	* @param outputDir   this String should end with a / character
+	* @param outputPath   this String should end with a / character
 	* @param fps    a value of 1 will extract 1 frame for each second of video
 	*/
 	
@@ -129,11 +130,11 @@ public class PreProcessor {
 		for (int i = 0; i < command.length; i++) {
 			System.out.println(command[i]);
 		}
-			//= {"ffmpeg", "-i", "2016_06_09_974.mov", "-vf", "fps=1", "a%03d.png"};
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
         p.waitFor();
-		/* //CODE TO COLLECT RESULTANT INPUT STREAM:
+
+		 //CODE TO COLLECT RESULTANT INPUT STREAM:
         java.io.InputStream is = p.getInputStream();
         java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
         // And print each line
@@ -142,7 +143,7 @@ public class PreProcessor {
             System.out.println(s);
         }
         is.close();
-		*/
+
 	}
 }
 
