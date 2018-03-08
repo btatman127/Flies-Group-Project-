@@ -2,6 +2,7 @@ import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -27,7 +28,7 @@ public class GUI extends JFrame {
     private static final int DEFAULT_HEIGHT = 100;
 
 
-    public GUI(){
+    public GUI() {
         larvae = new ArrayList<>();
 
         GridBagLayout layout = new GridBagLayout();
@@ -78,10 +79,11 @@ public class GUI extends JFrame {
         endLarvaeSelection.setEnabled(false);
         endCrop.setEnabled(false);
 
-        //add an image component and make it draw the first image
-        frame = new ImageComponent("pic0.png");
-
+        frame = new ImageComponent("assets/img001.png");
         frame.setBorder(BorderFactory.createEtchedBorder());
+        //add the image component to the screen
+
+        //buttonPanel.setLayout(layout);
 
         //create actions for the buttons
         OpenL openAction = new OpenL();
@@ -182,11 +184,10 @@ public class GUI extends JFrame {
 
         public StepAction(int direction) {
             number = direction;
-
         }
 
         public void actionPerformed(ActionEvent event) {
-            if(currentFrame+number > 0) {
+            if (currentFrame + number > 0) {
                 currentFrame += number;
                 String frameToDraw = "assets/img" + String.format("%03d", currentFrame) + ".png";
                 frame.setImage(frameToDraw);
@@ -203,17 +204,14 @@ public class GUI extends JFrame {
     private class StartCropAction implements ActionListener {
 
         public StartCropAction() {
-
         }
 
         public void actionPerformed(ActionEvent event) {
-                frame.maxSquares = 2;
-                startCrop.setEnabled(false);
-                endCrop.setEnabled(true);
-                repaint();
-
+            frame.maxSquares = 2;
+            startCrop.setEnabled(false);
+            endCrop.setEnabled(true);
+            repaint();
         }
-
     }
 
     /**
@@ -222,19 +220,24 @@ public class GUI extends JFrame {
      * Sends the cropping dimensions to a function that will crop the images
      * Enables "Start Larvae Selection" button, and disables "End Crop" button
      */
+
     private class StopCropAction implements ActionListener {
 
-        public StopCropAction(){
+        public StopCropAction() {
         }
 
         public void actionPerformed(ActionEvent event) {
 
-            if(frame.squares.size() == 2) {
-                point1[0] = (int) frame.squares.get(0).getCenterX();
-                point1[1] = (int) frame.squares.get(0).getCenterY();
+            try {
+                BufferedImage image = ImageIO.read(new File("assets/img001.png"));
+                double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
+                double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
-                point2[0] = (int) frame.squares.get(1).getCenterX();
-                point2[1] = (int) frame.squares.get(1).getCenterY();
+                point1[0] = (int) (frame.squares.get(0).getCenterX() * xratio);
+                point1[1] = (int) (frame.squares.get(0).getCenterY() * yratio);
+
+                point2[0] = (int) (frame.squares.get(1).getCenterX() * xratio);
+                point2[1] = (int) (frame.squares.get(1).getCenterY() * yratio);
 
                 frame.remove(frame.squares.get(1));
                 frame.remove(frame.squares.get(0));
@@ -249,12 +252,12 @@ public class GUI extends JFrame {
 
                 revalidate();
                 repaint();
-            } else {
+
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
                 System.out.println("Need to have 2 squares to crop the image.");
             }
-
         }
-
     }
 
     /**
@@ -262,9 +265,10 @@ public class GUI extends JFrame {
      * Disables "Start Crop" and "End Crop" buttons
      * Enables "End Larvae" selection button
      */
+
     private class StartLarvaeAction implements ActionListener {
 
-        public StartLarvaeAction(){
+        public StartLarvaeAction() {
         }
 
         public void actionPerformed(ActionEvent event) {
@@ -273,9 +277,7 @@ public class GUI extends JFrame {
             endCrop.setEnabled(false);
             endLarvaeSelection.setEnabled(true);
             repaint();
-
         }
-
     }
 
     /**
@@ -293,7 +295,7 @@ public class GUI extends JFrame {
                 Larva addition = new Larva(r.getCenterX(), r.getCenterY());
                 larvae.add(addition);
             }
-            for(int i = frame.squares.size() - 1; i >= 0 ; i--){
+            for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));
             }
 
@@ -301,9 +303,7 @@ public class GUI extends JFrame {
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
             repaint();
-
         }
-
     }
 }
 
@@ -321,11 +321,17 @@ class ImageComponent extends JComponent {
     private Rectangle2D current; // the square containing the mouse cursor
     private Image image;
 
-    public ImageComponent(String fileName)
-    {
+    public ImageComponent(String fileName) {
 
         maxSquares = 0;
+
         image = new ImageIcon(fileName).getImage();
+        try {
+            image = ImageIO.read(new File(fileName));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
         squares = new ArrayList<>();
         current = null;
         addMouseListener(new MouseHandler());
@@ -333,18 +339,15 @@ class ImageComponent extends JComponent {
     }
 
     public void setImage(String fileName) {
-        try{
-            image = ImageIO.read(new File(fileName));
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-        //image = new ImageIcon(fileName).getImage();
+        image = PreProcessor.scale(fileName, this.getWidth(), this.getHeight());
+    }
 
+    public Image getImage() {
+        return image;
     }
 
 
-    public void paintComponent(Graphics g)
-    {
+    public void paintComponent(Graphics g) {
 
         if (image == null) return;
 
@@ -407,6 +410,13 @@ class ImageComponent extends JComponent {
         squares.remove(s);
         repaint();
     }
+
+    public void mouseClicked(MouseEvent event) {
+        // remove the current square if double clicked
+        current = find(event.getPoint());
+        if (current != null && event.getClickCount() >= 2) remove(current);
+    }
+
 
     private class MouseHandler extends MouseAdapter {
 
