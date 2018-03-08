@@ -13,7 +13,31 @@ import java.nio.file.Paths;
 public class PreProcessor {
 
     public static void main(String[] args) {
-        colorCorrectFrames(2);
+    }
+
+    public static Image scale(String filename, int width, int height) {
+        double displayAngle = Math.atan2(height, width);
+        if(displayAngle < 0){ displayAngle += (2*Math.PI);}
+        try {
+            BufferedImage image = ImageIO.read(new File(filename));
+            double imageAngle = Math.atan2(image.getHeight(),image.getWidth());
+            if(imageAngle < 0){ imageAngle += (2*Math.PI);}
+            Image scaleImage;
+
+            if(displayAngle >= imageAngle){
+                //Giving -1 keeps the Image's original aspect ratio.
+                scaleImage = image.getScaledInstance(width, -1, Image.SCALE_DEFAULT);
+            }else{
+                scaleImage = image.getScaledInstance(-1, height, Image.SCALE_DEFAULT);
+            }
+            return scaleImage;
+            //BufferedImage subimage = new BufferedImage(scaleImage.getWidth(null), scaleImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
+            //subimage.getGraphics().drawImage(scaleImage, 0, 0, null);
+            //ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", frame + 1) + ".png"));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -26,9 +50,9 @@ public class PreProcessor {
     public static void crop(int[] point1, int[] point2, int frames) {
         for (int i = 0; i < frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i+1) + ".png"));
+                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i + 1) + ".png"));
                 BufferedImage subimage = cropImage(image, point1, point2);
-                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i+1) + ".png"));
+                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i + 1) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -65,7 +89,6 @@ public class PreProcessor {
     }
 
     /**
-     *
      * @param frames
      */
     static void colorCorrectFrames(int frames) {
