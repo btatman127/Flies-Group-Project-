@@ -196,7 +196,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if (currentFrame + number > 0) {
+            if (currentFrame + number > 0 && currentFrame + number <movie.getNumImages()) {
                 currentFrame += number;
                 String frameToDraw = movie.getPathToFrame(currentFrame);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
