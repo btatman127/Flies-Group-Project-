@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.io.File;
 
 public class Video {
     private String movieDir;
@@ -9,9 +10,11 @@ public class Video {
     private String imgDir;
     private int numImages;
 	// length and/or width of each grid square in mm
-	private final int gridSquareSize = 13; 
 	private ArrayList<Larva> larvae;
 	
+    //factor that converts pixels to mm
+    private double scaleFactor;
+
     /**
      * Constructor for a Video object
      * @param movieDir   the movieDir file where the movie is located
@@ -40,26 +43,9 @@ public class Video {
         //call ffmpeg extractor
         PreProcessor.extractFrames(inputPath, outputPath, fps);
 
-		/*
-        //get total num frames
-        command = new String[]{"ls", "-l", System.getProperty("user.dir") + "/" + imgDir, "|", "egrep", "-c", "\'^-\'"};
-        java.lang.Process pnew = rt.exec(command);
-        pnew.waitFor();
+        numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
-        InputStreamReader isr = new InputStreamReader(System.in);
-        System.out.println("got here first\n");
-        BufferedReader br = new BufferedReader(isr);
-        System.out.println("got here\n");
-        String str = br.readLine();
-        System.out.println("get here last\n");
-        try{
-            numImages = Integer.valueOf(str).intValue();
-        } catch (NumberFormatException nfe){
-            System.out.println("Incorrect format!");
-        }
 
-        System.out.println(numImages);
-		*/
     }
 	
 	public ArrayList<Larva> getLarva() {
@@ -92,5 +78,13 @@ public class Video {
 
     public int getNumImages() {
         return numImages;
+    }
+
+    public void setScaleFactor(double scaleFactor) {
+        this.scaleFactor = scaleFactor;
+    }
+
+    public double getScaleFactor() {
+        return scaleFactor;
     }
 }
