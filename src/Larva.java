@@ -4,10 +4,11 @@ public class Larva {
 
     public Larva( double x_initial, double y_initial){
 
-        position = new double[2][1000];
+        position = new double[1000][2];
         position[0][0] = x_initial;
-        position[1][0] = y_initial;
+        position[0][1] = y_initial;
         time = 0;
+       
     }
 
 

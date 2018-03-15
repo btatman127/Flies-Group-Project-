@@ -21,6 +21,7 @@ public class GUI extends JFrame {
     private JButton endCrop;
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
+    private JCheckBox showPaths;
     private int[] point1;
     private int[] point2;
     private ArrayList<Larva> larvae;
@@ -50,6 +51,7 @@ public class GUI extends JFrame {
         endCrop = new JButton("End Crop");
         startLarvaeSelection = new JButton("Start Larvae Selection");
         endLarvaeSelection = new JButton("End Larvae Selection");
+        showPaths = new JCheckBox("Show Larvae Paths");
 
 
         //make new panel for buttons
@@ -64,15 +66,16 @@ public class GUI extends JFrame {
         buttonPanel.add(endCrop);
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
+        buttonPanel.add(showPaths);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        //make sure some of the buttons can't be pressed yet
-        nextFrame.setVisible(false);
-        prevFrame.setVisible(false);
-        startCrop.setVisible(false);
-        endCrop.setVisible(false);
-        startLarvaeSelection.setVisible(false);
-        endLarvaeSelection.setVisible(false);
+//        nextFrame.setVisible(false);
+//        prevFrame.setVisible(false);
+//        startCrop.setVisible(false);
+//        endCrop.setVisible(false);
+//        startLarvaeSelection.setVisible(false);
+//        endLarvaeSelection.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -80,7 +83,7 @@ public class GUI extends JFrame {
 //        endLarvaeSelection.setEnabled(false);
 //        endCrop.setEnabled(false);
 
-        frame = new ImageComponent("pic0.png");
+        frame = new ImageComponent("pic1.png");
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
 
@@ -94,6 +97,7 @@ public class GUI extends JFrame {
         StopCropAction stopCropAction = new StopCropAction();
         StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
+        ShowPathAction showPathAction = new ShowPathAction();
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -114,6 +118,7 @@ public class GUI extends JFrame {
         endCrop.addActionListener(stopCropAction);
         startLarvaeSelection.addActionListener(startLarvaeAction);
         endLarvaeSelection.addActionListener(stopLarvaeAction);
+        showPaths.addActionListener(showPathAction);
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -122,7 +127,7 @@ public class GUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        //System.out.println("Hello World!");
 
         EventQueue.invokeLater(() ->
         {
@@ -198,6 +203,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if (currentFrame + number > 0) {
                 currentFrame += number;
+                frame.currentFrame = currentFrame;
                 String frameToDraw = movie.getPathToFrame(currentFrame);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
                 revalidate();
@@ -257,7 +263,8 @@ public class GUI extends JFrame {
                 frame.maxSquares = 0;
 
 
-                PreProcessor.crop(point1, point2, 3, movie.getImgDir());
+                PreProcessor.crop(point1, point2, 13, movie.getImgDir());
+                PreProcessor.colorCorrectFrames(13, movie.getImgDir());
 
 
                 startLarvaeSelection.setEnabled(true);
@@ -308,6 +315,7 @@ public class GUI extends JFrame {
             for (Rectangle2D r : frame.squares) {
                 Larva addition = new Larva(r.getCenterX(), r.getCenterY());
                 larvae.add(addition);
+                frame.larvae.add(addition);
             }
             for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));
@@ -319,9 +327,21 @@ public class GUI extends JFrame {
             repaint();
         }
     }
+
+
+    private class ShowPathAction implements ActionListener {
+
+        public ShowPathAction() {
+
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            frame.displayPaths = !frame.displayPaths;
+            repaint();
+        }
+
+    }
 }
-
-
 /**
  * A component that displays a tiled image and allows for movable squares to be painted on it
  */
@@ -332,20 +352,24 @@ class ImageComponent extends JComponent {
     private static final int SIDELENGTH = 7;
     public int maxSquares;
     public ArrayList<Rectangle2D> squares;
+    public ArrayList<Larva> larvae;
+    public int currentFrame;
+    public boolean displayPaths;
+
     private Rectangle2D current; // the square containing the mouse cursor
     private Image image;
 
     public ImageComponent(String fileName) {
 
         maxSquares = 0;
-
+        displayPaths = false;
         image = new ImageIcon(fileName).getImage();
         try {
             image = ImageIO.read(new File(fileName));
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-
+        larvae = new ArrayList<>();
         squares = new ArrayList<>();
         current = null;
         addMouseListener(new MouseHandler());
@@ -362,7 +386,7 @@ class ImageComponent extends JComponent {
 
 
     public void paintComponent(Graphics g) {
-
+        Color[] colors = {Color.cyan, Color.blue, Color.orange, Color.green};
         if (image == null) return;
 
         int imageWidth = image.getWidth(null);
@@ -373,12 +397,24 @@ class ImageComponent extends JComponent {
         g.drawImage(image, 0, 0, null);
         // tile the image across the component
         Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.red);
 
         // draw all squares
         for (Rectangle2D r : squares)
             g2.draw(r);
 
+        //draw lines between larvae positions
+        if (displayPaths) {
+
+            for (Larva l : larvae) {
+                g2.setColor(colors[larvae.indexOf(l)]);
+                for (int i = 0; i < currentFrame - 1; i++) {
+                    g2.draw(new Line2D.Double(l.getPosition()[i][0], l.getPosition()[i][1], l.getPosition()[i + 1][0], l.getPosition()[i + 1][1]));
+                }
+            }
+        }
     }
+
 
     public Dimension getPreferredSize() {
         return new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT);
