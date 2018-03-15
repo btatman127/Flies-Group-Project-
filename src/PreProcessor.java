@@ -3,6 +3,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import java.io.InputStreamReader;
 import java.lang.Math;
 import java.util.LinkedList;
 import java.nio.file.Path;
@@ -46,12 +47,12 @@ public class PreProcessor {
      * @param point2 An integer array {x,y} of one coordinate to crop.
      * @param frames The total number of frames in the video to crop.
      */
-    public static void crop(int[] point1, int[] point2, int frames) {
-        for (int i = 0; i < frames; i++) {
+    public static void crop(int[] point1, int[] point2, int frames, String directory) {
+        for (int i = 1; i <= frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i + 1) + ".png"));
+                BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i) + ".png"));
                 BufferedImage subimage = cropImage(image, point1, point2);
-                ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", i + 1) + ".png"));
+                ImageIO.write(subimage, "png", new File(directory + "/img" + String.format("%04d", i) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -90,12 +91,12 @@ public class PreProcessor {
     /**
      * @param frames
      */
-    static void colorCorrectFrames(int frames) {
-        for (int i = 0; i < frames; i++) {
+    static void colorCorrectFrames(int frames, String directory) {
+        for (int i = 1; i <= frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File("assets/img" + String.format("%03d", i) + ".png"));
+                BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i) + ".png"));
                 BufferedImage colorImage = colorCorrect(image);
-                ImageIO.write(colorImage, "png", new File("assets/img" + String.format("%03d", i) + ".png"));
+                ImageIO.write(colorImage, "png", new File(directory + "/img" + String.format("%04d", i) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -152,11 +153,11 @@ public class PreProcessor {
 		for (int i = 0; i < command.length; i++) {
 			System.out.println(command[i]);
 		}
-			//= {"ffmpeg", "-i", "2016_06_09_974.mov", "-vf", "fps=1", "a%03d.png"};
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
         p.waitFor();
-		/* //CODE TO COLLECT RESULTANT INPUT STREAM:
+
+		 //CODE TO COLLECT RESULTANT INPUT STREAM:
         java.io.InputStream is = p.getInputStream();
         java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
         // And print each line
@@ -165,7 +166,7 @@ public class PreProcessor {
             System.out.println(s);
         }
         is.close();
-		*/
+
 	}
 }
 
