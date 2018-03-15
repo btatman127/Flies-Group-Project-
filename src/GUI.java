@@ -70,12 +70,12 @@ public class GUI extends JFrame {
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        //make sure some of the buttons can't be pressed yet
-//        nextFrame.setVisible(false);
-//        prevFrame.setVisible(false);
-//        startCrop.setVisible(false);
-//        endCrop.setVisible(false);
-//        startLarvaeSelection.setVisible(false);
-//        endLarvaeSelection.setVisible(false);
+        nextFrame.setVisible(false);
+        prevFrame.setVisible(false);
+        startCrop.setVisible(false);
+        endCrop.setVisible(false);
+        startLarvaeSelection.setVisible(false);
+        endLarvaeSelection.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -193,7 +193,7 @@ public class GUI extends JFrame {
      */
     private class StepAction extends AbstractAction {
         private int number;
-        private ImageComponent ourFrame;
+        //private ImageComponent ourFrame;
 
 
         public StepAction(int direction) {
@@ -264,7 +264,7 @@ public class GUI extends JFrame {
 
 
                 PreProcessor.crop(point1, point2, 3, movie.getImgDir());
-
+                movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
 
 
                 startLarvaeSelection.setEnabled(true);
