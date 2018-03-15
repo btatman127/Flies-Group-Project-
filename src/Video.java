@@ -1,10 +1,12 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Video {
     private String movieDir;
     private String movieName;
     private String imgDir;
-
+    private int numImages;
 
     /**
      * Constructor for a Video object
@@ -32,13 +34,25 @@ public class Video {
         PreProcessor.extractFrames(inputPath, outputPath, fps);
 
 
-        // System.getProperty("user.dir") --> "working directory"
-        // create the imgDir --> involves finding the working dir of the java application
-        // call the preprocessor function
+        //get total num frames
+        command = new String[]{"ls", "-l", System.getProperty("user.dir") + "/" + imgDir, "|", "egrep", "-c", "\'^-\'"};
+        java.lang.Process pnew = rt.exec(command);
+        pnew.waitFor();
 
+        InputStreamReader isr = new InputStreamReader(System.in);
+        System.out.println("got here first\n");
+        BufferedReader br = new BufferedReader(isr);
+        System.out.println("got here\n");
+        String str = br.readLine();
+        System.out.println("get here last\n");
+        try{
+            numImages = Integer.valueOf(str).intValue();
+        } catch (NumberFormatException nfe){
+            System.out.println("Incorrect format!");
+        }
 
-        //call the preprocessor function to make the images from the movie
-        //use the folder name that is given to the video class as the outputPath
+        System.out.println(numImages);
+
     }
 
     public String getPathToFrame(int index){
@@ -59,5 +73,9 @@ public class Video {
 
     public String getMovieName() {
         return movieName;
+    }
+
+    public int getNumImages() {
+        return numImages;
     }
 }

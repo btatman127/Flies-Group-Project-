@@ -201,7 +201,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if (currentFrame + number > 0) {
+            if (currentFrame + number > 0 && currentFrame + number <movie.getNumImages()) {
                 currentFrame += number;
                 frame.currentFrame = currentFrame;
                 String frameToDraw = movie.getPathToFrame(currentFrame);
@@ -263,8 +263,8 @@ public class GUI extends JFrame {
                 frame.maxSquares = 0;
 
 
-                PreProcessor.crop(point1, point2, 13, movie.getImgDir());
-                PreProcessor.colorCorrectFrames(13, movie.getImgDir());
+                PreProcessor.crop(point1, point2, 3, movie.getImgDir());
+
 
 
                 startLarvaeSelection.setEnabled(true);
