@@ -23,14 +23,14 @@ public class GUI extends JFrame {
     private JButton endLarvaeSelection;
     private int[] point1;
     private int[] point2;
-    private ArrayList<Larva> larvae;
+    //private ArrayList<Larva> larvae; //moved to video class (movie variable)
     public ImageComponent frame;
     private static final int DEFAULT_WIDTH = 100;
     private static final int DEFAULT_HEIGHT = 100;
 
 
     public GUI() {
-        larvae = new ArrayList<>();
+        //larvae = new ArrayList<>(); //moved to video class
 
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
@@ -303,7 +303,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             for (Rectangle2D r : frame.squares) {
                 Larva addition = new Larva(r.getCenterX(), r.getCenterY());
-                larvae.add(addition);
+                movie.addLarva(addition);
             }
             for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));

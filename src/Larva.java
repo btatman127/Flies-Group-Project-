@@ -1,27 +1,21 @@
+import java.util.ArrayList;
+
 public class Larva {
-    private double[][] position;
-    private int time;
+	private ArrayList<Double[]> positions;
 
-    public Larva( double x_initial, double y_initial){
+	public Larva(Double y_initial, Double x_initial){
+		positions = new ArrayList<Double[]>();
+		Double[] coordinates = {y_initial, x_initial};
+		positions.add(coordinates);
+	}
 
-        position = new double[2][1000];
-        position[0][0] = x_initial;
-        position[1][0] = y_initial;
-        time = 0;
+    public Double[] getPosition(int frame) {
+        return positions.get(frame);
     }
-
-
-
-
-    public double[][] getPosition() {
-        return position;
-    }
-
-
-    public void setNewPosition(double x, double y) {
-        position[0][time] = x;
-        position[1][time] = y;
-        time++;
+	
+    public void setNewPosition(Double y, Double x) {
+		Double[] coordinates = {y, x};
+		positions.add(coordinates);
     }
 
 
