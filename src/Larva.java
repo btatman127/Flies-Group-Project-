@@ -3,9 +3,9 @@ import java.util.ArrayList;
 public class Larva {
 	private ArrayList<Double[]> positions;
 
-	public Larva(Double y_initial, Double x_initial){
+	public Larva(Double x_initial, Double y_initial){
 		positions = new ArrayList<Double[]>();
-		Double[] coordinates = {y_initial, x_initial};
+		Double[] coordinates = {x_initial, y_initial};
 		positions.add(coordinates);
 	}
 
@@ -13,8 +13,8 @@ public class Larva {
         return positions.get(frame);
     }
 	
-    public void setNewPosition(Double y, Double x) {
-		Double[] coordinates = {y, x};
+    public void setNewPosition(Double x, Double y) {
+		Double[] coordinates = {x, y};
 		positions.add(coordinates);
     }
 

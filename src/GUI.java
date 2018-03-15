@@ -411,7 +411,7 @@ class ImageComponent extends JComponent {
             for (Larva l : larvae) {
                 g2.setColor(colors[larvae.indexOf(l)]);
                 for (int i = 0; i < currentFrame - 1; i++) {
-                    g2.draw(new Line2D.Double(l.getPosition()[i][0], l.getPosition()[i][1], l.getPosition()[i + 1][0], l.getPosition()[i + 1][1]));
+                    g2.draw(new Line2D.Double(l.getPosition(i)[0], l.getPosition(i)[1], l.getPosition(i + 1)[0], l.getPosition(i + 1)[1]));
                 }
             }
         }
