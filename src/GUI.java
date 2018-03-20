@@ -24,6 +24,7 @@ public class GUI extends JFrame {
     private JCheckBox showPaths;
     private int[] point1;
     private int[] point2;
+    private FileDialog fd;
     //private ArrayList<Larva> larvae; //moved to video class (movie variable)
     public ImageComponent frame;
     private static final int DEFAULT_WIDTH = 100;
@@ -32,6 +33,9 @@ public class GUI extends JFrame {
 
     public GUI() {
         //larvae = new ArrayList<>(); //moved to video class
+
+        fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
+        fd.setDirectory("C:\\");
 
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
@@ -149,42 +153,39 @@ public class GUI extends JFrame {
     class OpenL implements ActionListener {
         public void actionPerformed(ActionEvent e) {
 
+            fd.setVisible(true);
+            fileName = fd.getFile();
+            movieDir = fd.getDirectory();
 
-            JFileChooser c = new JFileChooser();
-            // Demonstrate "Open" dialog:
-            int rVal = c.showOpenDialog(GUI.this);
-            if (rVal == JFileChooser.APPROVE_OPTION) {
-                fileName = c.getSelectedFile().getName();
-                movieDir = c.getCurrentDirectory().toString();
 
-                try {
-                    movie = new Video(movieDir, fileName);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-
-                openMovie.setVisible(false);
-                openMovie.setEnabled(false);
-
-                nextFrame.setVisible(true);
-                prevFrame.setVisible(true);
-                startCrop.setVisible(true);
-                endCrop.setVisible(true);
-                startLarvaeSelection.setVisible(true);
-                endLarvaeSelection.setVisible(true);
-
-                startLarvaeSelection.setEnabled(false);
-                endLarvaeSelection.setEnabled(false);
-                endCrop.setEnabled(false);
-                pack();
+            try {
+                movie = new Video(movieDir, fileName);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
             }
+
+            openMovie.setVisible(false);
+            openMovie.setEnabled(false);
+
+            nextFrame.setVisible(true);
+            prevFrame.setVisible(true);
+            startCrop.setVisible(true);
+            endCrop.setVisible(true);
+            startLarvaeSelection.setVisible(true);
+            endLarvaeSelection.setVisible(true);
+
+            startLarvaeSelection.setEnabled(false);
+            endLarvaeSelection.setEnabled(false);
+            endCrop.setEnabled(false);
+            pack();
+        }
 
 //            if (rVal == JFileChooser.CANCEL_OPTION) {
 //
 //            }
-        }
+
     }
 
     /**
@@ -263,7 +264,7 @@ public class GUI extends JFrame {
                 frame.maxSquares = 0;
 
 
-                PreProcessor.crop(point1, point2, 3, movie.getImgDir());
+                PreProcessor.crop(point1, point2, movie.getNumImages(), movie.getImgDir());
                 movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
 
 
