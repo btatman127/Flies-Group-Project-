@@ -21,6 +21,7 @@ public class GUI extends JFrame {
     private JButton endCrop;
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
+    private JButton exportCSV;
     private JCheckBox showPaths;
     private int[] point1;
     private int[] point2;
@@ -56,6 +57,7 @@ public class GUI extends JFrame {
         startLarvaeSelection = new JButton("Start Larvae Selection");
         endLarvaeSelection = new JButton("End Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
+        exportCSV = new JButton(("Export as CSV file"));
 
 
         //make new panel for buttons
@@ -71,6 +73,7 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
         buttonPanel.add(showPaths);
+        buttonPanel.add(exportCSV);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        //make sure some of the buttons can't be pressed yet
@@ -81,6 +84,7 @@ public class GUI extends JFrame {
         startLarvaeSelection.setVisible(false);
         endLarvaeSelection.setVisible(false);
         showPaths.setVisible(false);
+        exportCSV.setVisible(true);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -103,6 +107,7 @@ public class GUI extends JFrame {
         StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
         ShowPathAction showPathAction = new ShowPathAction();
+        CSVExportAction exportAction = new CSVExportAction();
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -124,6 +129,7 @@ public class GUI extends JFrame {
         startLarvaeSelection.addActionListener(startLarvaeAction);
         endLarvaeSelection.addActionListener(stopLarvaeAction);
         showPaths.addActionListener(showPathAction);
+        exportCSV.addActionListener(exportAction);
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -208,6 +214,7 @@ public class GUI extends JFrame {
             startLarvaeSelection.setVisible(true);
             endLarvaeSelection.setVisible(true);
             showPaths.setVisible(true);
+            exportCSV.setVisible(true);
 
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
@@ -377,7 +384,19 @@ public class GUI extends JFrame {
         }
 
     }
+    private class CSVExportAction implements ActionListener {
+        private CSVExport exporter;
+
+        public CSVExportAction() {
+            //exporter = new CSVExport(movie.getLarva());
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            exporter.export();
+        }
+    }
 }
+
 /**
  * A component that displays a tiled image and allows for movable squares to be painted on it
  */

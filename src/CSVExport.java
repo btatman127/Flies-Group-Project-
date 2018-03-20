@@ -1,9 +1,10 @@
 import java.util.ArrayList;
 
+
 public class CSVExport {
 	private String result = "";
 
-	public CSV(ArrayList<Larva> larvae) {
+	public CSVExport(ArrayList<Larva> larvae) {
 		for (int i = 0; i < larvae.size(); i++) {
 			String larvaName = "larva" + Integer.toString(i+1);
 			result = result + larvaName;
