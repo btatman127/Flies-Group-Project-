@@ -53,7 +53,12 @@ public class Video {
 	}
 	
 	public void addLarva(Larva l) {
-		larvae.add(l	);
+		System.out.println("added larva: ");
+		Double[] a = l.getPosition(0);
+		for (int i = 0; i < 2; i++) {
+			System.out.println("\t" + Double.toString(a[i]));
+		}
+		larvae.add(l);
 	}
 
     public String getPathToFrame(int index){
