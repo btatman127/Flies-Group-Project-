@@ -342,6 +342,17 @@ public class GUI extends JFrame {
         }
     }
 
+    private class CSVExportAction implements ActionListener {
+
+        public CSVExportAction() {
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            CSVExport exporter = new CSVExport(movie.getLarva(), movie.getNumImages());
+            exporter.export();
+        }
+    }
+
     /**
      * Searches through all the squares in the Image Component and adds their locations as new Larvae to larvae array
      * Removes all the squares from the Image Component and prevent more from being made
@@ -384,17 +395,7 @@ public class GUI extends JFrame {
         }
 
     }
-    private class CSVExportAction implements ActionListener {
-        private CSVExport exporter;
 
-        public CSVExportAction() {
-            //exporter = new CSVExport(movie.getLarva());
-        }
-
-        public void actionPerformed(ActionEvent event) {
-            exporter.export();
-        }
-    }
 }
 
 /**
