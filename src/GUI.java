@@ -80,6 +80,7 @@ public class GUI extends JFrame {
         endCrop.setVisible(false);
         startLarvaeSelection.setVisible(false);
         endLarvaeSelection.setVisible(false);
+        showPaths.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -135,13 +136,44 @@ public class GUI extends JFrame {
 
         EventQueue.invokeLater(() ->
         {
-            JFrame frame = new GUI();
+            GUI frame = new GUI();
             frame.setTitle("The Larvae Tracker 5000");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            WindowListener exitListener = new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent e){
+                    try {
+                        frame.removeDirectory(frame.movie);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+
+                    System.exit(0);
+                }
+            };
+            frame.addWindowListener(exitListener);
+            //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setVisible(true);
+
+
         });
 
+
     }
+    /** removes directory that was created by ffmpeg **/
+    public void removeDirectory(Video movie) throws IOException, InterruptedException {
+
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+        if (movie != null) {
+            System.out.println( System.getProperty("user.dir") + "/" + movie.getImgDir());
+            String[] command = new String[]{"rm", "-rf", System.getProperty("user.dir") + "/" + movie.getImgDir()};
+            java.lang.Process p = rt.exec(command);
+            p.waitFor();
+        }
+    }
+
 
     /**
      * Allows the user to select a file from the computer
@@ -166,8 +198,8 @@ public class GUI extends JFrame {
                 e1.printStackTrace();
             }
 
-            openMovie.setVisible(false);
-            openMovie.setEnabled(false);
+//            openMovie.setVisible(false);
+//            openMovie.setEnabled(false);
 
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
@@ -175,6 +207,7 @@ public class GUI extends JFrame {
             endCrop.setVisible(true);
             startLarvaeSelection.setVisible(true);
             endLarvaeSelection.setVisible(true);
+            showPaths.setVisible(true);
 
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
