@@ -21,9 +21,11 @@ public class GUI extends JFrame {
     private JButton endCrop;
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
+    private JButton exportCSV;
     private JCheckBox showPaths;
     private int[] point1;
     private int[] point2;
+    private FileDialog fd;
     //private ArrayList<Larva> larvae; //moved to video class (movie variable)
     public ImageComponent frame;
     private static final int DEFAULT_WIDTH = 100;
@@ -32,6 +34,9 @@ public class GUI extends JFrame {
 
     public GUI() {
         //larvae = new ArrayList<>(); //moved to video class
+
+        fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
+        fd.setDirectory("C:\\");
 
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
@@ -52,6 +57,7 @@ public class GUI extends JFrame {
         startLarvaeSelection = new JButton("Start Larvae Selection");
         endLarvaeSelection = new JButton("End Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
+        exportCSV = new JButton(("Export as CSV file"));
 
 
         //make new panel for buttons
@@ -67,15 +73,18 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
         buttonPanel.add(showPaths);
+        buttonPanel.add(exportCSV);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
-//        //make sure some of the buttons can't be pressed yet
+        //make sure some of the buttons can't be pressed yet
         nextFrame.setVisible(false);
         prevFrame.setVisible(false);
         startCrop.setVisible(false);
         endCrop.setVisible(false);
         startLarvaeSelection.setVisible(false);
         endLarvaeSelection.setVisible(false);
+        showPaths.setVisible(false);
+        exportCSV.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -98,6 +107,7 @@ public class GUI extends JFrame {
         StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
         ShowPathAction showPathAction = new ShowPathAction();
+        CSVExportAction exportAction = new CSVExportAction();
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -119,6 +129,7 @@ public class GUI extends JFrame {
         startLarvaeSelection.addActionListener(startLarvaeAction);
         endLarvaeSelection.addActionListener(stopLarvaeAction);
         showPaths.addActionListener(showPathAction);
+        exportCSV.addActionListener(exportAction);
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -131,13 +142,44 @@ public class GUI extends JFrame {
 
         EventQueue.invokeLater(() ->
         {
-            JFrame frame = new GUI();
+            GUI frame = new GUI();
             frame.setTitle("The Larvae Tracker 5000");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            WindowListener exitListener = new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent e){
+                    try {
+                        frame.removeDirectory(frame.movie);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+
+                    System.exit(0);
+                }
+            };
+            frame.addWindowListener(exitListener);
+            //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setVisible(true);
+
+
         });
 
+
     }
+    /** removes directory that was created by ffmpeg **/
+    public void removeDirectory(Video movie) throws IOException, InterruptedException {
+
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+        if (movie != null) {
+            //System.out.println( System.getProperty("user.dir") + "/" + movie.getImgDir());
+            String[] command = new String[]{"rm", "-rf", System.getProperty("user.dir") + "/" + movie.getImgDir()};
+            java.lang.Process p = rt.exec(command);
+            p.waitFor();
+        }
+    }
+
 
     /**
      * Allows the user to select a file from the computer
@@ -149,42 +191,51 @@ public class GUI extends JFrame {
     class OpenL implements ActionListener {
         public void actionPerformed(ActionEvent e) {
 
+            fd.setVisible(true);
+            String name = fd.getFile();
+            String dir = fd.getDirectory();
 
-            JFileChooser c = new JFileChooser();
-            // Demonstrate "Open" dialog:
-            int rVal = c.showOpenDialog(GUI.this);
-            if (rVal == JFileChooser.APPROVE_OPTION) {
-                fileName = c.getSelectedFile().getName();
-                movieDir = c.getCurrentDirectory().toString();
-
-                try {
-                    movie = new Video(movieDir, fileName);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-
-                openMovie.setVisible(false);
-                openMovie.setEnabled(false);
-
-                nextFrame.setVisible(true);
-                prevFrame.setVisible(true);
-                startCrop.setVisible(true);
-                endCrop.setVisible(true);
-                startLarvaeSelection.setVisible(true);
-                endLarvaeSelection.setVisible(true);
-
-                startLarvaeSelection.setEnabled(false);
-                endLarvaeSelection.setEnabled(false);
-                endCrop.setEnabled(false);
-                pack();
+            if(name != null){
+                fileName = name;
+                movieDir = dir;
+                currentFrame = 1;
             }
+
+
+            try {
+                movie = new Video(movieDir, fileName);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+
+//            openMovie.setVisible(false);
+//            openMovie.setEnabled(false);
+
+            nextFrame.setVisible(true);
+            prevFrame.setVisible(true);
+            startCrop.setVisible(true);
+            endCrop.setVisible(true);
+            startLarvaeSelection.setVisible(true);
+            endLarvaeSelection.setVisible(true);
+            showPaths.setVisible(true);
+            exportCSV.setVisible(true);
+
+            startLarvaeSelection.setEnabled(true);
+            endLarvaeSelection.setEnabled(true);
+            endCrop.setEnabled(false);
+            pack();
+            String frameToDraw = movie.getPathToFrame(currentFrame);
+            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+            validate();
+            repaint();
+        }
 
 //            if (rVal == JFileChooser.CANCEL_OPTION) {
 //
 //            }
-        }
+
     }
 
     /**
@@ -263,13 +314,16 @@ public class GUI extends JFrame {
                 frame.maxSquares = 0;
 
 
-                PreProcessor.crop(point1, point2, 3, movie.getImgDir());
+                PreProcessor.crop(point1, point2, movie.getNumImages(), movie.getImgDir());
                 movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
 
 
                 startLarvaeSelection.setEnabled(true);
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
+
+                String frameToDraw = movie.getPathToFrame(currentFrame);
+                frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
 
                 revalidate();
                 repaint();
@@ -301,6 +355,18 @@ public class GUI extends JFrame {
         }
     }
 
+    private class CSVExportAction implements ActionListener {
+
+        public CSVExportAction() {
+        }
+
+        public void actionPerformed(ActionEvent event) {
+			int frames = movie.getLarva().get(0).getCoordinates().size();
+            CSVExport exporter = new CSVExport(movie.getLarva(), frames);
+            exporter.export();
+        }
+    }
+
     /**
      * Searches through all the squares in the Image Component and adds their locations as new Larvae to larvae array
      * Removes all the squares from the Image Component and prevent more from being made
@@ -317,7 +383,7 @@ public class GUI extends JFrame {
 
                 movie.addLarva(addition);
 
-                //frame.larvae.add(addition);
+                frame.larvae.add(addition);
             }
             for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));
@@ -343,7 +409,9 @@ public class GUI extends JFrame {
         }
 
     }
+
 }
+
 /**
  * A component that displays a tiled image and allows for movable squares to be painted on it
  */
@@ -402,16 +470,26 @@ class ImageComponent extends JComponent {
         g2.setColor(Color.red);
 
         // draw all squares
-        for (Rectangle2D r : squares)
+        for (Rectangle2D r : squares) {
             g2.draw(r);
+        }
+
 
         //draw lines between larvae positions
         if (displayPaths) {
-
             for (Larva l : larvae) {
                 g2.setColor(colors[larvae.indexOf(l)]);
                 for (int i = 0; i < currentFrame - 1; i++) {
+
+                    g2.setStroke(new BasicStroke(1));
                     g2.draw(new Line2D.Double(l.getPosition(i)[0], l.getPosition(i)[1], l.getPosition(i + 1)[0], l.getPosition(i + 1)[1]));
+                    g2.draw(new Ellipse2D.Double(l.getPosition(i)[0]-3, l.getPosition(i)[1]-3, 6, 6));
+                    g2.draw(new Ellipse2D.Double(l.getPosition(i + 1)[0]-3, l.getPosition(i + 1)[1]-3, 6, 6));
+
+                    if (i == currentFrame - 2) {
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i + 1)[0] - 3), (int) (l.getPosition(i + 1)[1] - 3));
+                    }
+
                 }
             }
         }
