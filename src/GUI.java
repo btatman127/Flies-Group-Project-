@@ -76,15 +76,15 @@ public class GUI extends JFrame {
         buttonPanel.add(exportCSV);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
-//        //make sure some of the buttons can't be pressed yet
-//        nextFrame.setVisible(false);
-//        prevFrame.setVisible(false);
-//        startCrop.setVisible(false);
-//        endCrop.setVisible(false);
-//        startLarvaeSelection.setVisible(false);
-//        endLarvaeSelection.setVisible(false);
-//        showPaths.setVisible(false);
-//        exportCSV.setVisible(true);
+        //make sure some of the buttons can't be pressed yet
+        nextFrame.setVisible(false);
+        prevFrame.setVisible(false);
+        startCrop.setVisible(false);
+        endCrop.setVisible(false);
+        startLarvaeSelection.setVisible(false);
+        endLarvaeSelection.setVisible(false);
+        showPaths.setVisible(false);
+        exportCSV.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -173,7 +173,7 @@ public class GUI extends JFrame {
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
         if (movie != null) {
-            System.out.println( System.getProperty("user.dir") + "/" + movie.getImgDir());
+            //System.out.println( System.getProperty("user.dir") + "/" + movie.getImgDir());
             String[] command = new String[]{"rm", "-rf", System.getProperty("user.dir") + "/" + movie.getImgDir()};
             java.lang.Process p = rt.exec(command);
             p.waitFor();
@@ -473,24 +473,23 @@ class ImageComponent extends JComponent {
         for (Rectangle2D r : squares) {
             g2.draw(r);
         }
-        System.out.println(displayPaths);
+
 
         //draw lines between larvae positions
         if (displayPaths) {
             for (Larva l : larvae) {
-                //System.out.println("got to color");
                 g2.setColor(colors[larvae.indexOf(l)]);
                 for (int i = 0; i < currentFrame - 1; i++) {
-                    //System.out.println("got to drawing");
+
                     g2.setStroke(new BasicStroke(1));
                     g2.draw(new Line2D.Double(l.getPosition(i)[0], l.getPosition(i)[1], l.getPosition(i + 1)[0], l.getPosition(i + 1)[1]));
                     g2.draw(new Ellipse2D.Double(l.getPosition(i)[0]-3, l.getPosition(i)[1]-3, 6, 6));
+                    g2.draw(new Ellipse2D.Double(l.getPosition(i + 1)[0]-3, l.getPosition(i + 1)[1]-3, 6, 6));
 
-                    if (i = =l.positions(i + 1) ) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i)[0] - 3), (int) (l.getPosition(i)[1] - 3));
+                    if (i == currentFrame - 2) {
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i + 1)[0] - 3), (int) (l.getPosition(i + 1)[1] - 3));
                     }
-                    System.out.println(l.getPosition(i)[0] + " " + l.getPosition(i)[1]);
-                    //System.out.println(l.getPosition(i)[1]);
+
                 }
             }
         }
