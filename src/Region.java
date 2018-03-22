@@ -1,4 +1,8 @@
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class Region {
     private BufferedImage image;
@@ -7,7 +11,7 @@ public class Region {
     private int width;
     private int height;
 
-    public Region(Region Parent, BufferedImage image, int depth) {
+    public Region(BufferedImage image) {
         this.image = image;
         width = image.getWidth();
         height = image.getHeight();
@@ -32,5 +36,7 @@ public class Region {
         return avgValue;
     }
 
-
 }
+
+
+
