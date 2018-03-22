@@ -75,12 +75,11 @@ public class Tracker {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
                 larvaLoc[frame][i][j] = avg < threshold;
-                System.out.println((avg < threshold) + "  avg < thresh " + avg + " " + threshold );
+                //System.out.println((avg < threshold) + "  avg < thresh " + avg + " " + threshold );
                 int b = 255;
                 if(larvaLoc[frame][i][j]){ b= 0;}
                 array.setRGB(i,j,new Color(b,b,b).getRGB());
             }
-            //System.out.println();
         }
         return array;
     }
