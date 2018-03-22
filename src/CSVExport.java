@@ -20,6 +20,7 @@ public class CSVExport {
 		}
 		result = result + "\n";
 		for (int row = 0; row < frames; row++) {
+			System.out.println("row:" + row + "frames:" + frames);
 			for (int coord = 0; coord < larvae.size(); coord++) {
 				String x = Double.toString(larvae.get(coord).getPosition(row)[0]);
 				String y = Double.toString(larvae.get(coord).getPosition(row)[1]);

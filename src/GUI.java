@@ -77,14 +77,14 @@ public class GUI extends JFrame {
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        //make sure some of the buttons can't be pressed yet
-        nextFrame.setVisible(false);
-        prevFrame.setVisible(false);
-        startCrop.setVisible(false);
-        endCrop.setVisible(false);
-        startLarvaeSelection.setVisible(false);
-        endLarvaeSelection.setVisible(false);
-        showPaths.setVisible(false);
-        exportCSV.setVisible(true);
+//        nextFrame.setVisible(false);
+//        prevFrame.setVisible(false);
+//        startCrop.setVisible(false);
+//        endCrop.setVisible(false);
+//        startLarvaeSelection.setVisible(false);
+//        endLarvaeSelection.setVisible(false);
+//        showPaths.setVisible(false);
+//        exportCSV.setVisible(true);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -192,8 +192,14 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent e) {
 
             fd.setVisible(true);
-            fileName = fd.getFile();
-            movieDir = fd.getDirectory();
+            String name = fd.getFile();
+            String dir = fd.getDirectory();
+
+            if(name != null){
+                fileName = name;
+                movieDir = dir;
+                currentFrame = 1;
+            }
 
 
             try {
@@ -216,10 +222,14 @@ public class GUI extends JFrame {
             showPaths.setVisible(true);
             exportCSV.setVisible(true);
 
-            startLarvaeSelection.setEnabled(false);
-            endLarvaeSelection.setEnabled(false);
+            startLarvaeSelection.setEnabled(true);
+            endLarvaeSelection.setEnabled(true);
             endCrop.setEnabled(false);
             pack();
+            String frameToDraw = movie.getPathToFrame(currentFrame);
+            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+            validate();
+            repaint();
         }
 
 //            if (rVal == JFileChooser.CANCEL_OPTION) {
@@ -312,6 +322,9 @@ public class GUI extends JFrame {
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
 
+                String frameToDraw = movie.getPathToFrame(currentFrame);
+                frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+
                 revalidate();
                 repaint();
 
@@ -369,7 +382,7 @@ public class GUI extends JFrame {
 
                 movie.addLarva(addition);
 
-                //frame.larvae.add(addition);
+                frame.larvae.add(addition);
             }
             for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));
@@ -456,16 +469,27 @@ class ImageComponent extends JComponent {
         g2.setColor(Color.red);
 
         // draw all squares
-        for (Rectangle2D r : squares)
+        for (Rectangle2D r : squares) {
             g2.draw(r);
+        }
+        System.out.println(displayPaths);
 
         //draw lines between larvae positions
         if (displayPaths) {
-
             for (Larva l : larvae) {
+                //System.out.println("got to color");
                 g2.setColor(colors[larvae.indexOf(l)]);
                 for (int i = 0; i < currentFrame - 1; i++) {
+                    //System.out.println("got to drawing");
+                    g2.setStroke(new BasicStroke(1));
                     g2.draw(new Line2D.Double(l.getPosition(i)[0], l.getPosition(i)[1], l.getPosition(i + 1)[0], l.getPosition(i + 1)[1]));
+                    g2.draw(new Ellipse2D.Double(l.getPosition(i)[0]-3, l.getPosition(i)[1]-3, 6, 6));
+
+                    if (i = =l.positions(i + 1) ) {
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i)[0] - 3), (int) (l.getPosition(i)[1] - 3));
+                    }
+                    System.out.println(l.getPosition(i)[0] + " " + l.getPosition(i)[1]);
+                    //System.out.println(l.getPosition(i)[1]);
                 }
             }
         }
