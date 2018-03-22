@@ -22,6 +22,10 @@ public class Larva {
     public Double[] getPosition(int frame) {
         return positions.get(frame);
     }
+
+	public ArrayList<Double[]> getCoordinates() {
+		return positions;
+	}
 	
     public void setNewPosition(Double x, Double y) {
 		Double[] coordinates = {x, y};

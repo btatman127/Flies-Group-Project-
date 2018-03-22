@@ -4,9 +4,8 @@ import java.io.IOException;
 
 
 public class CSVExport {
-	private String result;
+	private static String result;
 	private int frames;
-
 
 	public CSVExport(ArrayList<Larva> larvae, int frames) {
 		result = "";
@@ -33,11 +32,14 @@ public class CSVExport {
 		}
 	}
 	public void export() {
+		System.out.println("csv export: \n" + result);
 		try {
 			PrintWriter out = new PrintWriter("flies.csv");
-			out.println(result);
+			out.write(result);
+			out.close();
 		}
 		catch(IOException e) {
+			System.out.println("Wasn't able to save csv");
 		}
 	}
 }

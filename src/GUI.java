@@ -361,7 +361,8 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            CSVExport exporter = new CSVExport(movie.getLarva(), movie.getNumImages());
+			int frames = movie.getLarva().get(0).getCoordinates().size();
+            CSVExport exporter = new CSVExport(movie.getLarva(), frames);
             exporter.export();
         }
     }
