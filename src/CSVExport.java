@@ -1,7 +1,8 @@
 import java.util.ArrayList;
 import java.io.PrintWriter;
 import java.io.IOException;
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class CSVExport {
 	private static String result;
@@ -21,7 +22,7 @@ public class CSVExport {
 		}
 		
 		//add column labels for x and y
-		for (int i = 0; larvae.size(); i++) {
+		for (int i = 0; i < larvae.size(); i++) {
 			result += "x,y";
 			if (i < larvae.size()) {
 				result += ",";
@@ -44,7 +45,8 @@ public class CSVExport {
 	}
 	public void export() {
 		System.out.println("csv export: \n" + result);
-		String fileName = "flies" + getTime().toString() + ".csv";
+		String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+		String fileName = "flies" + timestamp + ".csv";
 		try {
 			PrintWriter out = new PrintWriter(fileName);
 			out.write(result);
