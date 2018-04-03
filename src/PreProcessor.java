@@ -98,7 +98,7 @@ public class PreProcessor {
             try {
                 BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i) + ".png"));
                 BufferedImage colorImage = colorCorrect(image);
-                ImageIO.write(colorImage, "png", new File(directory + "/img" + String.format("%04d", i) + ".png"));
+                ImageIO.write(colorImage, "png", new File(directory + "/cc" + String.format("%04d", i) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }

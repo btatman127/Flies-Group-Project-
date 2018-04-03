@@ -28,12 +28,11 @@ public class GUI extends JFrame {
     private FileDialog fd;
     //private ArrayList<Larva> larvae; //moved to video class (movie variable)
     public ImageComponent frame;
-    private static final int DEFAULT_WIDTH = 100;
+    private static final int DEFAULT_WIDTH  = 100;
     private static final int DEFAULT_HEIGHT = 100;
 
 
     public GUI() {
-        //larvae = new ArrayList<>(); //moved to video class
 
         fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
         fd.setDirectory("C:\\");
@@ -45,7 +44,7 @@ public class GUI extends JFrame {
         point2 = new int[2];
 
         //construct components
-        currentFrame = 1;
+        currentFrame = 0;
         //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
         //make buttons for frames
@@ -198,7 +197,7 @@ public class GUI extends JFrame {
             if(name != null){
                 fileName = name;
                 movieDir = dir;
-                currentFrame = 1;
+                currentFrame = 0;
             }
 
 
@@ -226,8 +225,8 @@ public class GUI extends JFrame {
             endLarvaeSelection.setEnabled(true);
             endCrop.setEnabled(false);
             pack();
-            String frameToDraw = movie.getPathToFrame(currentFrame);
-            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+            String frameToDraw = movie.getPathToFrame(currentFrame+1);
+            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame+1));
             validate();
             repaint();
         }
@@ -252,10 +251,12 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if (currentFrame + number > 0 && currentFrame + number <movie.getNumImages()) {
+            //if the current frame + delta is in bounds
+
+            if (currentFrame + number >= 0 && currentFrame + number < movie.getNumImages()) {
                 currentFrame += number;
                 frame.currentFrame = currentFrame;
-                String frameToDraw = movie.getPathToFrame(currentFrame);
+                String frameToDraw = movie.getPathToFrame(currentFrame+1);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
                 revalidate();
                 repaint();
@@ -322,7 +323,7 @@ public class GUI extends JFrame {
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
 
-                String frameToDraw = movie.getPathToFrame(currentFrame);
+                String frameToDraw = movie.getPathToFrame(currentFrame+1);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
 
                 revalidate();
@@ -392,6 +393,10 @@ public class GUI extends JFrame {
             frame.maxSquares = 0;
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
+
+            //Initializes the tracking process within the Video class
+            movie.createFrames();
+
             repaint();
         }
     }
