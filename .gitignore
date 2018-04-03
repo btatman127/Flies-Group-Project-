@@ -7,3 +7,5 @@ out/
 assets/
 vidID*
 *.png
+*.mov
+*.csv

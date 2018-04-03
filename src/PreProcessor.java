@@ -12,9 +12,6 @@ import java.nio.file.Paths;
 
 public class PreProcessor {
 
-    public static void main(String[] args) {
-    }
-
     public static Image scale(String filename, int width, int height) {
         double displayAngle = Math.atan2(height, width);
         if(displayAngle < 0){ displayAngle += (2*Math.PI);}
