@@ -1,6 +1,9 @@
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -23,6 +26,7 @@ public class GUI extends JFrame {
     private JButton endLarvaeSelection;
     private JButton exportCSV;
     private JCheckBox showPaths;
+    private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
     private FileDialog fd;
@@ -60,6 +64,16 @@ public class GUI extends JFrame {
         exportCSV = new JButton(("Export as CSV file"));
 
 
+        DefaultStyledDocument sd = new DefaultStyledDocument();
+        displayFrameNum = new JTextPane(sd);
+        SimpleAttributeSet as = new SimpleAttributeSet();
+        StyleConstants.setAlignment(as, StyleConstants.ALIGN_CENTER);
+        displayFrameNum.setParagraphAttributes(as, true);
+
+
+
+
+
         //make new panel for buttons
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
@@ -74,6 +88,7 @@ public class GUI extends JFrame {
         buttonPanel.add(endLarvaeSelection);
         buttonPanel.add(showPaths);
         buttonPanel.add(exportCSV);
+        buttonPanel.add(displayFrameNum);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
         //make sure some of the buttons can't be pressed yet
@@ -85,6 +100,7 @@ public class GUI extends JFrame {
         endLarvaeSelection.setVisible(false);
         showPaths.setVisible(false);
         exportCSV.setVisible(false);
+        displayFrameNum.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -196,9 +212,17 @@ public class GUI extends JFrame {
             String dir = fd.getDirectory();
 
             if(name != null){
+                try {
+                    removeDirectory(movie);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
                 fileName = name;
                 movieDir = dir;
                 currentFrame = 1;
+
             }
 
 
@@ -225,6 +249,10 @@ public class GUI extends JFrame {
             startLarvaeSelection.setEnabled(true);
             endLarvaeSelection.setEnabled(true);
             endCrop.setEnabled(false);
+            displayFrameNum.setVisible(true);
+            displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
+            displayFrameNum.setEditable(false);
+
             pack();
             String frameToDraw = movie.getPathToFrame(currentFrame);
             frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
@@ -236,6 +264,16 @@ public class GUI extends JFrame {
 //
 //            }
 
+        public void removeDirectory(Video movie) throws IOException, InterruptedException {
+
+            java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+            if (movie != null) {
+                //System.out.println( System.getProperty("user.dir") + "/" + movie.getImgDir());
+                String[] command = new String[]{"rm", "-rf", System.getProperty("user.dir") + "/" + movie.getImgDir()};
+                java.lang.Process p = rt.exec(command);
+                p.waitFor();
+            }
+        }
     }
 
     /**
@@ -252,11 +290,13 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if (currentFrame + number > 0 && currentFrame + number <movie.getNumImages()) {
+            if (currentFrame + number > 0 && currentFrame + number <= movie.getNumImages()) {
                 currentFrame += number;
                 frame.currentFrame = currentFrame;
                 String frameToDraw = movie.getPathToFrame(currentFrame);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+                displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
+                pack();
                 revalidate();
                 repaint();
             }
@@ -347,10 +387,16 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            frame.maxSquares = 4;
+            currentFrame = 1;
+            String frameToDraw = movie.getPathToFrame(currentFrame);
+            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+            displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
+            frame.maxSquares = 5;
             startCrop.setEnabled(false);
             endCrop.setEnabled(false);
             endLarvaeSelection.setEnabled(true);
+            pack();
+            revalidate();
             repaint();
         }
     }
@@ -456,7 +502,7 @@ class ImageComponent extends JComponent {
 
 
     public void paintComponent(Graphics g) {
-        Color[] colors = {Color.cyan, Color.blue, Color.orange, Color.green};
+        Color[] colors = {Color.cyan, Color.blue, Color.orange, Color.green, Color.red};
         if (image == null) return;
 
         int imageWidth = image.getWidth(null);
@@ -479,18 +525,20 @@ class ImageComponent extends JComponent {
         if (displayPaths) {
             for (Larva l : larvae) {
                 g2.setColor(colors[larvae.indexOf(l)]);
-                for (int i = 0; i < currentFrame - 1; i++) {
 
+                for (int i = 0; i < currentFrame-1; i++) {
                     g2.setStroke(new BasicStroke(1));
                     g2.draw(new Line2D.Double(l.getPosition(i)[0], l.getPosition(i)[1], l.getPosition(i + 1)[0], l.getPosition(i + 1)[1]));
                     g2.draw(new Ellipse2D.Double(l.getPosition(i)[0]-3, l.getPosition(i)[1]-3, 6, 6));
                     g2.draw(new Ellipse2D.Double(l.getPosition(i + 1)[0]-3, l.getPosition(i + 1)[1]-3, 6, 6));
 
                     if (i == currentFrame - 2) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i + 1)[0] - 3), (int) (l.getPosition(i + 1)[1] - 3));
+
                     }
 
                 }
+                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0]-3, l.getPosition(0)[1]-3, 6, 6));
+                g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(currentFrame)[0] - 3), (int) (l.getPosition(currentFrame)[1] - 3));
             }
         }
     }
