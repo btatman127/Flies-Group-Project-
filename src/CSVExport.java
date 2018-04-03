@@ -23,6 +23,7 @@ public class CSVExport {
 		}
 		
 		//add column labels for x and y
+		result += "\n";
 		for (int i = 0; i < larvae.size(); i++) {
 			result += "x,y";
 			if (i < larvae.size()) {
