@@ -223,6 +223,7 @@ public class GUI extends JFrame {
                 movieDir = dir;
                 currentFrame = 1;
 
+
             }
 
 
