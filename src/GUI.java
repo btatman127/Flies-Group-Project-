@@ -227,11 +227,16 @@ public class GUI extends JFrame {
                 movieDir = dir;
                 currentFrame = 1;
 
+
             }
 
+            String startValue;
+            startValue = JOptionPane.showInputDialog("Please enter desired start time (in seconds).");
+            String endValue;
+            endValue = JOptionPane.showInputDialog("Please enter desired end time (in seconds).");
 
             try {
-                movie = new Video(movieDir, fileName);
+                movie = new Video(movieDir, fileName, Integer.valueOf(startValue), Integer.valueOf(endValue));
             } catch (IOException e1) {
                 e1.printStackTrace();
             } catch (InterruptedException e1) {

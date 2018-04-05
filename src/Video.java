@@ -3,10 +3,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Video {
     private String movieDir;
     private String movieName;
+    private String movieNameLong;
     private String imgDir;
     private int numImages;
 	// length and/or width of each grid square in mm
@@ -18,14 +21,28 @@ public class Video {
     /**
      * Constructor for a Video object
      * @param movieDir   the movieDir file where the movie is located
-     * @param movieName  the name of the movie
+     * @param movieNameLong  the name of the movie
      */
-    public Video(String movieDir, String movieName) throws IOException, InterruptedException {
+    public Video(String movieDir, String movieNameLong, int startTime, int endTime) throws IOException, InterruptedException {
         this.movieDir = movieDir;
-        this.movieName = movieName;
+        this.movieNameLong = movieNameLong;
 		
 		//create a list of larva for this video
 		larvae = new ArrayList<Larva>();
+
+        String[] command = new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", movieNameLong, ">", "movieDuration.txt"};
+
+
+		//create input and output paths for the whole video
+        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+        this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length()-4) + "SHORTER" + timestamp + ".mov";
+        System.out.print(this.movieName);
+        String outputPathLong = movieDir + "/" + this.movieName;
+        String inputPathLong = movieDir + "/" + this.movieNameLong;
+
+        //call ffmpeg crop method
+
+        PreProcessor.cropVideo(startTime, endTime, inputPathLong, outputPathLong);
 		
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
         Long l = new Long(System.currentTimeMillis()/1000L);
@@ -35,7 +52,7 @@ public class Video {
         java.lang.Process p = rt.exec(command);
         p.waitFor();
 
-        String inputPath = movieDir + "/" + movieName;
+        String inputPath = this.movieDir + "/" + this.movieName;
         System.out.println(inputPath);
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
