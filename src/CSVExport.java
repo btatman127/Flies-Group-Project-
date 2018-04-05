@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class CSVExport {
@@ -10,6 +12,8 @@ public class CSVExport {
 	public CSVExport(ArrayList<Larva> larvae, int frames) {
 		result = "";
 		this.frames = frames;
+		
+		//add column labels for each larva
 		for (int i = 0; i < larvae.size(); i++) {
 			String larvaName = "larva" + Integer.toString(i+1);
 			result = result + larvaName;
@@ -17,6 +21,17 @@ public class CSVExport {
 				result = result + ",,";
 			}
 		}
+		
+		//add column labels for x and y
+		result += "\n";
+		for (int i = 0; i < larvae.size(); i++) {
+			result += "x,y";
+			if (i < larvae.size()) {
+				result += ",";
+			}
+		}
+		
+		//add data
 		result = result + "\n";
 		for (int row = 0; row < frames; row++) {
 			System.out.println("row:" + row + "frames:" + frames);
@@ -33,8 +48,11 @@ public class CSVExport {
 	}
 	public void export() {
 		System.out.println("csv export: \n" + result);
+
+		String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+		String fileName = "flies" + timestamp + ".csv";
 		try {
-			PrintWriter out = new PrintWriter("flies.csv");
+			PrintWriter out = new PrintWriter(fileName);
 			out.write(result);
 			out.close();
 		}
