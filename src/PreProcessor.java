@@ -8,6 +8,7 @@ import java.lang.Math;
 import java.util.LinkedList;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.swing.JProgressBar;
 
 
 public class PreProcessor {
@@ -157,7 +158,14 @@ public class PreProcessor {
 		}
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
-        p.waitFor();
+		System.out.println("stuff");
+		//p.waitFor();
+
+		//make progress bar for import
+        progressBar  = new JProgressBar();
+		progressBar.setMaximum(fps * numSeconds);
+		progressBar.setMinimum(0);
+		
 
 		 //CODE TO COLLECT RESULTANT INPUT STREAM:
         java.io.InputStream is = p.getInputStream();

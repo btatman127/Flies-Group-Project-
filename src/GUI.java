@@ -25,6 +25,7 @@ public class GUI extends JFrame {
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
     private JButton exportCSV;
+	private JProgressBar cropProgress;
     private JCheckBox showPaths;
     private JTextPane displayFrameNum;
     private int[] point1;
@@ -62,7 +63,8 @@ public class GUI extends JFrame {
         endLarvaeSelection = new JButton("End Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
         exportCSV = new JButton(("Export as CSV file"));
-
+		cropProgress = new JProgressBar();
+		
 
         DefaultStyledDocument sd = new DefaultStyledDocument();
         displayFrameNum = new JTextPane(sd);
@@ -89,6 +91,7 @@ public class GUI extends JFrame {
         buttonPanel.add(showPaths);
         buttonPanel.add(exportCSV);
         buttonPanel.add(displayFrameNum);
+		buttonPanel.add(cropProgress);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
         //make sure some of the buttons can't be pressed yet
@@ -101,6 +104,7 @@ public class GUI extends JFrame {
         showPaths.setVisible(false);
         exportCSV.setVisible(false);
         displayFrameNum.setVisible(false);
+		cropProgress.setVisible(false);
 
         // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
 //        openMovie.setEnabled(false);
@@ -236,7 +240,7 @@ public class GUI extends JFrame {
 
 //            openMovie.setVisible(false);
 //            openMovie.setEnabled(false);
-
+			System.out.println("stuff2");
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
             startCrop.setVisible(true);
@@ -333,12 +337,14 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-
+				cropProgress.setVisible(true);
             try {
+
                 System.out.println(movie.getImgDir());
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
+
 
                 point1[0] = (int) (frame.squares.get(0).getCenterX() * xratio);
                 point1[1] = (int) (frame.squares.get(0).getCenterY() * yratio);
@@ -352,7 +358,7 @@ public class GUI extends JFrame {
 
 
                 frame.maxSquares = 0;
-
+				
 
                 PreProcessor.crop(point1, point2, movie.getNumImages(), movie.getImgDir());
                 movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));

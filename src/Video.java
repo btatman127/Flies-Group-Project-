@@ -40,9 +40,10 @@ public class Video {
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
+		System.out.println("before preprocessor");
         //call ffmpeg extractor
         PreProcessor.extractFrames(inputPath, outputPath, fps);
-
+		System.out.println("after preprocessor");
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
 
