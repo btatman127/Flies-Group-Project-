@@ -108,7 +108,7 @@ public class PreProcessor {
     static BufferedImage colorCorrect(BufferedImage image) {
         int height = image.getHeight();
         int width = image.getWidth();
-        LimitedQueue queue = new LimitedQueue(200);
+        LimitedQueue queue = new LimitedQueue(height/4);
 
         double threshold = 0;
         for (int y = 0; y < height; y++) {
@@ -131,7 +131,7 @@ public class PreProcessor {
             }
             average = average / width;
             queue.add(average);
-            threshold = (queue.sum() * .75);
+            threshold = (queue.sum() * .8);
         }
         return image;
     }

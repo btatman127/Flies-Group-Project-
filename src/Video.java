@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.io.File;
+import java.util.Arrays;
 
 public class Video {
     private String movieDir;
@@ -62,7 +63,7 @@ public class Video {
 
         
         threshold = 255 - (int) (255 * .2);
-        regionDim = 8;
+
     }
 
 
@@ -71,6 +72,7 @@ public class Video {
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         try {
             BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
+            regionDim = im.getHeight() / 100; //should be a function of cc
             regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             for (int f = 0; f < numImages; f++) {
@@ -83,6 +85,16 @@ public class Video {
 
 
             }
+
+            ArrayList<Double[]> islands = getIslandList(0);
+            for ( Double[] island : islands ) {
+                System.out.println("x: " + island[0] + " y: " + island[1]);
+
+            }
+
+//            for(int f = 0; f<numImages; f++){
+//                //getIslandList(f);
+//            }
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -133,7 +145,100 @@ public class Video {
         }
         return array;
     }
+
+    private ArrayList<Double[]> getIslandList(int frame){
+        //depth first search
+        boolean visited[][] = new boolean[larvaLoc[0].length][larvaLoc[0][0].length];
+        ArrayList<Double[]> coords = new ArrayList<Double[]>();
+        for(int i = 0; i < larvaLoc[0].length; i++){
+            for(int j = 0; j< larvaLoc[0][0].length; j++){
+
+                if(larvaLoc[frame][i][j] && !visited[i][j]) {
+                    visited[i][j] = true;
+                    Double[] island = getIsland(frame, i, j, visited);
+                    coords.add(island);
+
+                } else {
+                    visited[i][j] = true;
+                }
+
+            }
+        }
+
+        return coords;
+    }
+
+
+    private Double[] getIsland(int frame, int x, int y, boolean[][] visited){ //cc as in contiguousCoords
+        Double[] island = new Double[3]; // island is defined as {x, y, mass}
+        ArrayList<double[]> points = islandDFS(frame, x,y,visited, new ArrayList<double[]>());
+        double mass = points.size();
+        double xc = 0;
+        double yc = 0;
+        for(int i = 0; i< mass; i++){
+            xc += points.get(i)[0];
+            yc += points.get(i)[1];
+        }
+        island[0] = xc/mass * regionDim;
+        island[1] = yc/mass * regionDim;
+        island[2] = mass;
+        return island;
+    }
     
+    private ArrayList<double[]> islandDFS(int frame, int x, int y, boolean[][] visited, ArrayList<double[]> points){
+        double[] here = {x,y};
+        points.add(here);
+        //ArrayList<double[]> directions = new ArrayList<double[]>();
+        visited[x][y] = true;
+        int xx, yy;
+
+        //N
+        xx = x;
+        yy = y+1;
+        if(validCoords(xx,yy)){
+            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
+                visited[xx][yy]=true;
+                points = islandDFS(frame,xx,yy,visited,points);
+            }
+        }
+
+
+        //E
+        xx = x+1;
+        yy = y;
+        if(validCoords(xx,yy)){
+            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
+                visited[xx][yy]=true;
+                points = islandDFS(frame,xx,yy,visited,points);
+            }
+        }
+
+        //S
+        xx = x;
+        yy = y-1;
+        if(validCoords(xx,yy)){
+            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
+                visited[xx][yy]=true;
+                points = islandDFS(frame,xx,yy,visited,points);
+            }
+        }
+
+        //W
+        xx = x-1;
+        yy = 0;
+        if(validCoords(xx,yy)){
+            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
+                visited[xx][yy]=true;
+                points = islandDFS(frame,xx,yy,visited,points);
+            }
+        }
+
+        return points;
+    }
+
+    private boolean validCoords(int x, int y){
+        return x>= 0 && x<larvaLoc[0].length && y >=0 && y<larvaLoc[0][0].length;
+    }
     
     
     
