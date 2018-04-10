@@ -13,6 +13,7 @@ public class Video {
     private String movieName;
     private String imgDir;
     private int numImages;
+    private boolean videoInitialized;
 
 
     //TRACKER
@@ -20,6 +21,10 @@ public class Video {
     private boolean[][][] larvaLoc;
     private int threshold;// = 255 - (int) (255 * .2);
     private int regionDim;// = 8;
+    //Array of islands for each frame
+    //Array of (arraylists of (double arrays))
+    private ArrayList<ArrayList<Double[]>> islands;
+
 
 
 
@@ -35,6 +40,8 @@ public class Video {
      * @param movieName  the name of the movie
      */
     public Video(String movieDir, String movieName) throws IOException, InterruptedException {
+        videoInitialized = false;
+
         this.movieDir = movieDir;
         this.movieName = movieName;
 		
@@ -61,6 +68,7 @@ public class Video {
 
 
 
+
         
         threshold = 255 - (int) (255 * .2);
 
@@ -75,30 +83,39 @@ public class Video {
             regionDim = im.getHeight() / 100; //should be a function of cc
             regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
+            islands = new ArrayList<ArrayList<Double[]>>(numImages);// islands[f][island][coord]
             for (int f = 0; f < numImages; f++) {
                 BufferedImage image = ImageIO.read(new File(imgDir + "/cc" + String.format("%04d", f+1) + ".png"));
                 createRegions(f, image);
-                BufferedImage locations = fillLarvaLoc(f);
+                fillLarvaLoc(f);
                 //ImageIO.write(averages, "png", new File("assets/avg" + String.format("%04d", f+1) + ".png"));
-                ImageIO.write(locations, "png", new File("assets/bool" + String.format("%04d", f+1) + ".png"));
+                //ImageIO.write(locations, "png", new File("assets/bool" + String.format("%04d", f+1) + ".png"));
 
 
-
+                //Array of islands for each frame
+                //Array of (arraylists of (double arrays))
+                islands.add(getIslandList(f));
             }
 
-            ArrayList<Double[]> islands = getIslandList(0);
-            for ( Double[] island : islands ) {
-                System.out.println("x: " + island[0] + " y: " + island[1]);
+            trackLarvae();
 
+            for( Larva l: larvae){
+                for(int i =0; i<numImages; i++){
+                    System.out.print(l.getPosition(i)[0] + " " + l.getPosition(i)[1] + "       ");
+                }
+                System.out.println("");
             }
 
-//            for(int f = 0; f<numImages; f++){
-//                //getIslandList(f);
-//            }
+            videoInitialized = true;
+
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
         
+    }
+
+    public ArrayList<Double[]> getLarvaCoordinates(int frame){
+        return islands.get(frame);
     }
 
     private void  createRegions(int frame, BufferedImage image) {
@@ -156,7 +173,9 @@ public class Video {
                 if(larvaLoc[frame][i][j] && !visited[i][j]) {
                     visited[i][j] = true;
                     Double[] island = getIsland(frame, i, j, visited);
-                    coords.add(island);
+                    if(island[2] > 2){
+                        coords.add(island);
+                    }
 
                 } else {
                     visited[i][j] = true;
@@ -241,7 +260,28 @@ public class Video {
     }
     
     
-    
+    private void trackLarvae(){
+        for(int i = 1; i < numImages; i++){
+            for ( Larva l : larvae) {
+                Double[] old = l.getPosition(i-1);
+
+                double minDistance = 100000;
+                int minIndex = -1;
+                for(int j = 0; j < islands.get(i).size(); j++){
+                    double distance = distance(old, islands.get(i).get(j));
+                    if(distance < minDistance){
+                        minDistance = distance;
+                        minIndex = j;
+                    }
+                }
+                l.setNewPosition(islands.get(i).get(minIndex));
+            }
+        }
+    }
+
+    private double distance(Double[] a, Double[] b){
+        return Math.sqrt( Math.pow((a[0] - b[0]),2) + Math.pow((a[1] - b[1]),2) );
+    }
     
     
 	
@@ -288,5 +328,19 @@ public class Video {
 
     public double getScaleFactor() {
         return scaleFactor;
+    }
+
+    public boolean isVideoInitialized(){
+        return videoInitialized;
+    }
+
+    public double[] getDimensions() {
+        try {
+            BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
+            return new double[] { im.getWidth(), im.getHeight()};
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        return null;
     }
 }

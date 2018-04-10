@@ -17,9 +17,8 @@ public class Larva {
 		return positions;
 	}
 	
-    public void setNewPosition(Double x, Double y) {
-		Double[] coordinates = {x, y};
-		positions.add(coordinates);
+    public void setNewPosition(Double[] coords) {
+		positions.add(coords);
     }
 
 

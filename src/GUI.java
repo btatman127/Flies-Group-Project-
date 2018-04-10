@@ -91,7 +91,7 @@ public class GUI extends JFrame {
 //        endLarvaeSelection.setEnabled(false);
 //        endCrop.setEnabled(false);
 
-        frame = new ImageComponent("pic1.png");
+        frame = new ImageComponent("pic1.png", movie);
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
 
@@ -212,6 +212,8 @@ public class GUI extends JFrame {
 //            openMovie.setVisible(false);
 //            openMovie.setEnabled(false);
 
+            frame.movie = movie;
+
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
             startCrop.setVisible(true);
@@ -258,9 +260,15 @@ public class GUI extends JFrame {
                 frame.currentFrame = currentFrame;
                 String frameToDraw = movie.getPathToFrame(currentFrame+1);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+
                 revalidate();
                 repaint();
+
+
+
+
             }
+
         }
     }
 
@@ -379,8 +387,10 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
+            double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
             for (Rectangle2D r : frame.squares) {
-                Larva addition = new Larva(r.getCenterX(), r.getCenterY());
+                Larva addition = new Larva(r.getCenterX() * xratio, r.getCenterY() * yratio);
 
                 movie.addLarva(addition);
 
@@ -396,6 +406,8 @@ public class GUI extends JFrame {
 
             //Initializes the tracking process within the Video class
             movie.createFrames();
+            frame.vidInitialized = true;
+
 
             repaint();
         }
@@ -430,11 +442,13 @@ class ImageComponent extends JComponent {
     public ArrayList<Larva> larvae;
     public int currentFrame;
     public boolean displayPaths;
+    public boolean vidInitialized;
+    public Video movie;
 
     private Rectangle2D current; // the square containing the mouse cursor
     private Image image;
 
-    public ImageComponent(String fileName) {
+    public ImageComponent(String fileName, Video movie) {
 
         maxSquares = 0;
         displayPaths = false;
@@ -449,6 +463,7 @@ class ImageComponent extends JComponent {
         current = null;
         addMouseListener(new MouseHandler());
         addMouseMotionListener(new MouseMotionHandler());
+
     }
 
     public void setImage(String fileName) {
@@ -482,14 +497,16 @@ class ImageComponent extends JComponent {
 
         //draw lines between larvae positions
         if (displayPaths) {
+            larvae = movie.getLarva();
             for (Larva l : larvae) {
                 g2.setColor(colors[larvae.indexOf(l)]);
                 for (int i = 0; i < currentFrame - 1; i++) {
-
+                    double xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
+                    double yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
                     g2.setStroke(new BasicStroke(1));
-                    g2.draw(new Line2D.Double(l.getPosition(i)[0], l.getPosition(i)[1], l.getPosition(i + 1)[0], l.getPosition(i + 1)[1]));
-                    g2.draw(new Ellipse2D.Double(l.getPosition(i)[0]-3, l.getPosition(i)[1]-3, 6, 6));
-                    g2.draw(new Ellipse2D.Double(l.getPosition(i + 1)[0]-3, l.getPosition(i + 1)[1]-3, 6, 6));
+                    g2.draw(new Line2D.Double((l.getPosition(i)[0])/xratio, (l.getPosition(i)[1])/yratio, (l.getPosition(i + 1)[0])/xratio, (l.getPosition(i + 1)[1])/yratio));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]-3)/xratio, (l.getPosition(i)[1]-3)/yratio, 6, 6));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]-3)/xratio, (l.getPosition(i + 1)[1]-3)/yratio, 6, 6));
 
                     if (i == currentFrame - 2) {
                         g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i + 1)[0] - 3), (int) (l.getPosition(i + 1)[1] - 3));
@@ -498,6 +515,17 @@ class ImageComponent extends JComponent {
                 }
             }
         }
+            if (movie!= null && movie.isVideoInitialized()) {
+                g2.setColor(Color.BLUE);
+                for (Double[] islandList : movie.getLarvaCoordinates(currentFrame)) {
+                    double x = islandList[0] * (image.getWidth(null) / movie.getDimensions()[0]);
+                    double y = islandList[1] * (image.getHeight(null) / movie.getDimensions()[1]);
+                    g2.draw(new Ellipse2D.Double(x,y, 6, 6));
+                }
+
+            }
+
+
     }
 
 
