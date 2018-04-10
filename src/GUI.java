@@ -205,7 +205,7 @@ public class GUI extends JFrame {
      * If cancel is selected nothing happens
      */
     class OpenL implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(ActionEvent e)  {
 
             fd.setVisible(true);
             String name = fd.getFile();
@@ -227,10 +227,10 @@ public class GUI extends JFrame {
             }
 
             String startValue;
-            startValue = JOptionPane.showInputDialog("Please enter desired start time (in seconds).");
+            startValue = JOptionPane.showInputDialog("Please enter desired start time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
             String endValue;
-            endValue = JOptionPane.showInputDialog("Please enter desired end time (in seconds).");
-
+            endValue = JOptionPane.showInputDialog("Please enter desired end time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
+            PreProcessor.validTime(endValue, PreProcessor.getDurationSeconds(movieDir, fileName));
             try {
                 movie = new Video(movieDir, fileName, Integer.valueOf(startValue), Integer.valueOf(endValue));
             } catch (IOException e1) {
