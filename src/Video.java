@@ -29,14 +29,37 @@ public class Video {
 		
 		//create a list of larva for this video
 		larvae = new ArrayList<Larva>();
+        //command to have ffmpeg export duration to a txt file at movieDir
+        System.out.println("txt file directory before command 2: " + movieDir);
+        String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", movieDir + movieNameLong};
+        //String[] command2 = new String[]{"ffmpeg -i " + movieDir + movieNameLong, "2>&1", "grep Duration", "cut -d ' ' -f 4", "sed s/,//" };
+         //String[] command2 = new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", movieDir, "-v", "2>", "/jodirush/desktop/movieDuration.txt"};
+        //String[] command2 = new String[]{"ffprobe", "-show_format", "input.mov", "-v", "0>", "metaDataOut.txt"};
+        System.out.println("txt file directory after command 2: " + movieDir);
 
-        String[] command = new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", movieNameLong, ">", "movieDuration.txt"};
 
+
+        java.lang.Runtime rt2 = java.lang.Runtime.getRuntime();
+        java.lang.Process p2 = rt2.exec(command2);
+
+        //read command output from terminal
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+        // read the output from the command
+        System.out.println("Here is the standard output of the command:\n");
+        String s = null;
+        String durationSeconds = null;
+        while ((s = stdInput.readLine()) != null) {
+            System.out.println(s);
+            durationSeconds = s;
+        }
+        System.out.println("duration: " + durationSeconds);
+        //wait for command to finish
+        p2.waitFor();
 
 		//create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length()-4) + "SHORTER" + timestamp + ".mov";
-        System.out.print(this.movieName);
+        System.out.print("movie name: " + this.movieName);
         String outputPathLong = movieDir + "/" + this.movieName;
         String inputPathLong = movieDir + "/" + this.movieNameLong;
 
