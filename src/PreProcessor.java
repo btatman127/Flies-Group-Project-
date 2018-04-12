@@ -170,6 +170,29 @@ public class PreProcessor {
         is.close();
 
 	}
+	/** Takes a start time and end time and tells ffmpeg to trim video before images are extracted **/
+	public static void cropVideo ( int startTime, int endTime, String inputPathLong, String outputPathLong)  throws java.io.IOException, java.lang.InterruptedException {
+
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+	    String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(endTime), outputPathLong};
+        for (int i = 0; i < command.length; i++) {
+            System.out.println(command[i]);
+        }
+        java.lang.Process p = rt.exec(command);
+        // You can or maybe should wait for the process to complete
+        p.waitFor();
+
+        //CODE TO COLLECT RESULTANT INPUT STREAM:
+        java.io.InputStream is = p.getInputStream();
+        java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+        // And print each line
+        String s = null;
+        while ((s = reader.readLine()) != null) {
+            System.out.println(s);
+        }
+        is.close();
+
+    }
 }
 
 class LimitedQueue extends LinkedList<Integer> {
