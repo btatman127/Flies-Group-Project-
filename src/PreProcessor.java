@@ -106,7 +106,7 @@ public class PreProcessor {
             try {
                 BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i) + ".png"));
                 BufferedImage colorImage = colorCorrect(image);
-                ImageIO.write(colorImage, "png", new File(directory + "/img" + String.format("%04d", i) + ".png"));
+                ImageIO.write(colorImage, "png", new File(directory + "/cc" + String.format("%04d", i) + ".png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -116,7 +116,7 @@ public class PreProcessor {
     static BufferedImage colorCorrect(BufferedImage image) {
         int height = image.getHeight();
         int width = image.getWidth();
-        LimitedQueue queue = new LimitedQueue(200);
+        LimitedQueue queue = new LimitedQueue(height/4);
 
         double threshold = 0;
         for (int y = 0; y < height; y++) {
@@ -139,7 +139,7 @@ public class PreProcessor {
             }
             average = average / width;
             queue.add(average);
-            threshold = (queue.sum() * .75);
+            threshold = (queue.sum() * .8);
         }
         return image;
     }
@@ -186,6 +186,8 @@ public class PreProcessor {
     public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.io.IOException, java.lang.InterruptedException {
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+        //TODO look at end time
+        //int duration = String.valueOf(endTime) - String.valueOf(startTime);
         String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(endTime), outputPathLong};
         for (int i = 0; i < command.length; i++) {
             System.out.println(command[i]);
