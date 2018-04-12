@@ -268,6 +268,8 @@ public class Video {
 
 
     private void trackLarvae() {
+        //TODO Replace initial larva position (currently user-clicked) with true larva center locations
+
         for (Larva l : larvae) {
             for (int i = 1; i < numImages; i++) {
                 Double[] old = l.getPosition(i - 1);

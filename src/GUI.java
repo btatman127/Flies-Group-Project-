@@ -32,7 +32,7 @@ public class GUI extends JFrame {
     private FileDialog fd;
     //private ArrayList<Larva> larvae; //moved to video class (movie variable)
     public ImageComponent frame;
-    private static final int DEFAULT_WIDTH  = 100;
+    private static final int DEFAULT_WIDTH = 100;
     private static final int DEFAULT_HEIGHT = 100;
 
 
@@ -68,9 +68,6 @@ public class GUI extends JFrame {
         SimpleAttributeSet as = new SimpleAttributeSet();
         StyleConstants.setAlignment(as, StyleConstants.ALIGN_CENTER);
         displayFrameNum.setParagraphAttributes(as, true);
-
-
-
 
 
         //make new panel for buttons
@@ -162,7 +159,7 @@ public class GUI extends JFrame {
             WindowListener exitListener = new WindowAdapter() {
 
                 @Override
-                public void windowClosing(WindowEvent e){
+                public void windowClosing(WindowEvent e) {
                     try {
                         frame.removeDirectory(frame.movie);
                     } catch (IOException e1) {
@@ -183,7 +180,10 @@ public class GUI extends JFrame {
 
 
     }
-    /** removes directory that was created by ffmpeg **/
+
+    /**
+     * removes directory that was created by ffmpeg
+     **/
     public void removeDirectory(Video movie) throws IOException, InterruptedException {
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
@@ -210,7 +210,7 @@ public class GUI extends JFrame {
             String name = fd.getFile();
             String dir = fd.getDirectory();
 
-            if(name != null){
+            if (name != null) {
                 try {
                     removeDirectory(movie);
                 } catch (IOException e1) {
@@ -264,7 +264,7 @@ public class GUI extends JFrame {
             displayFrameNum.setEditable(false);
 
             pack();
-            String frameToDraw = movie.getPathToFrame(currentFrame+1);
+            String frameToDraw = movie.getPathToFrame(currentFrame + 1);
             frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame+1));
             validate();
             repaint();
@@ -309,10 +309,10 @@ public class GUI extends JFrame {
 //>>>>>>> master
                 currentFrame += number;
                 frame.currentFrame = currentFrame;
-                String frameToDraw = movie.getPathToFrame(currentFrame+1);
+                String frameToDraw = movie.getPathToFrame(currentFrame + 1);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
 
-                displayFrameNum.setText("Frame " + String.valueOf(currentFrame+1) + " of " + String.valueOf(movie.getNumImages()));
+                displayFrameNum.setText("Frame " + String.valueOf(currentFrame + 1) + " of " + String.valueOf(movie.getNumImages()));
                 pack();
                 revalidate();
                 repaint();
@@ -381,7 +381,7 @@ public class GUI extends JFrame {
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
 
-                String frameToDraw = movie.getPathToFrame(currentFrame+1);
+                String frameToDraw = movie.getPathToFrame(currentFrame + 1);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
 
                 revalidate();
@@ -426,7 +426,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-			int frames = movie.getLarva().get(0).getCoordinates().size();
+            int frames = movie.getLarva().get(0).getCoordinates().size();
             CSVExport exporter = new CSVExport(movie.getLarva(), frames);
             exporter.export();
         }
@@ -556,44 +556,39 @@ class ImageComponent extends JComponent {
             larvae = movie.getLarva();
             for (Larva l : larvae) {
                 g2.setColor(colors[larvae.indexOf(l)]);
-
+                double xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
+                double yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
                 for (int i = 0; i < currentFrame; i++) {
 
                     //convert pt image space --> window space
-                       // img_pt * winWidth/imageWidth
+                    // img_pt * winWidth/imageWidth
 
-                    if(i+1 >= l.getPositionsSize()){
+                    if (i + 1 >= l.getPositionsSize()) {
                         break;
                     }
-
-
-                    double xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
-                    double yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
-
                     g2.setStroke(new BasicStroke(1));
-                    g2.draw(new Line2D.Double((l.getPosition(i)[0])/xratio+3, (l.getPosition(i)[1])/yratio+3, (l.getPosition(i + 1)[0])/xratio+3, (l.getPosition(i + 1)[1])/yratio+3));
-                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0])/xratio, (l.getPosition(i)[1])/yratio, 6, 6));
-                    g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0])/xratio, (l.getPosition(i + 1)[1])/yratio, 6, 6));
+                    g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3, (l.getPosition(i)[1]) / yratio + 3, (l.getPosition(i + 1)[0]) / xratio + 3, (l.getPosition(i + 1)[1]) / yratio + 3));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio, (l.getPosition(i + 1)[1]) / yratio, 6, 6));
 
                     if (i == currentFrame - 2) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0])/xratio - 3), (int) ((l.getPosition(i + 1)[1])/yratio - 3));
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0]) / xratio - 3), (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
 
                     }
 
                 }
-                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0]-3, l.getPosition(0)[1]-3, 6, 6));
-                g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(currentFrame)[0] - 3), (int) (l.getPosition(currentFrame)[1] - 3));
+                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xratio, l.getPosition(0)[1] / yratio, 6, 6));
             }
         }
-            if (movie!= null && movie.isVideoInitialized()) {
-                g2.setColor(Color.BLUE);
-                for (Double[] islandList : movie.getLarvaCoordinates(currentFrame)) {
-                    double x = islandList[0] * (image.getWidth(null) / movie.getDimensions()[0]);
-                    double y = islandList[1] * (image.getHeight(null) / movie.getDimensions()[1]);
-                    g2.draw(new Ellipse2D.Double(x,y, 6, 6));
-                }
-
-            }
+//            if (movie!= null && movie.isVideoInitialized()) {
+//                g2.setColor(Color.BLUE);
+//                for (Double[] islandList : movie.getLarvaCoordinates(currentFrame)) {
+//                    double x = islandList[0] * (image.getWidth(null) / movie.getDimensions()[0]);
+//                    double y = islandList[1] * (image.getHeight(null) / movie.getDimensions()[1]);
+//                    g2.draw(new Ellipse2D.Double(x,y, 6, 6));
+//                }
+//
+//            }
 
 
     }
