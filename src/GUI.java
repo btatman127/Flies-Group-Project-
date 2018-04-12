@@ -205,13 +205,13 @@ public class GUI extends JFrame {
      * If cancel is selected nothing happens
      */
     class OpenL implements ActionListener {
-        public void actionPerformed(ActionEvent e)  {
+        public void actionPerformed(ActionEvent e) {
 
             fd.setVisible(true);
             String name = fd.getFile();
             String dir = fd.getDirectory();
 
-            if(name != null){
+            if (name != null) {
                 try {
                     removeDirectory(movie);
                 } catch (IOException e1) {
@@ -225,13 +225,67 @@ public class GUI extends JFrame {
 
 
             }
+            //Double Option Test
+            String startValue = null;
+            String endValue = null;
+            JTextField startTime = new JTextField();
+            JTextField endTime = new JTextField();
+            JCheckBox fullLength = new JCheckBox();
+            fullLength.setSelected(true);
+            Object[] message = {
+                    "Please enter Start and Stop time in seconds.",
+                    "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
+                    "Start time:", startTime,
+                    "End Time:", endTime,
+                    "Select full video:", fullLength
+            };
 
-            String startValue;
-            startValue = JOptionPane.showInputDialog("Please enter desired start time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
-            String endValue;
-            endValue = JOptionPane.showInputDialog("Please enter desired end time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
-            PreProcessor.validTime(endValue, PreProcessor.getDurationSeconds(movieDir, fileName));
+            JOptionPane.showMessageDialog(null, message);
+
+            if (fullLength.isSelected()) {
+                startValue = "0";
+                endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
+                System.out.println(" Full Vid");
+            } else if (PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) && PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                startValue = startTime.getText();
+                endValue = endTime.getText();
+                System.out.println(" Valid start and stop");
+            }
+
+            else if (!PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) && !PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                    System.out.println("Invalid Time. ");
+                JOptionPane.showMessageDialog(null, message);
+
+                    if (PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) && PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                        startValue = startTime.getText();
+                        endValue = endTime.getText();
+                    }
+                }
+
+
+
+
+
+
+
+
+//            //Prompt user for start and end times
+//            String startValue;
+//            startValue = JOptionPane.showInputDialog("Please enter desired start time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
+//            //validate uer input and if not in bounds, prompt user for another value
+//            while(PreProcessor.validateTime(startValue, PreProcessor.getDurationSeconds(movieDir, fileName)) != true) {
+//                startValue = JOptionPane.showInputDialog("Invalid time. Please enter desired start time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
+//            }
+//            String endValue;
+//            endValue = JOptionPane.showInputDialog("Please enter desired end time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
+//            //validate uer input and if not in bounds, prompt user for another value
+//            while(PreProcessor.validateTime(endValue, PreProcessor.getDurationSeconds(movieDir, fileName)) != true) {
+//                endValue = JOptionPane.showInputDialog("Invalid time. Please enter desired end time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
+//            }
+
+            //Create new movie
             try {
+                System.out.println("Start: " + startValue + " Stop: " + endValue);
                 movie = new Video(movieDir, fileName, Integer.valueOf(startValue), Integer.valueOf(endValue));
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -340,7 +394,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
 
             try {
-                System.out.println(movie.getImgDir());
+                //System.out.println(movie.getImgDir());
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);

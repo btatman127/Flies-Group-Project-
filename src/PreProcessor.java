@@ -205,11 +205,9 @@ public class PreProcessor {
         is.close();
 
     }
-
+    /** Gets duration in seconds from ffmpeg as a String**/
     public static String getDuration(String movieDir, String movieNameLong) throws IOException, InterruptedException {
         String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", movieDir + movieNameLong};
-        System.out.println("txt file directory after command 2: " + movieDir);
-
 
         java.lang.Runtime rt2 = java.lang.Runtime.getRuntime();
         java.lang.Process p2 = rt2.exec(command2);
@@ -217,34 +215,38 @@ public class PreProcessor {
         //read command output from terminal
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(p2.getInputStream()));
         // read the output from the command
-        System.out.println("Here is the standard output of the command:\n");
         String s = null;
 
         while ((s = stdInput.readLine()) != null) {
-            System.out.println(s);
+            //System.out.println(s);
             durationSeconds = s;
         }
-        System.out.println("duration: " + durationSeconds);
+        //System.out.println("duration: " + durationSeconds);
         //wait for command to finish
         p2.waitFor();
         return durationSeconds;
     }
-
+    /** Gets duration of movie in seconds from getDuration() and converts to int, contains a try catch to handle exceptions from getDuration()**/
     public static String getDurationSeconds(String movieDir, String movieNameLong) {
         try {
             getDuration(movieDir, movieNameLong);
         } catch (Exception e) {
         }
-        return durationSeconds;
+        double duration = Double.parseDouble(durationSeconds);
+        //System.out.print("valid duration: " + duration);
+        int durationInt = (int) duration;
+        return Integer.toString(durationInt);
 
     }
-
-    public static Boolean validTime(String userInput, String movieDuration) {
-        int duration = Integer.parseInt(movieDuration);
-        System.out.print(duration);
-        return true;
+    /** Validates user input for start and stop times**/
+    public static Boolean validateTime(String userInput, String movieDuration) {
+        if (Integer.valueOf(userInput) > Integer.valueOf(movieDuration)) {
+            return false;
+        } else { return true; }
     }
 }
+
+
 class LimitedQueue extends LinkedList<Integer> {
     private int limit;
 

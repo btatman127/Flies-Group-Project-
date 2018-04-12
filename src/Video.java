@@ -33,9 +33,6 @@ public class Video {
 
         //create a list of larva for this video
         larvae = new ArrayList<Larva>();
-        //command to have ffmpeg export duration to a txt file at movieDir
-        System.out.println("txt file directory before command 2: " + movieDir);
-
 
         //create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
@@ -45,7 +42,6 @@ public class Video {
         String inputPathLong = movieDir + "/" + this.movieNameLong;
 
         //call ffmpeg crop method
-
         PreProcessor.cropVideo(startTime, endTime, inputPathLong, outputPathLong);
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
@@ -57,7 +53,7 @@ public class Video {
         p.waitFor();
 
         String inputPath = this.movieDir + "/" + this.movieName;
-        System.out.println(inputPath);
+        System.out.println("inputPath: " + inputPath);
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
