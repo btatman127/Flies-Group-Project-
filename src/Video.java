@@ -288,7 +288,7 @@ public class Video {
                     }
                 }
 
-                if (minDistance < getDimensions()[1] / 8.0) {
+                if (minDistance < getDimensions()[1] / 24.0) {
                     l.setNewPosition(islands.get(i).get(minIndex));
                 } else {
                     break;
