@@ -221,6 +221,7 @@ public class GUI extends JFrame {
                 fileName = name;
                 movieDir = dir;
 
+
                 currentFrame = 0;
 
             }
@@ -245,10 +246,7 @@ public class GUI extends JFrame {
                 startValue = "0";
                 endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
                 System.out.println(" Full Vid");
-            } else if (PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) && PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                startValue = startTime.getText();
-                endValue = endTime.getText();
-                System.out.println(" Valid start and stop");
+
             }
 
             else while (!PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) || !PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
