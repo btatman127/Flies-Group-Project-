@@ -220,13 +220,7 @@ public class GUI extends JFrame {
                 }
                 fileName = name;
                 movieDir = dir;
-//<<<<<<< HEAD
                 currentFrame = 0;
-//=======
-//                currentFrame = 1;
-//
-//
-//>>>>>>> master
             }
 
             String startValue;
@@ -300,13 +294,9 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-//<<<<<<< HEAD
-            //if the current frame + delta is in bounds
 
             if (currentFrame + number >= 0 && currentFrame + number < movie.getNumImages()) {
-//=======
-//            if (currentFrame + number > 0 && currentFrame + number <= movie.getNumImages()) {
-//>>>>>>> master
+
                 currentFrame += number;
                 frame.currentFrame = currentFrame;
                 String frameToDraw = movie.getPathToFrame(currentFrame + 1);
