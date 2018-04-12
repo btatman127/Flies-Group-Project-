@@ -26,30 +26,29 @@ public class Video {
     private ArrayList<ArrayList<Double[]>> islands;
 
 
+    // length and/or width of each grid square in mm
+    private ArrayList<Larva> larvae;
 
-
-	// length and/or width of each grid square in mm
-	private ArrayList<Larva> larvae;
-	
     //factor that converts pixels to mm
     private double scaleFactor;
 
     /**
      * Constructor for a Video object
-     * @param movieDir   the movieDir file where the movie is located
-     * @param movieName  the name of the movie
+     *
+     * @param movieDir  the movieDir file where the movie is located
+     * @param movieName the name of the movie
      */
     public Video(String movieDir, String movieName) throws IOException, InterruptedException {
         videoInitialized = false;
 
         this.movieDir = movieDir;
         this.movieName = movieName;
-		
-		//create a list of larva for this video
-		larvae = new ArrayList<Larva>();
-		
+
+        //create a list of larva for this video
+        larvae = new ArrayList<Larva>();
+
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-        Long l = new Long(System.currentTimeMillis()/1000L);
+        Long l = new Long(System.currentTimeMillis() / 1000L);
         this.imgDir = "vidID" + l.toString();
 
         String[] command = new String[]{"mkdir", imgDir};
@@ -67,13 +66,9 @@ public class Video {
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
 
-
-
-        
         threshold = 255 - (int) (255 * .2);
 
     }
-
 
 
     public void createFrames() {
@@ -85,7 +80,7 @@ public class Video {
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             islands = new ArrayList<ArrayList<Double[]>>(numImages);// islands[f][island][coord]
             for (int f = 0; f < numImages; f++) {
-                BufferedImage image = ImageIO.read(new File(imgDir + "/cc" + String.format("%04d", f+1) + ".png"));
+                BufferedImage image = ImageIO.read(new File(imgDir + "/cc" + String.format("%04d", f + 1) + ".png"));
                 createRegions(f, image);
                 fillLarvaLoc(f);
                 //ImageIO.write(averages, "png", new File("assets/avg" + String.format("%04d", f+1) + ".png"));
@@ -99,36 +94,29 @@ public class Video {
 
             trackLarvae();
 
-            for( Larva l: larvae){
-                for(int i =0; i<numImages; i++){
-                    System.out.print(l.getPosition(i)[0] + " " + l.getPosition(i)[1] + "       ");
-                }
-                System.out.println("");
-            }
-
             videoInitialized = true;
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-        
+
     }
 
-    public ArrayList<Double[]> getLarvaCoordinates(int frame){
+    public ArrayList<Double[]> getLarvaCoordinates(int frame) {
         return islands.get(frame);
     }
 
-    private void  createRegions(int frame, BufferedImage image) {
+    private void createRegions(int frame, BufferedImage image) {
         int imgWidth = image.getWidth();
         int imgHeight = image.getHeight();
-        for(int i = 0; i < regions[0].length; i++) {
-            for (int j = 0; j < regions[0][0].length; j++){
-                Region region = new Region(image.getSubimage(i*regionDim, j*regionDim, regionDim, regionDim));
+        for (int i = 0; i < regions[0].length; i++) {
+            for (int j = 0; j < regions[0][0].length; j++) {
+                Region region = new Region(image.getSubimage(i * regionDim, j * regionDim, regionDim, regionDim));
                 regions[frame][i][j] = region;
             }
         }
     }
-    
+
 
     private int getSample(int frame, int x, int y) {
         int average = 0;
@@ -156,24 +144,26 @@ public class Video {
                 larvaLoc[frame][i][j] = avg < threshold;
                 //System.out.println((avg < threshold) + "  avg < thresh " + avg + " " + threshold );
                 int b = 255;
-                if(larvaLoc[frame][i][j]){ b= 0;}
-                array.setRGB(i,j,new Color(b,b,b).getRGB());
+                if (larvaLoc[frame][i][j]) {
+                    b = 0;
+                }
+                array.setRGB(i, j, new Color(b, b, b).getRGB());
             }
         }
         return array;
     }
 
-    private ArrayList<Double[]> getIslandList(int frame){
+    private ArrayList<Double[]> getIslandList(int frame) {
         //depth first search
         boolean visited[][] = new boolean[larvaLoc[0].length][larvaLoc[0][0].length];
         ArrayList<Double[]> coords = new ArrayList<Double[]>();
-        for(int i = 0; i < larvaLoc[0].length; i++){
-            for(int j = 0; j< larvaLoc[0][0].length; j++){
+        for (int i = 0; i < larvaLoc[0].length; i++) {
+            for (int j = 0; j < larvaLoc[0][0].length; j++) {
 
-                if(larvaLoc[frame][i][j] && !visited[i][j]) {
+                if (larvaLoc[frame][i][j] && !visited[i][j]) {
                     visited[i][j] = true;
                     Double[] island = getIsland(frame, i, j, visited);
-                    if(island[2] > 2){
+                    if (island[2] > 2) {
                         coords.add(island);
                     }
 
@@ -188,24 +178,24 @@ public class Video {
     }
 
 
-    private Double[] getIsland(int frame, int x, int y, boolean[][] visited){ //cc as in contiguousCoords
+    private Double[] getIsland(int frame, int x, int y, boolean[][] visited) { //cc as in contiguousCoords
         Double[] island = new Double[3]; // island is defined as {x, y, mass}
-        ArrayList<double[]> points = islandDFS(frame, x,y,visited, new ArrayList<double[]>());
+        ArrayList<double[]> points = islandDFS(frame, x, y, visited, new ArrayList<double[]>());
         double mass = points.size();
         double xc = 0;
         double yc = 0;
-        for(int i = 0; i< mass; i++){
+        for (int i = 0; i < mass; i++) {
             xc += points.get(i)[0];
             yc += points.get(i)[1];
         }
-        island[0] = xc/mass * regionDim;
-        island[1] = yc/mass * regionDim;
+        island[0] = xc / mass * regionDim;
+        island[1] = yc / mass * regionDim;
         island[2] = mass;
         return island;
     }
-    
-    private ArrayList<double[]> islandDFS(int frame, int x, int y, boolean[][] visited, ArrayList<double[]> points){
-        double[] here = {x,y};
+
+    private ArrayList<double[]> islandDFS(int frame, int x, int y, boolean[][] visited, ArrayList<double[]> points) {
+        double[] here = {x, y};
         points.add(here);
         //ArrayList<double[]> directions = new ArrayList<double[]>();
         visited[x][y] = true;
@@ -213,96 +203,104 @@ public class Video {
 
         //N
         xx = x;
-        yy = y+1;
-        if(validCoords(xx,yy)){
-            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
-                visited[xx][yy]=true;
-                points = islandDFS(frame,xx,yy,visited,points);
+        yy = y + 1;
+        if (validCoords(xx, yy)) {
+            if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true) {
+                visited[xx][yy] = true;
+                points = islandDFS(frame, xx, yy, visited, points);
             }
         }
 
 
         //E
-        xx = x+1;
+        xx = x + 1;
         yy = y;
-        if(validCoords(xx,yy)){
-            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
-                visited[xx][yy]=true;
-                points = islandDFS(frame,xx,yy,visited,points);
+        if (validCoords(xx, yy)) {
+            if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true) {
+                visited[xx][yy] = true;
+                points = islandDFS(frame, xx, yy, visited, points);
             }
         }
 
         //S
         xx = x;
-        yy = y-1;
-        if(validCoords(xx,yy)){
-            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
-                visited[xx][yy]=true;
-                points = islandDFS(frame,xx,yy,visited,points);
+        yy = y - 1;
+        if (validCoords(xx, yy)) {
+            if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true) {
+                visited[xx][yy] = true;
+                points = islandDFS(frame, xx, yy, visited, points);
             }
         }
 
         //W
-        xx = x-1;
+        xx = x - 1;
         yy = 0;
-        if(validCoords(xx,yy)){
-            if ( !(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true){
-                visited[xx][yy]=true;
-                points = islandDFS(frame,xx,yy,visited,points);
+        if (validCoords(xx, yy)) {
+            if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy] == true) {
+                visited[xx][yy] = true;
+                points = islandDFS(frame, xx, yy, visited, points);
             }
         }
 
         return points;
     }
 
-    private boolean validCoords(int x, int y){
-        return x>= 0 && x<larvaLoc[0].length && y >=0 && y<larvaLoc[0][0].length;
+    private boolean validCoords(int x, int y) {
+        return x >= 0 && x < larvaLoc[0].length && y >= 0 && y < larvaLoc[0][0].length;
     }
-    
-    
-    private void trackLarvae(){
-        for(int i = 1; i < numImages; i++){
-            for ( Larva l : larvae) {
-                Double[] old = l.getPosition(i-1);
+
+
+    private void trackLarvae() {
+        for (Larva l : larvae) {
+            for (int i = 1; i < numImages; i++) {
+                Double[] old = l.getPosition(i - 1);
 
                 double minDistance = 100000;
                 int minIndex = -1;
-                for(int j = 0; j < islands.get(i).size(); j++){
+
+
+                for (int j = 0; j < islands.get(i).size(); j++) {
                     double distance = distance(old, islands.get(i).get(j));
-                    if(distance < minDistance){
+
+
+                    if (distance < minDistance) {
                         minDistance = distance;
                         minIndex = j;
                     }
                 }
-                l.setNewPosition(islands.get(i).get(minIndex));
+
+                if (minDistance < getDimensions()[1] / 8.0) {
+                    l.setNewPosition(islands.get(i).get(minIndex));
+                } else {
+                    break;
+                }
             }
         }
     }
 
-    private double distance(Double[] a, Double[] b){
-        return Math.sqrt( Math.pow((a[0] - b[0]),2) + Math.pow((a[1] - b[1]),2) );
+    private double distance(Double[] a, Double[] b) {
+        return Math.sqrt(Math.pow((a[0] - b[0]), 2) + Math.pow((a[1] - b[1]), 2));
     }
-    
-    
-	
-	public ArrayList<Larva> getLarva() {
-		return larvae;
-	}
-	
-	public void addLarva(Larva l) {
-		System.out.println("added larva: ");
-		Double[] a = l.getPosition(0);
-		for (int i = 0; i < 2; i++) {
-			System.out.println("\t" + Double.toString(a[i]));
-		}
-		larvae.add(l);
-	}
 
-    public String getPathToFrame(int index){
+
+    public ArrayList<Larva> getLarva() {
+        return larvae;
+    }
+
+    public void addLarva(Larva l) {
+        System.out.println("added larva: ");
+        Double[] a = l.getPosition(0);
+        for (int i = 0; i < 2; i++) {
+            System.out.println("\t" + Double.toString(a[i]));
+        }
+        larvae.add(l);
+    }
+
+    public String getPathToFrame(int index) {
         String path;
 
         path = imgDir + "/img" + String.format("%04d", index) + ".png";
-		
+
         return path;
     }
 
@@ -330,14 +328,14 @@ public class Video {
         return scaleFactor;
     }
 
-    public boolean isVideoInitialized(){
+    public boolean isVideoInitialized() {
         return videoInitialized;
     }
 
     public double[] getDimensions() {
         try {
             BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
-            return new double[] { im.getWidth(), im.getHeight()};
+            return new double[]{im.getWidth(), im.getHeight()};
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

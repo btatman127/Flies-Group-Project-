@@ -500,16 +500,25 @@ class ImageComponent extends JComponent {
             larvae = movie.getLarva();
             for (Larva l : larvae) {
                 g2.setColor(colors[larvae.indexOf(l)]);
-                for (int i = 0; i < currentFrame - 1; i++) {
+                for (int i = 0; i < currentFrame; i++) {
+
+                    //convert pt image space --> window space
+                       // img_pt * winWidth/imageWidth
+
+                    if(i+1 >= l.getPositionsSize()){
+                        break;
+                    }
+
+
                     double xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
                     double yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
                     g2.setStroke(new BasicStroke(1));
-                    g2.draw(new Line2D.Double((l.getPosition(i)[0])/xratio, (l.getPosition(i)[1])/yratio, (l.getPosition(i + 1)[0])/xratio, (l.getPosition(i + 1)[1])/yratio));
-                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]-3)/xratio, (l.getPosition(i)[1]-3)/yratio, 6, 6));
-                    g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]-3)/xratio, (l.getPosition(i + 1)[1]-3)/yratio, 6, 6));
+                    g2.draw(new Line2D.Double((l.getPosition(i)[0])/xratio+3, (l.getPosition(i)[1])/yratio+3, (l.getPosition(i + 1)[0])/xratio+3, (l.getPosition(i + 1)[1])/yratio+3));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0])/xratio, (l.getPosition(i)[1])/yratio, 6, 6));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0])/xratio, (l.getPosition(i + 1)[1])/yratio, 6, 6));
 
                     if (i == currentFrame - 2) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) (l.getPosition(i + 1)[0] - 3), (int) (l.getPosition(i + 1)[1] - 3));
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0])/xratio - 3), (int) ((l.getPosition(i + 1)[1])/yratio - 3));
                     }
 
                 }
