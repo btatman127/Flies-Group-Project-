@@ -92,7 +92,7 @@ public class PreProcessor {
         int[] topLeft = topLeft(point1, point2);
         return image.getSubimage(topLeft[0], topLeft[1], Math.abs(point1[0] - point2[0]), Math.abs(point1[1] - point2[1]));
     }
-    
+
 
     /**
      * @param frames
