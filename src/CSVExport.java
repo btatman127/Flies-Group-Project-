@@ -38,7 +38,7 @@ public class CSVExport {
             for (int coord = 0; coord < larvae.size(); coord++) {
                 String x = "";
                 String y = "";
-                if (row < larvae.get(coord).getPositionsSize()) {
+                if (row < larvae.get(coord).getSize()) {
                     x = String.format("%.2f", (larvae.get(coord).getPosition(row)[0]));
                     y = String.format("%.2f", (larvae.get(coord).getPosition(row)[1]));
                     ;

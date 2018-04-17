@@ -592,7 +592,7 @@ class ImageComponent extends JComponent {
                     //convert pt image space --> window space
                     // img_pt * winWidth/imageWidth
 
-                    if (i + 1 >= l.getPositionsSize()) {
+                    if (i + 1 >= l.getSize()) {
                         break;
                     }
                     g2.setStroke(new BasicStroke(1));
