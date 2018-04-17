@@ -16,6 +16,7 @@ public class Video {
     private String movieNameLong;
     private String imgDir;
     private int numImages;
+
     private boolean videoInitialized;
 
 
@@ -27,6 +28,7 @@ public class Video {
     //Array of islands for each frame
     //Array of (arraylists of (double arrays))
     private ArrayList<ArrayList<Double[]>> islands;
+
 
 
     // length and/or width of each grid square in mm
@@ -50,18 +52,17 @@ public class Video {
         //create a list of larva for this video
         larvae = new ArrayList<Larva>();
 
-        //String[] command = new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", movieNameLong, ">", "movieDuration.txt"};
 
 
         //create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length() - 4) + "SHORTER" + timestamp + ".mov";
         System.out.print(this.movieName);
+
         String outputPathLong = movieDir + "/" + this.movieName;
         String inputPathLong = movieDir + "/" + this.movieNameLong;
 
         //call ffmpeg crop method
-
         PreProcessor.cropVideo(startTime, endTime, inputPathLong, outputPathLong);
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
@@ -73,7 +74,7 @@ public class Video {
         p.waitFor();
 
         String inputPath = this.movieDir + "/" + this.movieName;
-        System.out.println(inputPath);
+        System.out.println("inputPath: " + inputPath);
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
@@ -118,6 +119,7 @@ public class Video {
         }
 
     }
+
 
     public ArrayList<Double[]> getLarvaCoordinates(int frame) {
         return islands.get(frame);
@@ -302,6 +304,7 @@ public class Video {
     }
 
 
+
     public ArrayList<Larva> getLarva() {
         return larvae;
     }
@@ -347,6 +350,7 @@ public class Video {
         return scaleFactor;
     }
 
+
     public boolean isVideoInitialized() {
         return videoInitialized;
     }
@@ -360,4 +364,5 @@ public class Video {
         }
         return null;
     }
+
 }

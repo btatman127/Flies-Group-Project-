@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -10,21 +11,28 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
+
 public class PreProcessor {
+
+    private static String durationSeconds;
 
     public static Image scale(String filename, int width, int height) {
         double displayAngle = Math.atan2(height, width);
-        if(displayAngle < 0){ displayAngle += (2*Math.PI);}
+        if (displayAngle < 0) {
+            displayAngle += (2 * Math.PI);
+        }
         try {
             BufferedImage image = ImageIO.read(new File(filename));
-            double imageAngle = Math.atan2(image.getHeight(),image.getWidth());
-            if(imageAngle < 0){ imageAngle += (2*Math.PI);}
+            double imageAngle = Math.atan2(image.getHeight(), image.getWidth());
+            if (imageAngle < 0) {
+                imageAngle += (2 * Math.PI);
+            }
             Image scaleImage;
 
-            if(displayAngle >= imageAngle){
+            if (displayAngle >= imageAngle) {
                 //Giving -1 keeps the Image's original aspect ratio.
                 scaleImage = image.getScaledInstance(width, -1, Image.SCALE_DEFAULT);
-            }else{
+            } else {
                 scaleImage = image.getScaledInstance(-1, height, Image.SCALE_DEFAULT);
             }
             return scaleImage;
@@ -84,7 +92,7 @@ public class PreProcessor {
         int[] topLeft = topLeft(point1, point2);
         return image.getSubimage(topLeft[0], topLeft[1], Math.abs(point1[0] - point2[0]), Math.abs(point1[1] - point2[1]));
     }
-
+    
 
     /**
      * @param frames
@@ -132,45 +140,23 @@ public class PreProcessor {
         return image;
     }
 
-	/**
-	* Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
-	* @param inputPath
-	* @param outputPath   this String should end with a / character
-	* @param fps    a value of 1 will extract 1 frame for each second of video
-	*/
-	
-	public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
-		
-		// Get runtime
+    /**
+     * Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
+     *
+     * @param inputPath
+     * @param outputPath this String should end with a / character
+     * @param fps        a value of 1 will extract 1 frame for each second of video
+     */
+
+    public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
+
+        // Get runtime
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-		
-		//Path outPath = Paths.get(outputDir);
-		//outPath = outPath.resolve("img%04d.png"); 
-		
-		String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps="+fps, outputPath}; 
-		for (int i = 0; i < command.length; i++) {
-			System.out.println(command[i]);
-		}
-        java.lang.Process p = rt.exec(command);
-        // You can or maybe should wait for the process to complete
-        p.waitFor();
 
-		 //CODE TO COLLECT RESULTANT INPUT STREAM:
-        java.io.InputStream is = p.getInputStream();
-        java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
-        // And print each line
-        String s = null;
-        while ((s = reader.readLine()) != null) {
-            System.out.println(s);
-        }
-        is.close();
+        //Path outPath = Paths.get(outputDir);
+        //outPath = outPath.resolve("img%04d.png");
 
-	}
-	/** Takes a start time and end time and tells ffmpeg to trim video before images are extracted **/
-	public static void cropVideo ( int startTime, int endTime, String inputPathLong, String outputPathLong)  throws java.io.IOException, java.lang.InterruptedException {
-
-        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-	    String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(endTime), outputPathLong};
+        String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps=" + fps, outputPath};
         for (int i = 0; i < command.length; i++) {
             System.out.println(command[i]);
         }
@@ -189,7 +175,76 @@ public class PreProcessor {
         is.close();
 
     }
+
+    /**
+     * Takes a start time and end time and tells ffmpeg to trim video before images are extracted
+     **/
+    public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.io.IOException, java.lang.InterruptedException {
+
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+        //TODO look at end time
+        int duration = endTime - startTime;
+        System.out.println("Duration for ffmpeg: " + duration);
+        String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(duration), outputPathLong};
+        for (int i = 0; i < command.length; i++) {
+            System.out.println(command[i]);
+        }
+        java.lang.Process p = rt.exec(command);
+        // You can or maybe should wait for the process to complete
+        p.waitFor();
+
+        //CODE TO COLLECT RESULTANT INPUT STREAM:
+        java.io.InputStream is = p.getInputStream();
+        java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+        // And print each line
+        String s = null;
+        while ((s = reader.readLine()) != null) {
+            System.out.println(s);
+        }
+        is.close();
+
+    }
+    /** Gets duration in seconds from ffmpeg as a String**/
+    public static String getDuration(String movieDir, String movieNameLong) throws IOException, InterruptedException {
+        String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", movieDir + movieNameLong};
+
+        java.lang.Runtime rt2 = java.lang.Runtime.getRuntime();
+        java.lang.Process p2 = rt2.exec(command2);
+
+        //read command output from terminal
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+        // read the output from the command
+        String s = null;
+
+        while ((s = stdInput.readLine()) != null) {
+            //System.out.println(s);
+            durationSeconds = s;
+        }
+        //System.out.println("duration: " + durationSeconds);
+        //wait for command to finish
+        p2.waitFor();
+        return durationSeconds;
+    }
+    /** Gets duration of movie in seconds from getDuration() and converts to int, contains a try catch to handle exceptions from getDuration()**/
+    public static String getDurationSeconds(String movieDir, String movieNameLong) {
+        try {
+            getDuration(movieDir, movieNameLong);
+        } catch (Exception e) {
+        }
+        double duration = Double.parseDouble(durationSeconds);
+        //System.out.print("valid duration: " + duration);
+        int durationInt = (int) duration;
+        return Integer.toString(durationInt);
+
+    }
+    /** Validates user input for start and stop times**/
+    public static Boolean validateTime(String userInput, String movieDuration) {
+        if (Integer.valueOf(userInput) > Integer.valueOf(movieDuration)) {
+            return false;
+        } else { return true; }
+    }
 }
+
 
 class LimitedQueue extends LinkedList<Integer> {
     private int limit;
