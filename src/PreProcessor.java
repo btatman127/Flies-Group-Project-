@@ -187,8 +187,9 @@ public class PreProcessor {
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
         //TODO look at end time
-        //int duration = String.valueOf(endTime) - String.valueOf(startTime);
-        String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(endTime), outputPathLong};
+        int duration = endTime - startTime;
+        System.out.println("Duration for ffmpeg: " + duration);
+        String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(duration), outputPathLong};
         for (int i = 0; i < command.length; i++) {
             System.out.println(command[i]);
         }

@@ -248,37 +248,21 @@ public class GUI extends JFrame {
                 System.out.println(" Full Vid");
 
             }
-
-            else while (!PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) || !PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
+            else {
+                startValue = startTime.getText();
+                endValue = endTime.getText();
+                while (!PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) || !PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
                     System.out.println("Invalid Time. ");
-                JOptionPane.showMessageDialog(null, message);
+                    JOptionPane.showMessageDialog(null, message);
 
                     if (PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) && PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
                         startValue = startTime.getText();
                         endValue = endTime.getText();
+
                     }
                 }
-
-
-
-
-
-
-
-
-//            //Prompt user for start and end times
-//            String startValue;
-//            startValue = JOptionPane.showInputDialog("Please enter desired start time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
-//            //validate uer input and if not in bounds, prompt user for another value
-//            while(PreProcessor.validateTime(startValue, PreProcessor.getDurationSeconds(movieDir, fileName)) != true) {
-//                startValue = JOptionPane.showInputDialog("Invalid time. Please enter desired start time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
-//            }
-//            String endValue;
-//            endValue = JOptionPane.showInputDialog("Please enter desired end time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
-//            //validate uer input and if not in bounds, prompt user for another value
-//            while(PreProcessor.validateTime(endValue, PreProcessor.getDurationSeconds(movieDir, fileName)) != true) {
-//                endValue = JOptionPane.showInputDialog("Invalid time. Please enter desired end time (in seconds). Movie duration is " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.");
-//            }
+                System.out.print("Got to valid input");
+            }
 
             //Create new movie
             try {
