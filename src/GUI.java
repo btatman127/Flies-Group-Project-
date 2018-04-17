@@ -403,8 +403,6 @@ public class GUI extends JFrame {
 
 
                 PreProcessor.crop(point1, point2, movie.getNumImages(), movie.getImgDir());
-                movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
-
 
                 startLarvaeSelection.setEnabled(true);
                 startCrop.setEnabled(true);
@@ -456,7 +454,7 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             int frames = movie.getLarva().get(0).getCoordinates().size();
-            CSVExport exporter = new CSVExport(movie.getLarva(), frames);
+            CSVExport exporter = new CSVExport(movie, frames);
             exporter.export();
         }
     }
@@ -592,7 +590,7 @@ class ImageComponent extends JComponent {
                     //convert pt image space --> window space
                     // img_pt * winWidth/imageWidth
 
-                    if (i + 1 >= l.getSize()) {
+                    if (i + 1 >= l.getPositionsSize()) {
                         break;
                     }
                     g2.setStroke(new BasicStroke(1));

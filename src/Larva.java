@@ -21,9 +21,7 @@ public class Larva {
 		positions.add(coords);
     }
 
-    public int getSize(){
-		return positions.size();
-	}
+    public int getPositionsSize(){ return positions.size(); }
 
 
 }

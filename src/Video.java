@@ -144,7 +144,7 @@ public class Video {
                     //System.out.printf("L1: %lf %lf L2: %lf %lf\n", larvae.get(i).getPosition(f)[0], larvae.get(j).getPosition(f)[0], larvae.get(i).getPosition(f)[1], larvae.get(j).getPosition(f)[1] );
                     //System.out.println(larvae.get(i).getPosition(f)[0]+ " "+ larvae.get(j).getPosition(f)[0]+ " " + larvae.get(i).getPosition(f)[1]+ " " + larvae.get(j).getPosition(f)[1] );
 
-                    if(larvae.get(i).getSize() > f && larvae.get(j).getSize() > f) {
+                    if(larvae.get(i).getPositionsSize() > f && larvae.get(j).getPositionsSize() > f) {
                         if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] && larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
                             collisionFrameIndex.add(f);
                             System.out.println("Collision @: " + collisionFrameIndex.get(collisionFrameIndex.size() - 1));
