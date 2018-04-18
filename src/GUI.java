@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.awt.geom.*;
+import java.util.concurrent.TimeUnit;
 
 public class GUI extends JFrame {
     private int currentFrame;
@@ -25,7 +26,7 @@ public class GUI extends JFrame {
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
     private JButton exportCSV;
-	private JProgressBar cropProgress;
+	private final JProgressBar cropProgress;
     private JCheckBox showPaths;
     private JTextPane displayFrameNum;
     private int[] point1;
@@ -245,7 +246,7 @@ public class GUI extends JFrame {
 
 //            openMovie.setVisible(false);
 //            openMovie.setEnabled(false);
-			System.out.println("stuff2");
+
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
             startCrop.setVisible(true);
@@ -360,21 +361,31 @@ public class GUI extends JFrame {
 
                 frame.remove(frame.squares.get(1));
                 frame.remove(frame.squares.get(0));
-
-
                 frame.maxSquares = 0;
 				
-
-                PreProcessor.crop(point1, point2, movie.getNumImages(), movie.getImgDir());
-                movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
+				cropProgress.setVisible(true);
+				cropProgress.setMaximum(movie.getNumImages());
+				cropProgress.setMinimum(0);
+				pack();
+				revalidate();
+				repaint();
+				System.out.println("before loop");	
+				
+				new Thread(new CropThread("crop", point1, point2, movie.getNumImages(), movie.getImgDir(), cropProgress)).start();
+				
+				repaint();
+				movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
 
 
                 startLarvaeSelection.setEnabled(true);
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
+				
+				
 
                 String frameToDraw = movie.getPathToFrame(currentFrame);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+				
 
                 revalidate();
                 repaint();

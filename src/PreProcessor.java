@@ -8,7 +8,9 @@ import java.lang.Math;
 import java.util.LinkedList;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.swing.JProgressBar;
+import javax.swing.JProgressBar;
+import java.util.concurrent.TimeUnit;
+import javax.swing.*;
 
 
 public class PreProcessor {
@@ -144,13 +146,10 @@ public class PreProcessor {
 	* @param fps    a value of 1 will extract 1 frame for each second of video
 	*/
 	
-	public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
+	public static void extractFrames(String inputPath, String outputPath, int fps, int duration, String imgDir) throws java.io.IOException, java.lang.InterruptedException {
 		
 		// Get runtime
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-		
-		//Path outPath = Paths.get(outputDir);
-		//outPath = outPath.resolve("img%04d.png"); 
 		
 		String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps="+fps, outputPath}; 
 		for (int i = 0; i < command.length; i++) {
@@ -158,14 +157,20 @@ public class PreProcessor {
 		}
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
-		System.out.println("stuff");
-		//p.waitFor();
 
-		//make progress bar for import
-        progressBar  = new JProgressBar();
-		progressBar.setMaximum(fps * numSeconds);
-		progressBar.setMinimum(0);
-		
+		// //make progress bar for import
+		//         JProgressBar progressBar = new JProgressBar();
+		// int totalImages = fps * duration;
+		// progressBar.setMaximum(totalImages);
+		// progressBar.setMinimum(0);
+		// int numFiles = 0;
+		// while (numFiles < totalImages) {
+		// 	numFiles = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
+		// 	progressBar.setValue(numFiles);
+		// 	TimeUnit.SECONDS.sleep(1);
+		// }
+
+	
 
 		 //CODE TO COLLECT RESULTANT INPUT STREAM:
         java.io.InputStream is = p.getInputStream();
@@ -176,8 +181,10 @@ public class PreProcessor {
             System.out.println(s);
         }
         is.close();
-
 	}
+	
+	
+	
 	/** Takes a start time and end time and tells ffmpeg to trim video before images are extracted **/
 	public static void cropVideo ( int startTime, int endTime, String inputPathLong, String outputPathLong)  throws java.io.IOException, java.lang.InterruptedException {
 

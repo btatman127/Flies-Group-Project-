@@ -30,7 +30,7 @@ public class Video {
 		//create a list of larva for this video
 		larvae = new ArrayList<Larva>();
 
-        String[] command = new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", movieNameLong, ">", "movieDuration.txt"};
+        //String[] command = new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", movieNameLong, ">", "movieDuration.txt"};
 
 
 		//create input and output paths for the whole video
@@ -59,7 +59,10 @@ public class Video {
 
 		System.out.println("before preprocessor");
         //call ffmpeg extractor
-        PreProcessor.extractFrames(inputPath, outputPath, fps);
+		int duration = endTime - startTime;
+        //PreProcessor.extractFrames(inputPath, outputPath, fps, duration, imgDir);
+		ExtractFrames ef = new ExtractFrames();
+		ef.extract(inputPath, outputPath, fps, duration, imgDir);
 		System.out.println("after preprocessor");
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
