@@ -25,11 +25,16 @@ public class GUI extends JFrame {
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
     private JButton exportCSV;
+    private JButton resetPosition;
+    private JButton stopResetPosition;
     private JCheckBox showPaths;
     private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
     private FileDialog fd;
+
+
+    private int tempLarvaIndex;
     //private ArrayList<Larva> larvae; //moved to video class (movie variable)
     public ImageComponent frame;
     private static final int DEFAULT_WIDTH = 100;
@@ -50,6 +55,7 @@ public class GUI extends JFrame {
         //construct components
         currentFrame = 0;
         //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        tempLarvaIndex = -1;
 
         //make buttons for frames
         openMovie = new JButton("Open Movie");
@@ -61,6 +67,8 @@ public class GUI extends JFrame {
         endLarvaeSelection = new JButton("End Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
         exportCSV = new JButton(("Export as CSV file"));
+        resetPosition = new JButton("Reset Larva Position");
+        stopResetPosition = new JButton("Stop Larva Reset");
 
 
         DefaultStyledDocument sd = new DefaultStyledDocument();
@@ -83,6 +91,8 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
         buttonPanel.add(showPaths);
+        buttonPanel.add(resetPosition);
+        buttonPanel.add(stopResetPosition);
         buttonPanel.add(exportCSV);
         buttonPanel.add(displayFrameNum);
 
@@ -95,6 +105,8 @@ public class GUI extends JFrame {
         startLarvaeSelection.setVisible(false);
         endLarvaeSelection.setVisible(false);
         showPaths.setVisible(false);
+        resetPosition.setVisible(false);
+        stopResetPosition.setVisible(false);
         exportCSV.setVisible(false);
         displayFrameNum.setVisible(false);
 
@@ -120,6 +132,8 @@ public class GUI extends JFrame {
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
         ShowPathAction showPathAction = new ShowPathAction();
         CSVExportAction exportAction = new CSVExportAction();
+        ResetPositionAction resetPositionAction = new ResetPositionAction(this);
+        StopResetAction stopResetAction = new StopResetAction();
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -141,6 +155,8 @@ public class GUI extends JFrame {
         startLarvaeSelection.addActionListener(startLarvaeAction);
         endLarvaeSelection.addActionListener(stopLarvaeAction);
         showPaths.addActionListener(showPathAction);
+        resetPosition.addActionListener(resetPositionAction);
+        stopResetPosition.addActionListener(stopResetAction);
         exportCSV.addActionListener(exportAction);
 
         //add our components and panels as a gridbag layout
@@ -193,6 +209,14 @@ public class GUI extends JFrame {
             java.lang.Process p = rt.exec(command);
             p.waitFor();
         }
+    }
+
+    public int getTempLarvaIndex() {
+        return tempLarvaIndex;
+    }
+
+    public void setTempLarvaIndex(int tempLarvaIndex) {
+        this.tempLarvaIndex = tempLarvaIndex;
     }
 
 
@@ -287,6 +311,8 @@ public class GUI extends JFrame {
             endLarvaeSelection.setVisible(true);
             showPaths.setVisible(true);
             exportCSV.setVisible(true);
+            resetPosition.setVisible(true);
+            stopResetPosition.setVisible(true);
 
             startLarvaeSelection.setEnabled(true);
             endLarvaeSelection.setEnabled(true);
@@ -446,7 +472,67 @@ public class GUI extends JFrame {
             repaint();
         }
     }
+    private class ResetPositionAction implements ActionListener {
+        GUI gui;
 
+        public ResetPositionAction(GUI gui) {
+            this.gui = gui;
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            System.out.println("reset");
+
+            //TODO: disable next frame previous frame buttons during ResetPosition
+
+            String[] larvaeNumber = new String[movie.getLarva().size()];
+            for (int i = 0; i < movie.getLarva().size(); i++) {
+                larvaeNumber[i] = "" + (i + 1);
+            }
+
+            JComboBox larvaNumberOption = new JComboBox(larvaeNumber);
+            Object[] message = {
+                    "Please select larva number to reset position.",
+                    larvaNumberOption,
+                    "Select ok and select new point."
+            };
+
+            JOptionPane.showMessageDialog(null, message);
+            gui.setTempLarvaIndex( larvaNumberOption.getSelectedIndex());
+            System.out.println("Selected Larva: " + (gui.getTempLarvaIndex() + 1));
+
+            frame.maxSquares = 1;
+
+        }
+
+
+    }
+
+    private class StopResetAction implements ActionListener {
+        GUI gui;
+
+        public StopResetAction(GUI gui) {
+            this.gui = gui;
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+            double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
+            double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
+
+            double pt[] = new double[2];
+            pt[0] = (frame.squares.get(0).getCenterX() * xratio);
+            pt[1] = (frame.squares.get(0).getCenterY() * yratio);
+
+            //currentFrame
+
+            movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
+
+
+
+
+
+         }
+    }
     private class CSVExportAction implements ActionListener {
 
         public CSVExportAction() {
@@ -470,6 +556,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            boolean collisionFound = false;
             double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
             double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
             for (Rectangle2D r : frame.squares) {
@@ -488,7 +575,15 @@ public class GUI extends JFrame {
             endLarvaeSelection.setEnabled(false);
 
             //Initializes the tracking process within the Video class
-            movie.createFrames();
+            collisionFound = movie.createFrames();
+            if (collisionFound) {
+                Object[] message = {
+                        "A collision was detected at frame #" + (movie.getCollisionFrameIndex(0)+1)+"."
+
+                };
+
+                JOptionPane.showMessageDialog(null, message);
+            }
             frame.vidInitialized = true;
 
 

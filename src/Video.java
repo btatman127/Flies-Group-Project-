@@ -94,7 +94,8 @@ public class Video {
      *
      */
 
-    public void createFrames() {
+    public boolean createFrames() {
+        boolean collisionFound = false;
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         try {
             BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
@@ -119,14 +120,37 @@ public class Video {
             collisionFrameIndex = new ArrayList<>();
 
             trackLarvae();
-            findCollisions();
+
+            collisionFound = findCollisions();
 
             videoInitialized = true;
+
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+        return collisionFound;
+    }
 
+
+    void resetLarvaPosition(int firstFrame, int larvaIndex, int pt[]){
+        //starting and frameIndex
+        //overwrite position values for larvae[larvaIndex] for each frame
+        if(!videoInitialized){
+            System.out.println("!!attempted to resetLarvaPosition before fully initializing video!!");
+            return;
+        }
+
+        Larva l = larvae.get(larvaIndex);
+
+        l.trimPositions(firstFrame); // this will destroy the record of coordinates including and after the firstFrame
+
+        l.setNewPosition();
+
+
+        for(int f = firstFrame + 1; f < numImages; f++){
+
+        }
     }
 
 
@@ -135,7 +159,8 @@ public class Video {
     }
 
     /** goes through larvae positions and checks for position overlap on same frames **/
-    private void findCollisions() {
+    private boolean findCollisions() {
+        boolean collisionFound = false;
         for (int f = 0; f < numImages; f++) {
             //for each larva position
             for(int i = 0; i < larvae.size()-1;  i++){
@@ -147,7 +172,9 @@ public class Video {
                     if(larvae.get(i).getPositionsSize() > f && larvae.get(j).getPositionsSize() > f) {
                         if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] && larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
                             collisionFrameIndex.add(f);
+                            collisionFound = true;
                             System.out.println("Collision @: " + collisionFrameIndex.get(collisionFrameIndex.size() - 1));
+
                         }
                     }
                 }
@@ -156,7 +183,7 @@ public class Video {
                     //if so push frame number to collision frame index
             //larva[f][][]
         }
-
+        return collisionFound;
     }
 
     private void createRegions(int frame, BufferedImage image) {
@@ -397,6 +424,10 @@ public class Video {
             ioe.printStackTrace();
         }
         return null;
+    }
+
+    public int getCollisionFrameIndex(int index){
+        return collisionFrameIndex.get(index);
     }
 
 }

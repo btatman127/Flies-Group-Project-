@@ -23,5 +23,20 @@ public class Larva {
 
     public int getPositionsSize(){ return positions.size(); }
 
+	/**
+	 * useful for overwriting larva positions
+	 * delete all indeces including and after the index of value frame
+	 * @param frame
+	 */
+
+	public void trimPositions(int frame){
+		ArrayList<Double[]> tempPositions = new ArrayList<Double[]>(frame);
+		for(int f = 0; f < frame; f++){
+			tempPositions.set(f, positions.get(f));
+		}
+
+		positions = tempPositions;
+	}
+
 
 }
