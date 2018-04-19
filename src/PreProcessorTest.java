@@ -38,12 +38,6 @@ public class PreProcessorTest {
         assertArrayEquals(PreProcessor.topLeft(point1, point3), new int[] {50,10});
     }
 
-    @org.junit.Test
-    public void setScaleFactor(){
-        int[] point1 = {50,50};
-        int[] point2 = {100, 150};
-        assertEquals(12.7*5/50, PreProcessor.setScaleFactor(point1,point2), .05);
-    }
 
 	 @org.junit.Test
 	 public void ffmpegExtractsImages() throws java.io.IOException, java.lang.InterruptedException {

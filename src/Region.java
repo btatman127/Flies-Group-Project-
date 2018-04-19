@@ -7,7 +7,7 @@ import java.io.IOException;
 public class Region {
     private BufferedImage image;
     private int avgValue;
-    private int depth;
+    //private int depth;
     private int width;
     private int height;
 
