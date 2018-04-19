@@ -41,7 +41,6 @@ public class CSVExport {
         //add data
         result = result + "\n";
         for (int row = 0; row < frames; row++) {
-            System.out.println("row:" + row + "frames:" + frames);
             for (int coord = 0; coord < larvae.size(); coord++) {
                 String x = "";
                 String y = "";
@@ -80,7 +79,6 @@ public class CSVExport {
 
 
     public void export() {
-        System.out.println("csv export: \n" + result);
 
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         String fileName = "flies" + timestamp + ".csv";

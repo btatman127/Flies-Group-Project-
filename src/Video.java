@@ -57,7 +57,6 @@ public class Video {
         //create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length() - 4) + "SHORTER" + timestamp + ".mov";
-        System.out.print(this.movieName);
 
         String outputPathLong = movieDir + "/" + this.movieName;
         String inputPathLong = movieDir + "/" + this.movieNameLong;
@@ -74,7 +73,6 @@ public class Video {
         p.waitFor();
 
         String inputPath = this.movieDir + "/" + this.movieName;
-        System.out.println("inputPath: " + inputPath);
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
@@ -310,11 +308,7 @@ public class Video {
     }
 
     public void addLarva(Larva l) {
-        System.out.println("added larva: ");
         Double[] a = l.getPosition(0);
-        for (int i = 0; i < 2; i++) {
-            System.out.println("\t" + Double.toString(a[i]));
-        }
         larvae.add(l);
     }
 

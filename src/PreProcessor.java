@@ -119,12 +119,10 @@ public class PreProcessor {
             int average = 0;
             for (int x = 0; x < width; x++) {
                 int colorValue = image.getRGB(x, y);
-                //System.out.println("x: " +x+ " y: " + y + "Color: " + colorValue);
                 //get average RGB value
                 int red = (colorValue >> 16) & 0xFF;
                 int green = (colorValue >> 8) & 0xFF;
                 int blue = (colorValue) & 0xFF;
-                //System.out.println("Red " + red + " blue: " + blue + " green " + green);
                 int colorAvg = (red + green + blue) / 3;
                 average += colorAvg;
                 if (colorAvg > threshold) {
@@ -210,10 +208,8 @@ public class PreProcessor {
         String s = null;
 
         while ((s = stdInput.readLine()) != null) {
-            //System.out.println(s);
             durationSeconds = s;
         }
-        //System.out.println("duration: " + durationSeconds);
         //wait for command to finish
         p2.waitFor();
         return durationSeconds;
@@ -225,7 +221,6 @@ public class PreProcessor {
         } catch (Exception e) {
         }
         double duration = Double.parseDouble(durationSeconds);
-        //System.out.print("valid duration: " + duration);
         int durationInt = (int) duration;
         return Integer.toString(durationInt);
 

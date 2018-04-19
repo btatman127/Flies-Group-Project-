@@ -231,7 +231,7 @@ public class GUI extends JFrame {
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             JCheckBox fullLength = new JCheckBox();
-            fullLength.setSelected(true);
+            fullLength.setSelected(false);
             Object[] message = {
                     "Please enter Start and Stop time in seconds.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
@@ -261,7 +261,6 @@ public class GUI extends JFrame {
 
                     }
                 }
-                System.out.print("Got to valid input");
             }
 
             //Create new movie
