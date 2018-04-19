@@ -162,10 +162,17 @@ public class GUI extends JFrame {
                 public void windowClosing(WindowEvent e) {
                     try {
                         frame.removeDirectory(frame.movie);
+                        frame.removeShortfile(frame.movie.getOutputPathLong());
+                        System.exit(1);
                     } catch (IOException e1) {
                         e1.printStackTrace();
+                        System.exit(1);
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();
+                        System.exit(1);
+                    } catch (NullPointerException e1) {
+                        e1.printStackTrace();
+                        System.exit(1);
                     }
 
                     System.exit(0);
@@ -194,6 +201,16 @@ public class GUI extends JFrame {
             p.waitFor();
         }
     }
+
+    public void removeShortfile(String dir) throws IOException, InterruptedException {
+
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+
+            String[] command = new String[]{"rm", "-f", dir};
+            java.lang.Process p = rt.exec(command);
+            p.waitFor();
+        }
+
 
 
     /**
@@ -277,7 +294,7 @@ public class GUI extends JFrame {
 //            openMovie.setEnabled(false);
 
             frame.movie = movie;
-
+            //DIRECTLY AFTER OPENNING MOVie FILE
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
             startCrop.setVisible(true);
@@ -287,9 +304,11 @@ public class GUI extends JFrame {
             showPaths.setVisible(true);
             exportCSV.setVisible(true);
 
-            startLarvaeSelection.setEnabled(true);
-            endLarvaeSelection.setEnabled(true);
+            startLarvaeSelection.setEnabled(false);
+            endLarvaeSelection.setEnabled(false);
             endCrop.setEnabled(false);
+            showPaths.setEnabled(false);
+            exportCSV.setEnabled(false);
             displayFrameNum.setVisible(true);
             displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
             displayFrameNum.setEditable(false);
@@ -439,6 +458,7 @@ public class GUI extends JFrame {
             frame.maxSquares = 5;
             startCrop.setEnabled(false);
             endCrop.setEnabled(false);
+            startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(true);
             pack();
             revalidate();
@@ -485,6 +505,8 @@ public class GUI extends JFrame {
             frame.maxSquares = 0;
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
+            showPaths.setEnabled(true);
+            exportCSV.setEnabled(true);
 
             //Initializes the tracking process within the Video class
             movie.createFrames();

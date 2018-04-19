@@ -16,7 +16,7 @@ public class Video {
     private String movieNameLong;
     private String imgDir;
     private int numImages;
-
+    private String outputPathLong;
     private boolean videoInitialized;
 
 
@@ -36,6 +36,10 @@ public class Video {
 
     //factor that converts pixels to mm
     private double scaleFactor;
+
+    public String getOutputPathLong() {
+        return outputPathLong;
+    }
 
     /**
      * Constructor for a Video object
@@ -58,7 +62,7 @@ public class Video {
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length() - 4) + "SHORTER" + timestamp + ".mov";
 
-        String outputPathLong = movieDir + "/" + this.movieName;
+        outputPathLong = movieDir + "/" + this.movieName;
         String inputPathLong = movieDir + "/" + this.movieNameLong;
 
         //call ffmpeg crop method
