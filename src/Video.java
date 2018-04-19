@@ -60,10 +60,10 @@ public class Video {
 		System.out.println("before preprocessor");
         //call ffmpeg extractor
 		int duration = endTime - startTime;
-        //PreProcessor.extractFrames(inputPath, outputPath, fps, duration, imgDir);
-		ExtractFrames ef = new ExtractFrames();
-		ef.extract(inputPath, outputPath, fps, duration, imgDir);
-		System.out.println("after preprocessor");
+        PreProcessor.extractFrames(inputPath, outputPath, fps, duration, imgDir);
+		// ExtractFrames ef = new ExtractFrames();
+		// ef.extract(inputPath, outputPath, fps, duration, imgDir);
+		// System.out.println("after preprocessor");
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
 

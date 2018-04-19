@@ -157,25 +157,13 @@ public class PreProcessor {
 		}
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
-
-		// //make progress bar for import
-		//         JProgressBar progressBar = new JProgressBar();
-		// int totalImages = fps * duration;
-		// progressBar.setMaximum(totalImages);
-		// progressBar.setMinimum(0);
-		// int numFiles = 0;
-		// while (numFiles < totalImages) {
-		// 	numFiles = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
-		// 	progressBar.setValue(numFiles);
-		// 	TimeUnit.SECONDS.sleep(1);
-		// }
-
-	
+		p.waitFor();
 
 		 //CODE TO COLLECT RESULTANT INPUT STREAM:
         java.io.InputStream is = p.getInputStream();
         java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
-        // And print each line
+        
+		// And print each line
         String s = null;
         while ((s = reader.readLine()) != null) {
             System.out.println(s);

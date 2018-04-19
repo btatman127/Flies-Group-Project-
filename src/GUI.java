@@ -369,7 +369,6 @@ public class GUI extends JFrame {
 				pack();
 				revalidate();
 				repaint();
-				System.out.println("before loop");	
 				
 				new Thread(new CropThread("crop", point1, point2, movie.getNumImages(), movie.getImgDir(), cropProgress)).start();
 				
