@@ -93,10 +93,6 @@ public class PreProcessor {
         return image.getSubimage(topLeft[0], topLeft[1], Math.abs(point1[0] - point2[0]), Math.abs(point1[1] - point2[1]));
     }
 
-    static double setScaleFactor(int[] point1, int[] point2) {
-        int width = Math.abs(point1[0] - point2[0]);
-        return (12.7 * 5 / width);
-    }
 
     /**
      * @param frames
