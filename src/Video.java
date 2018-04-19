@@ -53,9 +53,9 @@ public class Video {
         this.movieDir = movieDir;
         this.movieNameLong = movieNameLong;
 
+
         //create a list of larva for this video
         larvae = new ArrayList<Larva>();
-
 
 
         //create input and output paths for the whole video
@@ -80,9 +80,13 @@ public class Video {
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
+		System.out.println("before preprocessor");
         //call ffmpeg extractor
+		int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
-
+		// ExtractFrames ef = new ExtractFrames();
+		// ef.extract(inputPath, outputPath, fps, duration, imgDir);
+		// System.out.println("after preprocessor");
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
 
