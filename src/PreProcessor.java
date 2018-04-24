@@ -9,6 +9,9 @@ import java.lang.Math;
 import java.util.LinkedList;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import javax.swing.JProgressBar;
+import java.util.concurrent.TimeUnit;
+import javax.swing.*;
 
 
 
@@ -119,12 +122,10 @@ public class PreProcessor {
             int average = 0;
             for (int x = 0; x < width; x++) {
                 int colorValue = image.getRGB(x, y);
-                //System.out.println("x: " +x+ " y: " + y + "Color: " + colorValue);
                 //get average RGB value
                 int red = (colorValue >> 16) & 0xFF;
                 int green = (colorValue >> 8) & 0xFF;
                 int blue = (colorValue) & 0xFF;
-                //System.out.println("Red " + red + " blue: " + blue + " green " + green);
                 int colorAvg = (red + green + blue) / 3;
                 average += colorAvg;
                 if (colorAvg > threshold) {
@@ -140,13 +141,13 @@ public class PreProcessor {
         return image;
     }
 
-    /**
-     * Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
-     *
-     * @param inputPath
-     * @param outputPath this String should end with a / character
-     * @param fps        a value of 1 will extract 1 frame for each second of video
-     */
+
+	/**
+	* Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
+	* @param inputPath
+	* @param outputPath   this String should end with a / character
+	* @param fps    a value of 1 will extract 1 frame for each second of video
+	*/
 
     public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
 
@@ -157,38 +158,33 @@ public class PreProcessor {
         //outPath = outPath.resolve("img%04d.png");
 
         String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps=" + fps, outputPath};
-        for (int i = 0; i < command.length; i++) {
-            System.out.println(command[i]);
-        }
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
-        p.waitFor();
+		p.waitFor();
 
         //CODE TO COLLECT RESULTANT INPUT STREAM:
         java.io.InputStream is = p.getInputStream();
         java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
-        // And print each line
+        
+		// And print each line
         String s = null;
         while ((s = reader.readLine()) != null) {
             System.out.println(s);
         }
         is.close();
+	}
 
-    }
 
     /**
      * Takes a start time and end time and tells ffmpeg to trim video before images are extracted
      **/
     public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.io.IOException, java.lang.InterruptedException {
 
+
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
         //TODO look at end time
         int duration = endTime - startTime;
-        System.out.println("Duration for ffmpeg: " + duration);
         String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(duration), outputPathLong};
-        for (int i = 0; i < command.length; i++) {
-            System.out.println(command[i]);
-        }
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
         p.waitFor();
@@ -204,6 +200,7 @@ public class PreProcessor {
         is.close();
 
     }
+	
     /** Gets duration in seconds from ffmpeg as a String**/
     public static String getDuration(String movieDir, String movieNameLong) throws IOException, InterruptedException {
         String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", movieDir + movieNameLong};
@@ -217,10 +214,8 @@ public class PreProcessor {
         String s = null;
 
         while ((s = stdInput.readLine()) != null) {
-            //System.out.println(s);
             durationSeconds = s;
         }
-        //System.out.println("duration: " + durationSeconds);
         //wait for command to finish
         p2.waitFor();
         return durationSeconds;
@@ -232,7 +227,6 @@ public class PreProcessor {
         } catch (Exception e) {
         }
         double duration = Double.parseDouble(durationSeconds);
-        //System.out.print("valid duration: " + duration);
         int durationInt = (int) duration;
         return Integer.toString(durationInt);
 

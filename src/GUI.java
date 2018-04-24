@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.awt.geom.*;
+import java.util.concurrent.TimeUnit;
 
 public class GUI extends JFrame {
     private int currentFrame;
@@ -27,6 +28,7 @@ public class GUI extends JFrame {
     private JButton exportCSV;
     private JButton resetPosition;
     private JButton stopResetPosition;
+	private final JProgressBar cropProgress;
     private JCheckBox showPaths;
     private JTextPane displayFrameNum;
     private int[] point1;
@@ -69,6 +71,7 @@ public class GUI extends JFrame {
         exportCSV = new JButton(("Export as CSV file"));
         resetPosition = new JButton("Reset Larva Position");
         stopResetPosition = new JButton("Stop Larva Reset");
+		cropProgress = new JProgressBar();
 
 
         DefaultStyledDocument sd = new DefaultStyledDocument();
@@ -95,6 +98,7 @@ public class GUI extends JFrame {
         buttonPanel.add(stopResetPosition);
         buttonPanel.add(exportCSV);
         buttonPanel.add(displayFrameNum);
+		buttonPanel.add(cropProgress);
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
         //make sure some of the buttons can't be pressed yet
@@ -109,12 +113,7 @@ public class GUI extends JFrame {
         stopResetPosition.setVisible(false);
         exportCSV.setVisible(false);
         displayFrameNum.setVisible(false);
-
-        // COMMENT THIS OUT WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
-//        openMovie.setEnabled(false);
-//        startLarvaeSelection.setEnabled(false);
-//        endLarvaeSelection.setEnabled(false);
-//        endCrop.setEnabled(false);
+		cropProgress.setVisible(false);
 
         frame = new ImageComponent("pic1.png", movie);
         frame.setBorder(BorderFactory.createEtchedBorder());
@@ -178,10 +177,17 @@ public class GUI extends JFrame {
                 public void windowClosing(WindowEvent e) {
                     try {
                         frame.removeDirectory(frame.movie);
+                        frame.removeShortfile(frame.movie.getOutputPathLong());
+                        System.exit(1);
                     } catch (IOException e1) {
                         e1.printStackTrace();
+                        System.exit(1);
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();
+                        System.exit(1);
+                    } catch (NullPointerException e1) {
+                        e1.printStackTrace();
+                        System.exit(1);
                     }
 
                     System.exit(0);
@@ -211,6 +217,7 @@ public class GUI extends JFrame {
         }
     }
 
+
     public int getTempLarvaIndex() {
         return tempLarvaIndex;
     }
@@ -218,6 +225,17 @@ public class GUI extends JFrame {
     public void setTempLarvaIndex(int tempLarvaIndex) {
         this.tempLarvaIndex = tempLarvaIndex;
     }
+
+    public void removeShortfile(String dir) throws IOException, InterruptedException {
+
+        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+
+            String[] command = new String[]{"rm", "-f", dir};
+            java.lang.Process p = rt.exec(command);
+            p.waitFor();
+        }
+
+
 
 
     /**
@@ -255,7 +273,7 @@ public class GUI extends JFrame {
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             JCheckBox fullLength = new JCheckBox();
-            fullLength.setSelected(true);
+            fullLength.setSelected(false);
             Object[] message = {
                     "Please enter Start and Stop time in seconds.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
@@ -285,7 +303,6 @@ public class GUI extends JFrame {
 
                     }
                 }
-                System.out.print("Got to valid input");
             }
 
             //Create new movie
@@ -302,7 +319,7 @@ public class GUI extends JFrame {
 //            openMovie.setEnabled(false);
 
             frame.movie = movie;
-
+            //DIRECTLY AFTER OPENNING MOVie FILE
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
             startCrop.setVisible(true);
@@ -314,9 +331,11 @@ public class GUI extends JFrame {
             resetPosition.setVisible(true);
             stopResetPosition.setVisible(true);
 
-            startLarvaeSelection.setEnabled(true);
-            endLarvaeSelection.setEnabled(true);
+            startLarvaeSelection.setEnabled(false);
+            endLarvaeSelection.setEnabled(false);
             endCrop.setEnabled(false);
+            showPaths.setEnabled(false);
+            exportCSV.setEnabled(false);
             displayFrameNum.setVisible(true);
             displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
             displayFrameNum.setEditable(false);
@@ -407,12 +426,15 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-
+				cropProgress.setVisible(true);
             try {
-                //System.out.println(movie.getImgDir());
+
+
+                System.out.println(movie.getImgDir());
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
+
 
                 point1[0] = (int) (frame.squares.get(0).getCenterX() * xratio);
                 point1[1] = (int) (frame.squares.get(0).getCenterY() * yratio);
@@ -423,19 +445,29 @@ public class GUI extends JFrame {
 
                 frame.remove(frame.squares.get(1));
                 frame.remove(frame.squares.get(0));
-
-
                 frame.maxSquares = 0;
-
-
-                PreProcessor.crop(point1, point2, movie.getNumImages(), movie.getImgDir());
+				
+				cropProgress.setVisible(true);
+				cropProgress.setMaximum(movie.getNumImages());
+				cropProgress.setMinimum(0);
+				pack();
+				revalidate();
+				repaint();
+				
+				new Thread(new CropThread("crop", point1, point2, movie.getNumImages(), movie.getImgDir(), cropProgress)).start();
+				
+				repaint();
+				// movie.setScaleFactor(PreProcessor.setScaleFactor(point1, point2));
 
                 startLarvaeSelection.setEnabled(true);
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
+				
+				
 
                 String frameToDraw = movie.getPathToFrame(currentFrame + 1);
                 frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+				
 
                 revalidate();
                 repaint();
@@ -466,6 +498,7 @@ public class GUI extends JFrame {
             frame.maxSquares = 5;
             startCrop.setEnabled(false);
             endCrop.setEnabled(false);
+            startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(true);
             pack();
             revalidate();
@@ -581,6 +614,8 @@ public class GUI extends JFrame {
             frame.maxSquares = 0;
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
+            showPaths.setEnabled(true);
+            exportCSV.setEnabled(true);
 
             //Initializes the tracking process within the Video class
             collisionFound = movie.createFrames();

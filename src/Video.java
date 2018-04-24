@@ -16,7 +16,7 @@ public class Video {
     private String movieNameLong;
     private String imgDir;
     private int numImages;
-
+    private String outputPathLong;
     private boolean videoInitialized;
 
 
@@ -38,6 +38,10 @@ public class Video {
     //factor that converts pixels to mm
     private double scaleFactor;
 
+    public String getOutputPathLong() {
+        return outputPathLong;
+    }
+
     /**
      * Constructor for a Video object
      *
@@ -50,17 +54,16 @@ public class Video {
         this.movieDir = movieDir;
         this.movieNameLong = movieNameLong;
 
+
         //create a list of larva for this video
         larvae = new ArrayList<Larva>();
-
 
 
         //create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length() - 4) + "SHORTER" + timestamp + ".mov";
-        System.out.print(this.movieName);
 
-        String outputPathLong = movieDir + "/" + this.movieName;
+        outputPathLong = movieDir + "/" + this.movieName;
         String inputPathLong = movieDir + "/" + this.movieNameLong;
 
         //call ffmpeg crop method
@@ -75,13 +78,16 @@ public class Video {
         p.waitFor();
 
         String inputPath = this.movieDir + "/" + this.movieName;
-        System.out.println("inputPath: " + inputPath);
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
+		System.out.println("before preprocessor");
         //call ffmpeg extractor
+		int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
-
+		// ExtractFrames ef = new ExtractFrames();
+		// ef.extract(inputPath, outputPath, fps, duration, imgDir);
+		// System.out.println("after preprocessor");
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
 
@@ -394,11 +400,7 @@ public class Video {
     }
 
     public void addLarva(Larva l) {
-        System.out.println("added larva: ");
         Double[] a = l.getPosition(0);
-        for (int i = 0; i < 2; i++) {
-            System.out.println("\t" + Double.toString(a[i]));
-        }
         larvae.add(l);
     }
 
