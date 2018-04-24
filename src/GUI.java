@@ -115,7 +115,7 @@ public class GUI extends JFrame {
         displayFrameNum.setVisible(false);
 		cropProgress.setVisible(false);
 
-        frame = new ImageComponent("pic1.png", movie);
+        frame = new ImageComponent("welcome.png", movie);
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
 
@@ -252,6 +252,19 @@ public class GUI extends JFrame {
             String name = fd.getFile();
             String dir = fd.getDirectory();
 
+            if(movie!= null){
+                try {
+                    removeShortfile(frame.movie.getOutputPathLong());
+                }catch (NullPointerException e1) {
+                    e1.printStackTrace();
+                    System.exit(1);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
             if (name != null) {
                 try {
                     removeDirectory(movie);
@@ -331,10 +344,13 @@ public class GUI extends JFrame {
             resetPosition.setVisible(true);
             stopResetPosition.setVisible(true);
 
+            startCrop.setEnabled(true);
             startLarvaeSelection.setEnabled(false);
             endLarvaeSelection.setEnabled(false);
             endCrop.setEnabled(false);
             showPaths.setEnabled(false);
+            showPaths.setSelected(false);
+            frame.displayPaths = false;
             exportCSV.setEnabled(false);
             displayFrameNum.setVisible(true);
             displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
@@ -409,6 +425,7 @@ public class GUI extends JFrame {
             frame.maxSquares = 2;
             startCrop.setEnabled(false);
             endCrop.setEnabled(true);
+            startLarvaeSelection.setEnabled(false);
             repaint();
         }
     }

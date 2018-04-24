@@ -18,6 +18,9 @@ public class Region {
         findAvgValue();
     }
 
+    /**
+     * Finds the average brightness of this region.
+     */
     private void findAvgValue() {
         int avg = 0;
         for (int i = 0; i < width; i++) {
@@ -32,6 +35,9 @@ public class Region {
         avgValue = avg / (width * height);
     }
 
+    /**
+     * @return The average brightness of the region.
+     */
     public int getAvgValue() {
         return avgValue;
     }
