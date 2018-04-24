@@ -397,6 +397,7 @@ public class GUI extends JFrame {
             frame.maxSquares = 2;
             startCrop.setEnabled(false);
             endCrop.setEnabled(true);
+            startLarvaeSelection.setEnabled(false);
             repaint();
         }
     }

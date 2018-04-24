@@ -19,6 +19,14 @@ public class PreProcessor {
 
     private static String durationSeconds;
 
+    /**
+     *
+     * @param filename The file to scale
+     * @param width The desired width
+     * @param height The desired height
+     * @return An image scaled to the specified width and height. The image remains in aspect, and is scaled to the largest it can be
+     * without becoming stretched.
+     */
     public static Image scale(String filename, int width, int height) {
         double displayAngle = Math.atan2(height, width);
         if (displayAngle < 0) {
@@ -98,7 +106,8 @@ public class PreProcessor {
 
 
     /**
-     * @param frames
+     * Carries out a color correction algorithm on the frames in a given directory.
+     * @param frames The number of frames to modify.
      */
     static void colorCorrectFrames(int frames, String directory) {
         for (int i = 1; i <= frames; i++) {
@@ -112,6 +121,12 @@ public class PreProcessor {
         }
     }
 
+    /**
+     * For a specific image, color correct that image.
+     * @param image The image to color correct.
+     * @return A black and white image which attempts to correct for bad video quality to provide a clearer idea of
+     * what is actually going on.
+     */
     static BufferedImage colorCorrect(BufferedImage image) {
         int height = image.getHeight();
         int width = image.getWidth();

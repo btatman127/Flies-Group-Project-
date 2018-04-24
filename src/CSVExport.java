@@ -77,7 +77,9 @@ public class CSVExport {
         result += "\n";
     }
 
-
+    /**
+     * Exports and saves a CSV file containing position, distance, and velocity data for each larva.
+     */
     public void export() {
 
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
@@ -91,16 +93,25 @@ public class CSVExport {
         }
     }
 
+    /**
+     * Finds and sets the proper millimeter to pixel scale.
+     */
     public void setConversionScale(){
         double mm = 76.0; //The grid is 3" by 3", which translates into about 76 mm.
         scaleX = mm/movie.getDimensions()[0];
         scaleY = mm/movie.getDimensions()[1];
     }
 
+    /**
+     * @return The distance between points a and b.
+     */
     private double distance(Double[] a, Double[] b) {
         return Math.sqrt(Math.pow(((a[0] - b[0]) * scaleX), 2) + Math.pow(((a[1] - b[1]) * scaleY), 2));
     }
 
+    /**
+     * @return The total distance a given larva traveled during the video.
+     */
     private double getTotalDistance(Larva larva){
         double sum = 0;
         for(int i = 0; i<larva.getPositionsSize()-1; i++){
@@ -109,6 +120,9 @@ public class CSVExport {
         return sum;
     }
 
+    /**
+     * @return The average velocity a given larva traveled during the video.
+     */
     private double getAverageVelocity(Larva larva){
         return getTotalDistance(larva)/(larva.getPositionsSize() -1);
     }

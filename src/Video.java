@@ -94,7 +94,9 @@ public class Video {
 
     }
 
-
+    /**
+     * Creates an internal representation of frames for this video, and finds the locations of the larva in each frame.
+     */
     public void createFrames() {
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         try {
@@ -126,11 +128,20 @@ public class Video {
 
     }
 
-
+    /**
+     * Get the coordinates of the larvae on a specific frame.
+     * @param frame The frame to get the larvae coordinates for.
+     * @return An Arraylist of Double[], one for each larva.
+     */
     public ArrayList<Double[]> getLarvaCoordinates(int frame) {
         return islands.get(frame);
     }
 
+    /**
+     * Splits an image into a set number of subimages called regions, which are stored in the Video's regions array.
+     * @param frame The frame number of the image.
+     * @param image An image to create regions on.
+     */
     private void createRegions(int frame, BufferedImage image) {
         int imgWidth = image.getWidth();
         int imgHeight = image.getHeight();
@@ -161,6 +172,12 @@ public class Video {
         return average /= count;
     }
 
+    /**
+     * For a specific frame, find the probable locations of larvae as represented by a black and white image.
+     * @param frame The frame to search
+     * @return A low-resolution representation of a frame, in pure black and white, where black areas are likely to be larvae
+     * and white areas are not.
+     */
     private BufferedImage fillLarvaLoc(int frame) {
         BufferedImage array = new BufferedImage(regions[0].length, regions[0][0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < larvaLoc[0].length; i++) {
@@ -178,6 +195,13 @@ public class Video {
         return array;
     }
 
+    /**
+     * Searches a frame for islands.
+     * @param frame The frame to search
+     * @return An arraylist of Double array of length 3, where index 0 is the x-coordinate of the center,
+     * index 1 is the y-coordinate of the center,
+     * and index 2 is the mass of the island, ie, how many points made up the island.
+     */
     private ArrayList<Double[]> getIslandList(int frame) {
         //depth first search
         boolean visited[][] = new boolean[larvaLoc[0].length][larvaLoc[0][0].length];
@@ -202,7 +226,15 @@ public class Video {
         return coords;
     }
 
-
+    /**
+     * For a specific point known to be on an island, finds the rest of the island, and calculates its properties.
+     * @param frame The frame to search
+     * @param x The x-coordinate of a known island
+     * @param y The y-coordinate of a known island
+     * @param visited The list of visited locations
+     * @return An array of length 3 of Doubles where index 0 is the x-coordinate of the center, index 1 is the y-coordinate of the center,
+     * and index 2 is the mass of the island, ie, how many points made up the island.
+     */
     private Double[] getIsland(int frame, int x, int y, boolean[][] visited) { //cc as in contiguousCoords
         Double[] island = new Double[3]; // island is defined as {x, y, mass}
         ArrayList<double[]> points = islandDFS(frame, x, y, visited, new ArrayList<double[]>());
@@ -219,6 +251,15 @@ public class Video {
         return island;
     }
 
+    /**
+     * Performs depth-first search on an island to determine its size and center.
+     * @param frame The frame to search
+     * @param x The x-coordinate of a known island
+     * @param y The y-coordinate of a known island
+     * @param visited The list of coordinates that we have already checked
+     * @param points A list of coordinates known to be in the island
+     * @return An arraylist of double[] containing all the coordinates of points in the island.
+     */
     private ArrayList<double[]> islandDFS(int frame, int x, int y, boolean[][] visited, ArrayList<double[]> points) {
         double[] here = {x, y};
         points.add(here);
@@ -270,11 +311,18 @@ public class Video {
         return points;
     }
 
+    /**
+     * @return true only if (x,y) is a valid index into the Video's representation of a frame (regions and larvaLoc)
+     */
     private boolean validCoords(int x, int y) {
         return x >= 0 && x < larvaLoc[0].length && y >= 0 && y < larvaLoc[0][0].length;
     }
 
 
+    /**
+     * Loops over the frames of the video, and for each frame, locates the larva location closest to
+     * the last know larva location, using the first points clicked as a baseline.
+     */
     private void trackLarvae() {
         //TODO Replace initial larva position (currently user-clicked) with true larva center locations
 
@@ -305,10 +353,12 @@ public class Video {
         }
     }
 
+    /**
+     * @return The euclidean distance between points a and b.
+     */
     private double distance(Double[] a, Double[] b) {
         return Math.sqrt(Math.pow((a[0] - b[0]), 2) + Math.pow((a[1] - b[1]), 2));
     }
-
 
 
     public ArrayList<Larva> getLarva() {
@@ -357,6 +407,10 @@ public class Video {
         return videoInitialized;
     }
 
+    /**
+     * @return An array of length 2, where index 0 is the width of the video and index 1 is the height of the video.
+     * This is calculated when the method is called; this is not the original width and height of the video!
+     */
     public double[] getDimensions() {
         try {
             BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
