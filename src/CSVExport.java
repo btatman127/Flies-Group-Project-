@@ -32,7 +32,7 @@ public class CSVExport {
         //add column labels for x and y
         result += "\n";
         for (int i = 0; i < larvae.size(); i++) {
-            result += "x,y";
+            result += "x (mm),y (mm)";
             if (i < larvae.size()) {
                 result += ",";
             }
@@ -62,14 +62,14 @@ public class CSVExport {
         //add total distance
         result += "\n";
         for (int i = 0; i < larvae.size(); i++) {
-            result += "Total Distance: ," + String.format("%.2f", getTotalDistance(larvae.get(i))) + ",";
+            result += "Total Distance (mm): ," + String.format("%.2f", getTotalDistance(larvae.get(i))) + ",";
         }
 
 
         //add average velocity
         result += "\n";
         for (int i = 0; i < larvae.size(); i++) {
-            result += "Average Velocity: ," + String.format("%.2f", getAverageVelocity(larvae.get(i))) + ",";
+            result += "Average Velocity (mm/sec): ," + String.format("%.2f", getAverageVelocity(larvae.get(i))) + ",";
 //            if (i != larvae.size() - 1) {
 //                result = result + ",,";
 //            }
