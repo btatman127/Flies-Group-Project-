@@ -29,6 +29,7 @@ public class Video {
     //Array of (arraylists of (double arrays))
     private ArrayList<ArrayList<Double[]>> islands;
     private ArrayList<Integer> collisionFrameIndex;
+    private double islandConstant = 24.0;
 
 
 
@@ -174,7 +175,7 @@ public class Video {
                 }
             }
 
-            if (minDistance < getDimensions()[1] / 24.0) { //TODO: this 24.0 value should be a class constant
+            if (minDistance < getDimensions()[1] / islandConstant) {
                 l.setNewPosition(islands.get(f).get(minIndex));
             } else {
                 break;
@@ -380,7 +381,7 @@ public class Video {
                     }
                 }
 
-                if (minDistance < getDimensions()[1] / 24.0) {
+                if (minDistance < getDimensions()[1] / islandConstant) {
                     l.setNewPosition(islands.get(i).get(minIndex));
                 } else {
                     break;

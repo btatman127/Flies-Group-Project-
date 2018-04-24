@@ -64,13 +64,13 @@ public class GUI extends JFrame {
         nextFrame = new JButton("Next Frame");
         prevFrame = new JButton("Previous Frame");
         startCrop = new JButton("Start Crop");
-        endCrop = new JButton("End Crop");
+        endCrop = new JButton("Finish Crop");
         startLarvaeSelection = new JButton("Start Larvae Selection");
-        endLarvaeSelection = new JButton("End Larvae Selection");
+        endLarvaeSelection = new JButton("Finish Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
         exportCSV = new JButton(("Export as CSV file"));
         resetPosition = new JButton("Reset Larva Position");
-        stopResetPosition = new JButton("Stop Larva Reset");
+        stopResetPosition = new JButton("Finish Larva Reset");
 		cropProgress = new JProgressBar();
 
 
@@ -273,7 +273,7 @@ public class GUI extends JFrame {
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             JCheckBox fullLength = new JCheckBox();
-            fullLength.setSelected(false);
+            fullLength.setSelected(true);
             Object[] message = {
                     "Please enter Start and Stop time in seconds.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
@@ -526,7 +526,7 @@ public class GUI extends JFrame {
             Object[] message = {
                     "Please select larva number to reset position.",
                     larvaNumberOption,
-                    "Select ok and select new point."
+                    "Select ok and then select new point."
             };
 
             JOptionPane.showMessageDialog(null, message);
