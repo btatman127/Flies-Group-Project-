@@ -30,11 +30,10 @@ public class Larva {
 	 */
 
 	public void trimPositions(int frame){
-		ArrayList<Double[]> tempPositions = new ArrayList<Double[]>(frame);
+		ArrayList<Double[]> tempPositions = new ArrayList<Double[]>();
 		for(int f = 0; f < frame; f++){
-			tempPositions.set(f, positions.get(f));
+			tempPositions.add(positions.get(f));
 		}
-
 		positions = tempPositions;
 	}
 

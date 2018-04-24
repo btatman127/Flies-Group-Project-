@@ -133,7 +133,7 @@ public class GUI extends JFrame {
         ShowPathAction showPathAction = new ShowPathAction();
         CSVExportAction exportAction = new CSVExportAction();
         ResetPositionAction resetPositionAction = new ResetPositionAction(this);
-        StopResetAction stopResetAction = new StopResetAction();
+        StopResetAction stopResetAction = new StopResetAction(this);
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -515,11 +515,11 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+          try {  BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
             double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
             double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
-            double pt[] = new double[2];
+            Double pt[] = new Double[2];
             pt[0] = (frame.squares.get(0).getCenterX() * xratio);
             pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
@@ -527,7 +527,15 @@ public class GUI extends JFrame {
 
             movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
 
+            frame.remove(frame.squares.get(0));
 
+            revalidate();
+            repaint();
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.out.println("Need to have 2 squares to crop the image.");
+        }
 
 
 
@@ -693,7 +701,7 @@ class ImageComponent extends JComponent {
                     g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
                     g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio, (l.getPosition(i + 1)[1]) / yratio, 6, 6));
 
-                    if (i == currentFrame - 2) {
+                    if (i == currentFrame - 1) {
                         g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0]) / xratio - 3), (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
 
                     }

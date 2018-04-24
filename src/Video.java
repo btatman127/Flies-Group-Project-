@@ -133,7 +133,7 @@ public class Video {
     }
 
 
-    void resetLarvaPosition(int firstFrame, int larvaIndex, int pt[]){
+    void resetLarvaPosition(int firstFrame, int larvaIndex, Double pt[]){
         //starting and frameIndex
         //overwrite position values for larvae[larvaIndex] for each frame
         if(!videoInitialized){
@@ -145,11 +145,34 @@ public class Video {
 
         l.trimPositions(firstFrame); // this will destroy the record of coordinates including and after the firstFrame
 
-        l.setNewPosition();
+        l.setNewPosition(pt);
 
 
         for(int f = firstFrame + 1; f < numImages; f++){
+            ArrayList<Double[]> currentIslands = islands.get(f);
 
+            Double[] previousPt = l.getPosition(f-1);
+
+            double minDistance = 100000;
+            int minIndex = -1;
+
+
+            //for each island in currentIslands
+            for (int j = 0; j < currentIslands.size(); j++) {
+                double distance = distance(previousPt, islands.get(f).get(j));
+
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    minIndex = j;
+                }
+            }
+
+            if (minDistance < getDimensions()[1] / 24.0) { //TODO: this 24.0 value should be a class constant
+                l.setNewPosition(islands.get(f).get(minIndex));
+            } else {
+                break;
+            }
         }
     }
 
