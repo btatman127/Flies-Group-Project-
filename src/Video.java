@@ -28,6 +28,7 @@ public class Video {
     //Array of islands for each frame
     //Array of (arraylists of (double arrays))
     private ArrayList<ArrayList<Double[]>> islands;
+    private ArrayList<Integer> collisionFrameIndex;
 
 
 
@@ -94,10 +95,13 @@ public class Video {
 
     }
 
-    /**
-     * Creates an internal representation of frames for this video, and finds the locations of the larva in each frame.
+
+    /** Last step to initialize a movie.
+     *  Stores coordinates of each larva in each frame
+     *
      */
-    public void createFrames() {
+    public boolean createFrames() {
+        boolean collisionFound = false;
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         try {
             BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
@@ -105,6 +109,7 @@ public class Video {
             regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             islands = new ArrayList<ArrayList<Double[]>>(numImages);// islands[f][island][coord]
+
             for (int f = 0; f < numImages; f++) {
                 BufferedImage image = ImageIO.read(new File(imgDir + "/cc" + String.format("%04d", f + 1) + ".png"));
                 createRegions(f, image);
@@ -118,14 +123,63 @@ public class Video {
                 islands.add(getIslandList(f));
             }
 
+            collisionFrameIndex = new ArrayList<>();
+
             trackLarvae();
 
+            collisionFound = findCollisions();
+
             videoInitialized = true;
+
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+        return collisionFound;
+    }
 
+
+    void resetLarvaPosition(int firstFrame, int larvaIndex, Double pt[]){
+        //starting and frameIndex
+        //overwrite position values for larvae[larvaIndex] for each frame
+        if(!videoInitialized){
+            System.out.println("!!attempted to resetLarvaPosition before fully initializing video!!");
+            return;
+        }
+
+        Larva l = larvae.get(larvaIndex);
+
+        l.trimPositions(firstFrame); // this will destroy the record of coordinates including and after the firstFrame
+
+        l.setNewPosition(pt);
+
+
+        for(int f = firstFrame + 1; f < numImages; f++){
+            ArrayList<Double[]> currentIslands = islands.get(f);
+
+            Double[] previousPt = l.getPosition(f-1);
+
+            double minDistance = 100000;
+            int minIndex = -1;
+
+
+            //for each island in currentIslands
+            for (int j = 0; j < currentIslands.size(); j++) {
+                double distance = distance(previousPt, islands.get(f).get(j));
+
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    minIndex = j;
+                }
+            }
+
+            if (minDistance < getDimensions()[1] / 24.0) { //TODO: this 24.0 value should be a class constant
+                l.setNewPosition(islands.get(f).get(minIndex));
+            } else {
+                break;
+            }
+        }
     }
 
     /**
@@ -135,6 +189,34 @@ public class Video {
      */
     public ArrayList<Double[]> getLarvaCoordinates(int frame) {
         return islands.get(frame);
+    }
+
+    /** goes through larvae positions and checks for position overlap on same frames **/
+    private boolean findCollisions() {
+        boolean collisionFound = false;
+        for (int f = 0; f < numImages; f++) {
+            //for each larva position
+            for(int i = 0; i < larvae.size()-1;  i++){
+                for( int j = i+1; j < larvae.size(); j++) {
+                    //System.out.printf("L1: %lf %lf L2: %lf %lf\n", 1,2,3,4 );
+                    //System.out.printf("L1: %lf %lf L2: %lf %lf\n", larvae.get(i).getPosition(f)[0], larvae.get(j).getPosition(f)[0], larvae.get(i).getPosition(f)[1], larvae.get(j).getPosition(f)[1] );
+                    //System.out.println(larvae.get(i).getPosition(f)[0]+ " "+ larvae.get(j).getPosition(f)[0]+ " " + larvae.get(i).getPosition(f)[1]+ " " + larvae.get(j).getPosition(f)[1] );
+
+                    if(larvae.get(i).getPositionsSize() > f && larvae.get(j).getPositionsSize() > f) {
+                        if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] && larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
+                            collisionFrameIndex.add(f);
+                            collisionFound = true;
+                            System.out.println("Collision @: " + collisionFrameIndex.get(collisionFrameIndex.size() - 1));
+
+                        }
+                    }
+                }
+            }
+                // is there a duplicate?
+                    //if so push frame number to collision frame index
+            //larva[f][][]
+        }
+        return collisionFound;
     }
 
     /**
@@ -419,6 +501,10 @@ public class Video {
             ioe.printStackTrace();
         }
         return null;
+    }
+
+    public int getCollisionFrameIndex(int index){
+        return collisionFrameIndex.get(index);
     }
 
 }

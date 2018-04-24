@@ -44,6 +44,7 @@ public class CSVExport {
             for (int coord = 0; coord < larvae.size(); coord++) {
                 String x = "";
                 String y = "";
+
                 if (row < larvae.get(coord).getPositionsSize()) {
                     x = String.format("%.2f", (larvae.get(coord).getPosition(row)[0] * scaleX));
                     y = String.format("%.2f", ((movie.getDimensions()[1] - larvae.get(coord).getPosition(row)[1]) * scaleY));
