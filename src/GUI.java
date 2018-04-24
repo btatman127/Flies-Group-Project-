@@ -115,7 +115,7 @@ public class GUI extends JFrame {
         displayFrameNum.setVisible(false);
 		cropProgress.setVisible(false);
 
-        frame = new ImageComponent("pic1.png", movie);
+        frame = new ImageComponent("welcome.png", movie);
         frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
 
