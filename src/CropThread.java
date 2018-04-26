@@ -58,18 +58,6 @@ class CropThread implements Runnable{
 		catch(InterruptedException ine) {
 			ine.printStackTrace();
 		}
-			//
-	//     for (int i = 1; i <= frames; i++) {
-	//             try {
-	//                 BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i) + ".png"));
-	//                 BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
-	//                 ImageIO.write(subimage, "png", new File(directory + "/img" + String.format("%04d", i) + ".png"));
-	//             }
-	// 		catch (IOException ioe) {
-	//                 ioe.printStackTrace();
-	//             }
-	// 		progress = i;
-	//         }
 	}
 	
 	public void start() {
@@ -78,9 +66,5 @@ class CropThread implements Runnable{
 			t.start();
 		}
 	}
-	
-	// public int getProgress() {
-	// 	System.out.println(progress);
-	// 	return progress;
-	// }
+
 }

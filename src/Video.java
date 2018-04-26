@@ -85,9 +85,6 @@ public class Video {
         //call ffmpeg extractor
 		int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
-		// ExtractFrames ef = new ExtractFrames();
-		// ef.extract(inputPath, outputPath, fps, duration, imgDir);
-		// System.out.println("after preprocessor");
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
 
 
@@ -114,9 +111,6 @@ public class Video {
                 BufferedImage image = ImageIO.read(new File(imgDir + "/cc" + String.format("%04d", f + 1) + ".png"));
                 createRegions(f, image);
                 fillLarvaLoc(f);
-                //ImageIO.write(averages, "png", new File("assets/avg" + String.format("%04d", f+1) + ".png"));
-                //ImageIO.write(locations, "png", new File("assets/bool" + String.format("%04d", f+1) + ".png"));
-
 
                 //Array of islands for each frame
                 //Array of (arraylists of (double arrays))
@@ -198,16 +192,10 @@ public class Video {
             //for each larva position
             for(int i = 0; i < larvae.size()-1;  i++){
                 for( int j = i+1; j < larvae.size(); j++) {
-                    //System.out.printf("L1: %lf %lf L2: %lf %lf\n", 1,2,3,4 );
-                    //System.out.printf("L1: %lf %lf L2: %lf %lf\n", larvae.get(i).getPosition(f)[0], larvae.get(j).getPosition(f)[0], larvae.get(i).getPosition(f)[1], larvae.get(j).getPosition(f)[1] );
-                    //System.out.println(larvae.get(i).getPosition(f)[0]+ " "+ larvae.get(j).getPosition(f)[0]+ " " + larvae.get(i).getPosition(f)[1]+ " " + larvae.get(j).getPosition(f)[1] );
-
                     if(larvae.get(i).getPositionsSize() > f && larvae.get(j).getPositionsSize() > f) {
                         if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] && larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
                             collisionFrameIndex.add(f);
                             collisionFound = true;
-                            System.out.println("Collision @: " + collisionFrameIndex.get(collisionFrameIndex.size() - 1));
-
                         }
                     }
                 }
@@ -246,7 +234,6 @@ public class Video {
                     if (j >= 0 && j < regions[0][0].length) {
                         count++;
                         average += regions[frame][i][j].getAvgValue();
-                        //System.out.println("frame " + frame + " i,j " + i +"," +j);
                     }
                 }
             }
@@ -266,7 +253,6 @@ public class Video {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
                 larvaLoc[frame][i][j] = avg < threshold;
-                //System.out.println((avg < threshold) + "  avg < thresh " + avg + " " + threshold );
                 int b = 255;
                 if (larvaLoc[frame][i][j]) {
                     b = 0;
@@ -345,7 +331,6 @@ public class Video {
     private ArrayList<double[]> islandDFS(int frame, int x, int y, boolean[][] visited, ArrayList<double[]> points) {
         double[] here = {x, y};
         points.add(here);
-        //ArrayList<double[]> directions = new ArrayList<double[]>();
         visited[x][y] = true;
         int xx, yy;
 

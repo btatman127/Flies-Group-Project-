@@ -25,6 +25,7 @@ public class Region {
         int avg = 0;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
+                //getRGB method returns a color in format #RRGGBB in Hex. We use bit shifting operations to extract the correct values
                 int colorValue = image.getRGB(i, j);
                 int r = (colorValue >> 16) & 0xFF;
                 int g = (colorValue >> 8) & 0xFF;

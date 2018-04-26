@@ -36,14 +36,5 @@ public class terminalOutput {
         };
 
        int option = JOptionPane.showConfirmDialog(null, message, "Time Select", JOptionPane.OK_CANCEL_OPTION);
-//        if (option == JOptionPane.OK_OPTION) {
-//            if (startTime.getText().equals("h") && endTime.getText().equals("h")) {
-//                System.out.println("Login successful");
-//            } else {
-//                System.out.println("login failed");
-//            }
-//        } else {
-//            System.out.println("Login canceled");
-//        }
     }
 }
