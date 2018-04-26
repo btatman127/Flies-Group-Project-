@@ -28,6 +28,8 @@ public class GUI extends JFrame {
     private JButton exportCSV;
     private JButton resetPosition;
     private JButton stopResetPosition;
+    private JButton setSinglePoint;
+    private JButton endSetSinglePoint;
 	private final JProgressBar cropProgress;
     private JCheckBox showPaths;
     private JTextPane displayFrameNum;
@@ -69,8 +71,10 @@ public class GUI extends JFrame {
         endLarvaeSelection = new JButton("Finish Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
         exportCSV = new JButton(("Export as CSV file"));
-        resetPosition = new JButton("Reset Larva Position");
-        stopResetPosition = new JButton("Finish Larva Reset");
+        resetPosition = new JButton("Retrack Larva @ Current Frame");
+        stopResetPosition = new JButton("Finish Larva Retrack");
+        setSinglePoint = new JButton("Reset Larva Position @ Current Frame");
+        endSetSinglePoint = new JButton("Finish Current Frame Reset");
 		cropProgress = new JProgressBar();
 
 
@@ -94,11 +98,14 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(endLarvaeSelection);
         buttonPanel.add(showPaths);
+        buttonPanel.add(setSinglePoint);
+        buttonPanel.add(endSetSinglePoint);
         buttonPanel.add(resetPosition);
         buttonPanel.add(stopResetPosition);
         buttonPanel.add(exportCSV);
         buttonPanel.add(displayFrameNum);
 		buttonPanel.add(cropProgress);
+
 
         // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
         //make sure some of the buttons can't be pressed yet
@@ -114,6 +121,8 @@ public class GUI extends JFrame {
         exportCSV.setVisible(false);
         displayFrameNum.setVisible(false);
 		cropProgress.setVisible(false);
+		setSinglePoint.setVisible(false);
+		endSetSinglePoint.setVisible(false);
 
         frame = new ImageComponent("welcome.png", movie);
         frame.setBorder(BorderFactory.createEtchedBorder());
@@ -133,6 +142,8 @@ public class GUI extends JFrame {
         CSVExportAction exportAction = new CSVExportAction();
         ResetPositionAction resetPositionAction = new ResetPositionAction(this);
         StopResetAction stopResetAction = new StopResetAction(this);
+        StartSingleReset startSingleReset = new StartSingleReset(this);
+        EndSingleReset endSingleReset = new EndSingleReset(this);
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -157,6 +168,8 @@ public class GUI extends JFrame {
         resetPosition.addActionListener(resetPositionAction);
         stopResetPosition.addActionListener(stopResetAction);
         exportCSV.addActionListener(exportAction);
+        setSinglePoint.addActionListener(startSingleReset);
+        endSetSinglePoint.addActionListener(endSingleReset);
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -341,8 +354,11 @@ public class GUI extends JFrame {
             endLarvaeSelection.setVisible(true);
             showPaths.setVisible(true);
             exportCSV.setVisible(true);
+            setSinglePoint.setVisible(true);
+            endSetSinglePoint.setVisible(true);
             resetPosition.setVisible(true);
             stopResetPosition.setVisible(true);
+
 
             startCrop.setEnabled(true);
             startLarvaeSelection.setEnabled(false);
@@ -352,9 +368,14 @@ public class GUI extends JFrame {
             showPaths.setSelected(false);
             frame.displayPaths = false;
             exportCSV.setEnabled(false);
+            setSinglePoint.setEnabled(false);
+            endSetSinglePoint.setEnabled(false);
+            resetPosition.setEnabled(false);
+            stopResetPosition.setEnabled(false);
             displayFrameNum.setVisible(true);
             displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
             displayFrameNum.setEditable(false);
+
 
             pack();
             String frameToDraw = movie.getPathToFrame(currentFrame + 1);
@@ -534,7 +555,12 @@ public class GUI extends JFrame {
 
             //TODO: disable next frame previous frame buttons during ResetPosition
 
+
             String[] larvaeNumber = new String[movie.getLarva().size()];
+            for (int i = 0; i < movie.getLarva().size(); i++) {
+                larvaeNumber[i] = "" + (i + 1);
+            }
+
             for (int i = 0; i < movie.getLarva().size(); i++) {
                 larvaeNumber[i] = "" + (i + 1);
             }
@@ -550,6 +576,12 @@ public class GUI extends JFrame {
             gui.setTempLarvaIndex( larvaNumberOption.getSelectedIndex());
             System.out.println("Selected Larva: " + (gui.getTempLarvaIndex() + 1));
 
+            stopResetPosition.setEnabled(true);
+            resetPosition.setEnabled(false);
+            nextFrame.setEnabled(false);
+            prevFrame.setEnabled(false);
+            exportCSV.setEnabled(false);
+            setSinglePoint.setEnabled(false);
             frame.maxSquares = 1;
 
         }
@@ -573,24 +605,127 @@ public class GUI extends JFrame {
             pt[0] = (frame.squares.get(0).getCenterX() * xratio);
             pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
-            //currentFrame
-
-            movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
 
             frame.remove(frame.squares.get(0));
+
+              stopResetPosition.setEnabled(false);
+              resetPosition.setEnabled(true);
+              nextFrame.setEnabled(true);
+              prevFrame.setEnabled(true);
+              exportCSV.setEnabled(true);
+              setSinglePoint.setEnabled(true);
+
+              movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
 
             revalidate();
             repaint();
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
-            System.out.println("Need to have 2 squares to crop the image.");
+            System.out.println(ioe);
         }
 
 
 
          }
     }
+
+    private class StartSingleReset implements ActionListener {
+        GUI gui;
+
+        public StartSingleReset(GUI gui) {
+            this.gui = gui;
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            System.out.println("reset");
+
+            //TODO: disable next frame previous frame buttons during ResetPosition
+
+
+
+            int larvaeNumber = movie.getLarva().size();
+            ArrayList<String> larvaOptions = new ArrayList<>();
+
+            for(int p = 0; p < larvaeNumber; p++) {
+                if (movie.getLarva().get(p).getCoordinates().size() > currentFrame) {
+                    larvaOptions.add(""+(p+1));
+                }
+            }
+
+            System.out.println(larvaeNumber + "  " + larvaOptions + " " + movie.getLarva().get(1).getCoordinates().size());
+
+            //TODO: deal with special case of no larva on screen
+            if (larvaOptions.size()== 0){
+                System.out.println("HOUSTON WE HAVE BIG PROBLEM. THERE ARE NO LARVA ON THE SCREEN THAT CAN BE RESET.");
+            }
+
+            JComboBox larvaNumberOption = new JComboBox(larvaOptions.toArray());
+            Object[] message = {
+                    "Please select larva number to reset position.",
+                    larvaNumberOption,
+                    "Select ok and then select new point."
+            };
+
+            JOptionPane.showMessageDialog(null, message);
+            gui.setTempLarvaIndex( larvaNumberOption.getSelectedIndex());
+            System.out.println("Selected Larva: " + (gui.getTempLarvaIndex() + 1));
+
+            setSinglePoint.setEnabled(false);
+            endSetSinglePoint.setEnabled(true);
+            nextFrame.setEnabled(false);
+            prevFrame.setEnabled(false);
+            exportCSV.setEnabled(false);
+            resetPosition.setEnabled(false);
+
+            frame.maxSquares = 1;
+
+        }
+    }
+
+    private class EndSingleReset implements ActionListener {
+        GUI gui;
+
+        public EndSingleReset(GUI gui) {
+            this.gui = gui;
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            try {  BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+                double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
+                double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
+
+                Double pt[] = new Double[2];
+                pt[0] = (frame.squares.get(0).getCenterX() * xratio);
+                pt[1] = (frame.squares.get(0).getCenterY() * yratio);
+
+                //currentFrame
+                //TODO single tracking
+                movie.resetSingleLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
+
+                frame.remove(frame.squares.get(0));
+                setSinglePoint.setEnabled(true);
+                endSetSinglePoint.setEnabled(false);
+                nextFrame.setEnabled(true);
+                prevFrame.setEnabled(true);
+                exportCSV.setEnabled(true);
+                resetPosition.setEnabled(true);
+
+                revalidate();
+                repaint();
+
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                System.out.println("Need to have 2 squares to crop the image.");
+            }
+
+
+
+        }
+    }
+
+
+
     private class CSVExportAction implements ActionListener {
 
         public CSVExportAction() {
@@ -633,6 +768,8 @@ public class GUI extends JFrame {
             endLarvaeSelection.setEnabled(false);
             showPaths.setEnabled(true);
             exportCSV.setEnabled(true);
+            resetPosition.setEnabled(true);
+            setSinglePoint.setEnabled(true);
 
             //Initializes the tracking process within the Video class
             collisionFound = movie.createFrames();

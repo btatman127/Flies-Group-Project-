@@ -183,6 +183,18 @@ public class Video {
         }
     }
 
+    void resetSingleLarvaPosition (int firstFrame, int larvaIndex, Double pt[]) {
+        if(!videoInitialized){
+            System.out.println("!!attempted to resetLarvaPosition before fully initializing video!!");
+            return;
+        }
+
+        Larva l = larvae.get(larvaIndex);
+        l.getCoordinates().get(firstFrame)[0] = pt[0];
+        l.getCoordinates().get(firstFrame)[1] = pt[1];
+
+    }
+
     /**
      * Get the coordinates of the larvae on a specific frame.
      * @param frame The frame to get the larvae coordinates for.
