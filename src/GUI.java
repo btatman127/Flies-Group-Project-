@@ -326,9 +326,10 @@ public class GUI extends JFrame {
             Object[] message = {
                     "Please enter Start and Stop time in seconds.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
+                    "Select full video:", fullLength,
                     "Start time:", startTime,
-                    "End Time:", endTime,
-                    "Select full video:", fullLength
+                    "End Time:", endTime
+
             };
 
             JOptionPane.showMessageDialog(null, message);
@@ -707,7 +708,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            System.out.println("reset");
+
 
             //TODO: disable next frame previous frame buttons during ResetPosition
 
@@ -722,9 +723,6 @@ public class GUI extends JFrame {
                 }
             }
 
-            System.out.println(larvaeNumber + "  " + larvaOptions + " " + movie.getLarva().get(1).getCoordinates().size());
-
-            //TODO: deal with special case of no larva on screen
             if (larvaOptions.size()== 0){
                 System.out.println("HOUSTON WE HAVE BIG PROBLEM. THERE ARE NO LARVA ON THE SCREEN THAT CAN BE RESET.");
             }
@@ -738,7 +736,7 @@ public class GUI extends JFrame {
 
             JOptionPane.showMessageDialog(null, message);
             gui.setTempLarvaIndex( larvaNumberOption.getSelectedIndex());
-            System.out.println("Selected Larva: " + (gui.getTempLarvaIndex() + 1));
+
 
             setSinglePoint.setEnabled(false);
             endSetSinglePoint.setEnabled(true);

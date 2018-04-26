@@ -178,9 +178,9 @@ public class PreProcessor {
         
 		// And print each line
         String s = null;
-        while ((s = reader.readLine()) != null) {
-            System.out.println(s);
-        }
+//        while ((s = reader.readLine()) != null) {
+//            System.out.println(s);
+//        }
         is.close();
 	}
 
@@ -204,9 +204,9 @@ public class PreProcessor {
         java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
         // And print each line
         String s = null;
-        while ((s = reader.readLine()) != null) {
-            System.out.println(s);
-        }
+//        while ((s = reader.readLine()) != null) {
+//            System.out.println(s);
+//        }
         is.close();
 
     }
