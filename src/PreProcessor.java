@@ -47,9 +47,6 @@ public class PreProcessor {
                 scaleImage = image.getScaledInstance(-1, height, Image.SCALE_DEFAULT);
             }
             return scaleImage;
-            //BufferedImage subimage = new BufferedImage(scaleImage.getWidth(null), scaleImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
-            //subimage.getGraphics().drawImage(scaleImage, 0, 0, null);
-            //ImageIO.write(subimage, "png", new File("assets/img" + String.format("%03d", frame + 1) + ".png"));
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -169,8 +166,6 @@ public class PreProcessor {
         // Get runtime
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
 
-        //Path outPath = Paths.get(outputDir);
-        //outPath = outPath.resolve("img%04d.png");
 
         String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps=" + fps, outputPath};
         java.lang.Process p = rt.exec(command);

@@ -32,7 +32,7 @@ public class CSVExport {
         //add column labels for x and y
         result += "\n";
         for (int i = 0; i < larvae.size(); i++) {
-            result += "x,y";
+            result += "x (mm),y (mm)";
             if (i < larvae.size()) {
                 result += ",";
             }
@@ -46,6 +46,7 @@ public class CSVExport {
                 String y = "";
 
                 if (row < larvae.get(coord).getPositionsSize()) {
+                    //Get pixel x and y positions and convert them into mm. Convert (0,0) from top left to bottom left.
                     x = String.format("%.2f", (larvae.get(coord).getPosition(row)[0] * scaleX));
                     y = String.format("%.2f", ((movie.getDimensions()[1] - larvae.get(coord).getPosition(row)[1]) * scaleY));
                 }
@@ -62,17 +63,14 @@ public class CSVExport {
         //add total distance
         result += "\n";
         for (int i = 0; i < larvae.size(); i++) {
-            result += "Total Distance: ," + String.format("%.2f", getTotalDistance(larvae.get(i))) + ",";
+            result += "Total Distance (mm): ," + String.format("%.2f", getTotalDistance(larvae.get(i))) + ",";
         }
 
 
         //add average velocity
         result += "\n";
         for (int i = 0; i < larvae.size(); i++) {
-            result += "Average Velocity: ," + String.format("%.2f", getAverageVelocity(larvae.get(i))) + ",";
-//            if (i != larvae.size() - 1) {
-//                result = result + ",,";
-//            }
+            result += "Average Velocity (mm/sec): ," + String.format("%.2f", getAverageVelocity(larvae.get(i))) + ",";
         }
 
         result += "\n";

@@ -25,7 +25,7 @@ public class Larva {
 
 	/**
 	 * useful for overwriting larva positions
-	 * delete all indeces including and after the index of value frame
+	 * delete all indices including and after the index of value frame
 	 * @param frame
 	 */
 
