@@ -58,6 +58,7 @@ class CropThread implements Runnable{
 		catch(InterruptedException ine) {
 			ine.printStackTrace();
 		}
+		progressBar.setVisible(false);
 	}
 	
 	public void start() {
