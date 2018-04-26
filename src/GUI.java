@@ -37,6 +37,7 @@ public class GUI extends JFrame {
     private int[] point1;
     private int[] point2;
     private FileDialog fd;
+    private boolean nextPrevFrameEnabled;
 
 
     private int tempLarvaIndex;
@@ -59,6 +60,8 @@ public class GUI extends JFrame {
         //construct components
         currentFrame = 0;
         tempLarvaIndex = -1;
+
+
 
         //make buttons for frames
         openMovie = new JButton("Open Movie");
@@ -123,6 +126,8 @@ public class GUI extends JFrame {
 		cropProgress.setVisible(false);
 		setSinglePoint.setVisible(false);
 		endSetSinglePoint.setVisible(false);
+
+		enableNextPrevFrame();
 
 
         frame = new ImageComponent("welcome.png", movie);
@@ -221,6 +226,7 @@ public class GUI extends JFrame {
     private void disableNextPrevFrame(){
         nextFrame.setEnabled(false);
         prevFrame.setEnabled(false);
+        nextPrevFrameEnabled = false;
 
     }
 
@@ -231,6 +237,7 @@ public class GUI extends JFrame {
     private void enableNextPrevFrame(){
         nextFrame.setEnabled(true);
         prevFrame.setEnabled(true);
+        nextPrevFrameEnabled = true;
 
     }
 
@@ -428,6 +435,7 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
 
+            if (nextPrevFrameEnabled == false) return;
 
             if (currentFrame + number >= 0 && currentFrame + number < movie.getNumImages()) {
 
@@ -742,8 +750,9 @@ public class GUI extends JFrame {
 
             setSinglePoint.setEnabled(false);
             endSetSinglePoint.setEnabled(true);
-            nextFrame.setEnabled(false);
-            prevFrame.setEnabled(false);
+            disableNextPrevFrame();
+            //nextFrame.setEnabled(false);
+            //prevFrame.setEnabled(false);
             exportCSV.setEnabled(false);
             resetPosition.setEnabled(false);
 
@@ -775,8 +784,9 @@ public class GUI extends JFrame {
                 frame.remove(frame.squares.get(0));
                 setSinglePoint.setEnabled(true);
                 endSetSinglePoint.setEnabled(false);
-                nextFrame.setEnabled(true);
-                prevFrame.setEnabled(true);
+                enableNextPrevFrame();
+//                nextFrame.setEnabled(true);
+//                prevFrame.setEnabled(true);
                 exportCSV.setEnabled(true);
                 resetPosition.setEnabled(true);
 
