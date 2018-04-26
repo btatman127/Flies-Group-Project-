@@ -629,7 +629,7 @@ public class GUI extends JFrame {
                 larvaeNumber[i] = "" + (i + 1);
             }
 
-            JComboBox larvaNumberOption = new JComboBox(larvaeNumber);
+            JComboBox<String> larvaNumberOption = new JComboBox<String>(larvaeNumber);
             Object[] message = {
                     "Please select larva number to reset position.",
                     larvaNumberOption,
@@ -727,7 +727,7 @@ public class GUI extends JFrame {
                 System.out.println("HOUSTON WE HAVE BIG PROBLEM. THERE ARE NO LARVA ON THE SCREEN THAT CAN BE RESET.");
             }
 
-            JComboBox larvaNumberOption = new JComboBox(larvaOptions.toArray());
+            JComboBox larvaNumberOption = new JComboBox( larvaOptions.toArray());
             Object[] message = {
                     "Please select larva number to reset position.",
                     larvaNumberOption,
