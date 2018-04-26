@@ -219,6 +219,8 @@ public class GUI extends JFrame {
      *  disable arrow keys
      */
     private void disableNextPrevFrame(){
+        nextFrame.setEnabled(false);
+        prevFrame.setEnabled(false);
 
     }
 
@@ -227,6 +229,8 @@ public class GUI extends JFrame {
      *  enable arrow keys
      */
     private void enableNextPrevFrame(){
+        nextFrame.setEnabled(true);
+        prevFrame.setEnabled(true);
 
     }
 
@@ -274,9 +278,15 @@ public class GUI extends JFrame {
     class OpenL implements ActionListener {
         public void actionPerformed(ActionEvent e) {
 
+            //File Dialog to Select Movie to Open
             fd.setVisible(true);
             String name = fd.getFile();
             String dir = fd.getDirectory();
+
+            //if user hits Cancel
+            if (name == null) {
+                return;
+            }
 
             if (movie != null) {
                 try {
