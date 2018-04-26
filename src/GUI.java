@@ -309,7 +309,6 @@ public class GUI extends JFrame {
 
             //Create new movie
             try {
-                System.out.println("Start: " + startValue + " Stop: " + endValue);
                 movie = new Video(movieDir, fileName, Integer.valueOf(startValue), Integer.valueOf(endValue));
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -429,8 +428,6 @@ public class GUI extends JFrame {
             cropProgress.setVisible(true);
             try {
 
-
-                System.out.println(movie.getImgDir());
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);

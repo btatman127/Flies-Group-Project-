@@ -81,7 +81,6 @@ public class Video {
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
         int fps = 1;
 
-		System.out.println("before preprocessor");
         //call ffmpeg extractor
 		int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
