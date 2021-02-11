@@ -23,7 +23,7 @@ public class PreProcessorTest {
     }
 
     @Test
-    public void crop_crops_correctly(){
+    public void cropCropsCorrectly(){
         int[] point1 = {50,50};
         int[] point2 = {100, 150};
         BufferedImage croppedImage = PreProcessor.cropImage(image, point1, point2);
@@ -32,7 +32,7 @@ public class PreProcessorTest {
     }
 
     @Test
-    public void topLeft_returns_top_left_point(){
+    public void topLeftReturnsTopLeftPoint(){
         int[] point1 = {50,50};
         int[] point2 = {100, 150};
         int[] point3 = {100,10};
