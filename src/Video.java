@@ -74,9 +74,7 @@ public class Video {
         Long l = new Long(System.currentTimeMillis() / 1000L);
         this.imgDir = "vidID" + l.toString();
 
-        String[] command = new String[]{"mkdir", imgDir};
-        java.lang.Process p = rt.exec(command);
-        p.waitFor();
+        new File(imgDir).mkdir();
 
         String inputPath = this.movieDir + "/" + this.movieName;
         String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
