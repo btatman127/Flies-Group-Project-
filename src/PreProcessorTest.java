@@ -1,4 +1,5 @@
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -8,27 +9,29 @@ import javax.imageio.ImageIO;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class PreProcessorTest {
 
     private BufferedImage image;
 
-    @org.junit.Before
+    @BeforeEach
     public void setUp() throws Exception{
         URL url = new URL("https://confluence.jetbrains.com/download/attachments/10818/IDEADEV?version=6&modificationDate=1449747979000&api=v2");
         //Gets IntelliJ logo from internet to test image methods on.
         image = ImageIO.read(url);
     }
 
-    @org.junit.Test
-    public void crop_crops_correctly() throws Exception{
+    @Test
+    public void crop_crops_correctly(){
         int[] point1 = {50,50};
         int[] point2 = {100, 150};
         BufferedImage croppedImage = PreProcessor.cropImage(image, point1, point2);
-        assertTrue( croppedImage.getHeight() == 100 );
-        assertTrue( croppedImage.getWidth() == 50);
+        assertEquals( croppedImage.getHeight(),100 );
+        assertEquals( croppedImage.getWidth(), 50);
     }
 
-    @org.junit.Test
+    @Test
     public void topLeft_returns_top_left_point(){
         int[] point1 = {50,50};
         int[] point2 = {100, 150};
@@ -39,16 +42,16 @@ public class PreProcessorTest {
     }
 
 
-	 @org.junit.Test
+	 @Test
 	 public void ffmpegExtractsImages() throws java.io.IOException, java.lang.InterruptedException {
 
 	 	//create a directory to place images into
 	 	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-	 	Long l = new Long(System.currentTimeMillis()/1000L);
-	 	String dirName = "vidID" + l.toString();
+	 	long l = System.currentTimeMillis() / 1000L;
+	 	String dirName = "vidID" + l;
 	 	String[] command = new String[]{"mkdir", dirName};
-	 	java.lang.Process p = rt.exec(command);
-	 	p.waitFor();
+
+         new File(dirName).mkdir();
 
 	 	String inputPath = System.getProperty("user.dir") + "/test.MOV";
 	 	System.out.println(inputPath);
