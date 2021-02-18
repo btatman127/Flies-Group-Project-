@@ -47,8 +47,11 @@ public class CSVExport {
 
                 if (row < larvae.get(coord).getPositionsSize()) {
                     //Get pixel x and y positions and convert them into mm. Convert (0,0) from top left to bottom left.
-                    x = String.format("%.2f", (larvae.get(coord).getPosition(row)[0] * scaleX));
-                    y = String.format("%.2f", ((movie.getDimensions()[1] - larvae.get(coord).getPosition(row)[1]) * scaleY));
+                    Double[] position = larvae.get(coord).getPosition(row);
+                    if(position != null) {
+                        x = String.format("%.2f", (position[0] * scaleX));
+                        y = String.format("%.2f", ((movie.getDimensions()[1] - position[1]) * scaleY));
+                    }
                 }
                 result = result + x + "," + y;
                 if (coord != larvae.size() - 1) {
@@ -96,7 +99,7 @@ public class CSVExport {
      * Finds and sets the proper millimeter to pixel scale.
      */
     public void setConversionScale(){
-        double mm = 76.0; //The grid is 3" by 3", which translates into about 76 mm.
+        double mm = 76.2; //The grid is 3" by 3", which translates into about 76 mm.
         scaleX = mm/movie.getDimensions()[0];
         scaleY = mm/movie.getDimensions()[1];
     }
@@ -114,7 +117,14 @@ public class CSVExport {
     private double getTotalDistance(Larva larva){
         double sum = 0;
         for(int i = 0; i<larva.getPositionsSize()-1; i++){
-            sum += distance(larva.getPosition(i), larva.getPosition(i+1));
+            if(larva.getPosition(i) != null){
+                for (int j = i + 1; j < larva.getPositionsSize(); j++) {
+                    if(larva.getPosition(j) != null){
+                        sum += distance(larva.getPosition(i), larva.getPosition(j));
+                        break;
+                    }
+                }
+            }
         }
         return sum;
     }
@@ -123,7 +133,14 @@ public class CSVExport {
      * @return The average velocity a given larva traveled during the video.
      */
     private double getAverageVelocity(Larva larva){
-        return getTotalDistance(larva)/(larva.getPositionsSize() -1);
+        int frames = 0;
+        for (int i = larva.getPositionsSize() - 1; i > 0 ; i--) {
+            if(larva.getPosition(i) != null){
+                frames = i;
+                break;
+            }
+        }
+        return getTotalDistance(larva)/(frames);
     }
 
 }
