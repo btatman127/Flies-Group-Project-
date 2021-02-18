@@ -812,7 +812,12 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            int frames = movie.getLarva().get(0).getCoordinates().size();
+            int frames = 0;
+            for(Larva larva : movie.getLarva()){
+                if(larva.getCoordinates().size() > frames){
+                    frames = larva.getCoordinates().size();
+                }
+            }
             CSVExport exporter = new CSVExport(movie, frames);
             exporter.export();
         }
