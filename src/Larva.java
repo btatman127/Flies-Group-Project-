@@ -18,7 +18,12 @@ public class Larva {
 	}
 	
     public void setNewPosition(Double[] coords) {
-	    positions.add(new Double[]{coords[0], coords[1]});
+		if(coords == null) {
+			positions.add(null);
+		}
+		else {
+			positions.add(new Double[]{coords[0], coords[1]});
+		}
     }
 
     public int getPositionsSize(){ return positions.size(); }
@@ -30,12 +35,8 @@ public class Larva {
 	 */
 
 	public void trimPositions(int frame){
-		ArrayList<Double[]> tempPositions = new ArrayList<Double[]>();
-		for(int f = 0; f < frame; f++){
-			tempPositions.add(positions.get(f));
+		while(positions.size() > frame){
+			positions.remove(positions.size()-1);
 		}
-		positions = tempPositions;
 	}
-
-
 }
