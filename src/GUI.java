@@ -13,10 +13,13 @@ import java.awt.geom.*;
 
 public class GUI extends JFrame {
     private int currentFrame;
-    private JPanel buttonPanel;
     private String fileName;
     private String movieDir;
     private Video movie;
+    private int tempLarvaIndex;
+    private boolean nextPrevFrameEnabled;
+
+    private JPanel buttonPanel;
     private JButton openMovie;
     private JButton nextFrame;
     private JButton prevFrame;
@@ -27,26 +30,17 @@ public class GUI extends JFrame {
     private JButton exportCSV;
     private JButton resetPosition;
     private JButton stopResetPosition;
-
     private JButton setSinglePoint;
     private JButton endSetSinglePoint;
-	private final JProgressBar cropProgress;
+    private final JProgressBar cropProgress;
     private JCheckBox showPaths;
     private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
     private FileDialog fd;
-    private boolean nextPrevFrameEnabled;
-
-
-    private int tempLarvaIndex;
     public ImageComponent frame;
-    private static final int DEFAULT_WIDTH = 100;
-    private static final int DEFAULT_HEIGHT = 100;
-
 
     public GUI() {
-
         fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
         fd.setDirectory("C:\\");
 
@@ -59,8 +53,6 @@ public class GUI extends JFrame {
         //construct components
         currentFrame = 0;
         tempLarvaIndex = -1;
-
-
 
         //make buttons for frames
         openMovie = new JButton("Open Movie");
@@ -76,16 +68,13 @@ public class GUI extends JFrame {
         stopResetPosition = new JButton("Finish Larva Retrack");
         setSinglePoint = new JButton("Reset Larva Position @ Current Frame");
         endSetSinglePoint = new JButton("Finish Current Frame Reset");
-		cropProgress = new JProgressBar();
-
-
+        cropProgress = new JProgressBar();
 
         DefaultStyledDocument sd = new DefaultStyledDocument();
         displayFrameNum = new JTextPane(sd);
         SimpleAttributeSet as = new SimpleAttributeSet();
         StyleConstants.setAlignment(as, StyleConstants.ALIGN_CENTER);
         displayFrameNum.setParagraphAttributes(as, true);
-
 
         //make new panel for buttons
         buttonPanel = new JPanel();
@@ -108,8 +97,6 @@ public class GUI extends JFrame {
         buttonPanel.add(displayFrameNum);
         buttonPanel.add(cropProgress);
 
-
-        // UNCOMMENT THIS WHEN YOU WANT TO UTILIZE THE OPEN FUNCTION OF THE GUI
         //make sure some of the buttons can't be pressed yet
         nextFrame.setVisible(false);
         prevFrame.setVisible(false);
@@ -122,17 +109,15 @@ public class GUI extends JFrame {
         stopResetPosition.setVisible(false);
         exportCSV.setVisible(false);
         displayFrameNum.setVisible(false);
-		cropProgress.setVisible(false);
-		setSinglePoint.setVisible(false);
-		endSetSinglePoint.setVisible(false);
+        cropProgress.setVisible(false);
+        setSinglePoint.setVisible(false);
+        endSetSinglePoint.setVisible(false);
 
-		enableNextPrevFrame();
+        enableNextPrevFrame();
 
-
-        frame = new ImageComponent("welcome.png", movie);
-        frame.setBorder(BorderFactory.createEtchedBorder());
         //add the image component to the screen
-
+        frame = new ImageComponent("welcome.png");
+        frame.setBorder(BorderFactory.createEtchedBorder());
 
         //create actions for the buttons
         OpenL openAction = new OpenL();
@@ -198,40 +183,36 @@ public class GUI extends JFrame {
             frame.addWindowListener(exitListener);
             //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setVisible(true);
-
-
         });
-
-
     }
 
     /**
-     *  disable next frame and previous buttons
-     *  disable arrow keys
+     * disable next frame and previous buttons
+     * disable arrow keys
      */
-    private void disableNextPrevFrame(){
+    private void disableNextPrevFrame() {
         nextFrame.setEnabled(false);
         prevFrame.setEnabled(false);
         nextPrevFrameEnabled = false;
-
     }
 
     /**
-     *  enable next frame and previous buttons
-     *  enable arrow keys
+     * enable next frame and previous buttons
+     * enable arrow keys
      */
-    private void enableNextPrevFrame(){
+    private void enableNextPrevFrame() {
         nextFrame.setEnabled(true);
         prevFrame.setEnabled(true);
         nextPrevFrameEnabled = true;
-
     }
 
-    boolean deleteDirectory(String dirName){
-        return deleteDirectory(new File(dirName));
+    boolean deleteDirectory(String dirName) {
+        if(dirName == null) return false;
+        else return deleteDirectory(new File(dirName));
     }
 
     boolean deleteDirectory(File directoryToBeDeleted) {
+        if(!directoryToBeDeleted.exists()) return false;
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
             for (File file : allContents) {
@@ -241,13 +222,9 @@ public class GUI extends JFrame {
         return directoryToBeDeleted.delete();
     }
 
-    public int getTempLarvaIndex() {
-        return tempLarvaIndex;
-    }
+    public int getTempLarvaIndex() {return tempLarvaIndex;}
 
-    public void setTempLarvaIndex(int tempLarvaIndex) {
-        this.tempLarvaIndex = tempLarvaIndex;
-    }
+    public void setTempLarvaIndex(int tempLarvaIndex) {this.tempLarvaIndex = tempLarvaIndex;}
 
     /**
      * Allows the user to select a file from the computer
@@ -258,29 +235,25 @@ public class GUI extends JFrame {
      */
     class OpenL implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
             String name = fd.getFile();
             String dir = fd.getDirectory();
 
             //if user hits Cancel
-            if (name == null) {
-                return;
-            }
+            if (name == null) {return;}
+
             if (movie != null) {
                 deleteDirectory(frame.movie.getOutputPathLong());
-            }
-
-            if (name != null) {
                 deleteDirectory(movie.getImgDir());
-                fileName = name;
-                movieDir = dir;
-                currentFrame = 0;
             }
+            fileName = name;
+            movieDir = dir;
+            currentFrame = 0;
+
             //Double Option Test
-            String startValue = null;
-            String endValue = null;
+            String startValue;
+            String endValue;
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             JCheckBox fullLength = new JCheckBox();
@@ -301,30 +274,31 @@ public class GUI extends JFrame {
             } else {
                 startValue = startTime.getText();
                 endValue = endTime.getText();
-                while (!PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) || !PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                while (!PreProcessor.validateTime(startTime.getText(),
+                                                    PreProcessor.getDurationSeconds(movieDir, fileName)) ||
+                        !PreProcessor.validateTime(endTime.getText(),
+                                                    PreProcessor.getDurationSeconds(movieDir, fileName))) {
                     System.out.println("Invalid Time. ");
                     JOptionPane.showMessageDialog(null, message);
 
-                    if (PreProcessor.validateTime(startTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName)) && PreProcessor.validateTime(endTime.getText(), PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                    if (PreProcessor.validateTime(startTime.getText(),
+                                                    PreProcessor.getDurationSeconds(movieDir, fileName)) &&
+                            PreProcessor.validateTime(endTime.getText(),
+                                                        PreProcessor.getDurationSeconds(movieDir, fileName))) {
                         startValue = startTime.getText();
                         endValue = endTime.getText();
-
                     }
                 }
             }
-
             //Create new movie
             try {
-                movie = new Video(movieDir, fileName, Integer.valueOf(startValue), Integer.valueOf(endValue));
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            } catch (InterruptedException e1) {
+                movie = new Video(movieDir, fileName, Integer.parseInt(startValue), Integer.parseInt(endValue));
+            } catch (IOException | InterruptedException e1) {
                 e1.printStackTrace();
             }
 
-
             frame.movie = movie;
-            //DIRECTLY AFTER OPENNING MOVie FILE
+            //DIRECTLY AFTER OPENING MOVIE FILE
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
             startCrop.setVisible(true);
@@ -337,7 +311,6 @@ public class GUI extends JFrame {
             endSetSinglePoint.setVisible(true);
             resetPosition.setVisible(true);
             stopResetPosition.setVisible(true);
-
 
             startCrop.setEnabled(true);
             startLarvaeSelection.setEnabled(false);
@@ -352,17 +325,14 @@ public class GUI extends JFrame {
             resetPosition.setEnabled(false);
             stopResetPosition.setEnabled(false);
             displayFrameNum.setVisible(true);
-            displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
+            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
             displayFrameNum.setEditable(false);
 
-
             pack();
-            String frameToDraw = movie.getPathToFrame(currentFrame + 1);
-            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame+1));
+            frame.setImage(movie.getPathToFrame(currentFrame + 1));
             validate();
             repaint();
         }
-
     }
 
     /**
@@ -371,31 +341,24 @@ public class GUI extends JFrame {
      */
     private class StepAction extends AbstractAction {
         private int number;
-        //private ImageComponent ourFrame;
-
 
         public StepAction(int direction) {
             number = direction;
         }
 
         public void actionPerformed(ActionEvent event) {
-
-            if (nextPrevFrameEnabled == false) return;
+            if (!nextPrevFrameEnabled) return;
 
             if (currentFrame + number >= 0 && currentFrame + number < movie.getNumImages()) {
-
                 currentFrame += number;
                 frame.currentFrame = currentFrame;
-                String frameToDraw = movie.getPathToFrame(currentFrame + 1);
-                frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
+                frame.setImage(movie.getPathToFrame(currentFrame + 1));
 
-                displayFrameNum.setText("Frame " + String.valueOf(currentFrame + 1) + " of " + String.valueOf(movie.getNumImages()));
+                displayFrameNum.setText("Frame " + (currentFrame + 1) + " of " + movie.getNumImages());
                 pack();
                 revalidate();
                 repaint();
-
             }
-
         }
     }
 
@@ -404,9 +367,7 @@ public class GUI extends JFrame {
      * Enables the end crop button, and disables the start crop button
      */
     private class StartCropAction implements ActionListener {
-
-        public StartCropAction() {
-        }
+        public StartCropAction() {}
 
         public void actionPerformed(ActionEvent event) {
             frame.maxSquares = 2;
@@ -423,27 +384,21 @@ public class GUI extends JFrame {
      * Sends the cropping dimensions to a function that will crop the images
      * Enables "Start Larvae Selection" and "Start Crop" buttons, and disables "End Crop" button
      */
-
     private class StopCropAction implements ActionListener {
-
-        public StopCropAction() {
-        }
+        public StopCropAction() {}
 
         public void actionPerformed(ActionEvent event) {
             cropProgress.setVisible(true);
             try {
-
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
-
 
                 point1[0] = (int) (frame.squares.get(0).getCenterX() * xratio);
                 point1[1] = (int) (frame.squares.get(0).getCenterY() * yratio);
 
                 point2[0] = (int) (frame.squares.get(1).getCenterX() * xratio);
                 point2[1] = (int) (frame.squares.get(1).getCenterY() * yratio);
-
 
                 frame.remove(frame.squares.get(1));
                 frame.remove(frame.squares.get(0));
@@ -456,7 +411,8 @@ public class GUI extends JFrame {
                 revalidate();
                 repaint();
 
-                new Thread(new CropThread("crop", point1, point2, movie.getNumImages(), movie.getImgDir(), cropProgress)).start();
+                new Thread(new CropThread("crop", point1, point2, movie.getNumImages(),
+                            movie.getImgDir(), cropProgress)).start();
 
                 repaint();
 
@@ -464,10 +420,7 @@ public class GUI extends JFrame {
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
 
-
-                String frameToDraw = movie.getPathToFrame(currentFrame + 1);
-                frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
-
+                frame.setImage(movie.getPathToFrame(currentFrame + 1));
 
                 revalidate();
                 repaint();
@@ -484,17 +437,13 @@ public class GUI extends JFrame {
      * Disables "Start Crop" and "End Crop" buttons
      * Enables "End Larvae" selection button
      */
-
     private class StartLarvaeAction implements ActionListener {
-
-        public StartLarvaeAction() {
-        }
+        public StartLarvaeAction() {}
 
         public void actionPerformed(ActionEvent event) {
             currentFrame = 1;
-            String frameToDraw = movie.getPathToFrame(currentFrame);
-            frame.setImage(frameToDraw); //(movie.getPathToFrame(currentFrame));
-            displayFrameNum.setText("Frame " + String.valueOf(currentFrame) + " of " + String.valueOf(movie.getNumImages()));
+            frame.setImage(movie.getPathToFrame(currentFrame));
+            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
             frame.maxSquares = 5;
             startCrop.setEnabled(false);
             endCrop.setEnabled(false);
@@ -513,11 +462,10 @@ public class GUI extends JFrame {
      */
     private class StopLarvaeAction implements ActionListener {
 
-        public StopLarvaeAction() {
-        }
+        public StopLarvaeAction() {}
 
         public void actionPerformed(ActionEvent event) {
-            boolean collisionFound = false;
+            boolean collisionFound;
             double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
             double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
             for (Rectangle2D r : frame.squares) {
@@ -547,30 +495,23 @@ public class GUI extends JFrame {
             if (collisionFound) {
                 Object[] message = {
                         "A collision was detected at frame #" + (movie.getCollisionFrameIndex(0) + 1) + "."
-
                 };
-
                 JOptionPane.showMessageDialog(null, message);
             }
             frame.vidInitialized = true;
-
-
             repaint();
         }
     }
 
     private class ResetPositionAction implements ActionListener {
         GUI gui;
-
         public ResetPositionAction(GUI gui) {
             this.gui = gui;
         }
 
         public void actionPerformed(ActionEvent event) {
-
             nextFrame.setEnabled(false);
             prevFrame.setEnabled(false);
-
 
             String[] larvaeNumber = new String[movie.getLarva().size()];
             for (int i = 0; i < movie.getLarva().size(); i++) {
@@ -601,15 +542,11 @@ public class GUI extends JFrame {
 
             resetPosition.setEnabled(false);
             stopResetPosition.setEnabled(true);
-
         }
-
-
     }
 
     private class StopResetAction implements ActionListener {
         GUI gui;
-
         public StopResetAction(GUI gui) {
             this.gui = gui;
         }
@@ -620,65 +557,55 @@ public class GUI extends JFrame {
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
-                Double pt[] = new Double[2];
+                Double[] pt = new Double[2];
                 pt[0] = (frame.squares.get(0).getCenterX() * xratio);
                 pt[1] = (frame.squares.get(0).getCenterY() * yratio);
-
-     //currentFrame
 
                 movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
 
                 frame.remove(frame.squares.get(0));
 
-              stopResetPosition.setEnabled(false);
-              resetPosition.setEnabled(true);
-              nextFrame.setEnabled(true);
-              prevFrame.setEnabled(true);
-              exportCSV.setEnabled(true);
-              setSinglePoint.setEnabled(true);
+                stopResetPosition.setEnabled(false);
+                resetPosition.setEnabled(true);
+                nextFrame.setEnabled(true);
+                prevFrame.setEnabled(true);
+                exportCSV.setEnabled(true);
+                setSinglePoint.setEnabled(true);
 
-              movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
+                movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
 
-            revalidate();
-            repaint();
+                revalidate();
+                repaint();
 
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.out.println(ioe);
-        }
-
-
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
         }
     }
 
-
     private class StartSingleReset implements ActionListener {
         GUI gui;
-
         public StartSingleReset(GUI gui) {
             this.gui = gui;
         }
 
         public void actionPerformed(ActionEvent event) {
             System.out.println("reset");
-
             //TODO: disable next frame previous frame buttons during ResetPosition
-
-
 
             int larvaeNumber = movie.getLarva().size();
             ArrayList<String> larvaOptions = new ArrayList<>();
 
-            for(int p = 0; p < larvaeNumber; p++) {
+            for (int p = 0; p < larvaeNumber; p++) {
                 if (movie.getLarva().get(p).getCoordinates().size() > currentFrame) {
-                    larvaOptions.add(""+(p+1));
+                    larvaOptions.add("" + (p + 1));
                 }
             }
-
-            System.out.println(larvaeNumber + "  " + larvaOptions + " " + movie.getLarva().get(1).getCoordinates().size());
+            System.out.println( larvaeNumber + "  " + larvaOptions + " " +
+                                movie.getLarva().get(1).getCoordinates().size());
 
             //TODO: deal with special case of no larva on screen
-            if (larvaOptions.size()== 0){
+            if (larvaOptions.size() == 0) {
                 System.out.println("HOUSTON WE HAVE BIG PROBLEM. THERE ARE NO LARVA ON THE SCREEN THAT CAN BE RESET.");
             }
 
@@ -690,7 +617,7 @@ public class GUI extends JFrame {
             };
 
             JOptionPane.showMessageDialog(null, message);
-            gui.setTempLarvaIndex( larvaNumberOption.getSelectedIndex());
+            gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
             System.out.println("Selected Larva: " + (gui.getTempLarvaIndex() + 1));
 
             setSinglePoint.setEnabled(false);
@@ -702,7 +629,6 @@ public class GUI extends JFrame {
             resetPosition.setEnabled(false);
 
             frame.maxSquares = 1;
-
         }
     }
 
@@ -714,11 +640,12 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            try {  BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+            try {
+                BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
-                Double pt[] = new Double[2];
+                Double[] pt = new Double[2];
                 pt[0] = (frame.squares.get(0).getCenterX() * xratio);
                 pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
@@ -742,24 +669,16 @@ public class GUI extends JFrame {
                 ioe.printStackTrace();
                 System.out.println("Need to have 2 squares to crop the image.");
             }
-
-
-
         }
     }
 
-
-
-
     private class CSVExportAction implements ActionListener {
-
-        public CSVExportAction() {
-        }
+        public CSVExportAction() {}
 
         public void actionPerformed(ActionEvent event) {
             int frames = 0;
-            for(Larva larva : movie.getLarva()){
-                if(larva.getCoordinates().size() > frames){
+            for (Larva larva : movie.getLarva()) {
+                if (larva.getCoordinates().size() > frames) {
                     frames = larva.getCoordinates().size();
                 }
             }
@@ -768,23 +687,14 @@ public class GUI extends JFrame {
         }
     }
 
-
-
-
-
     private class ShowPathAction implements ActionListener {
-
-        public ShowPathAction() {
-
-        }
+        public ShowPathAction() {}
 
         public void actionPerformed(ActionEvent event) {
             frame.displayPaths = !frame.displayPaths;
             repaint();
         }
-
     }
-
 }
 
 /**
@@ -806,7 +716,7 @@ class ImageComponent extends JComponent {
     private Rectangle2D current; // the square containing the mouse cursor
     private Image image;
 
-    public ImageComponent(String fileName, Video movie) {
+    public ImageComponent(String fileName) {
 
         maxSquares = 0;
         displayPaths = false;
@@ -832,14 +742,9 @@ class ImageComponent extends JComponent {
         return image;
     }
 
-
     public void paintComponent(Graphics g) {
         Color[] colors = {Color.cyan, Color.blue, Color.orange, Color.green, Color.red};
         if (image == null) return;
-
-        int imageWidth = image.getWidth(null);
-        int imageHeight = image.getHeight(null);
-
         // draw the image in the upper-left corner
 
         g.drawImage(image, 0, 0, null);
@@ -852,7 +757,6 @@ class ImageComponent extends JComponent {
             g2.draw(r);
         }
 
-
         //draw lines between larvae positions
         if (displayPaths) {
             larvae = movie.getLarva();
@@ -864,50 +768,59 @@ class ImageComponent extends JComponent {
 
                     //convert pt image space --> window space
                     // img_pt * winWidth/imageWidth
-
                     if (i + 1 >= l.getPositionsSize()) {
                         break;
                     }
                     g2.setStroke(new BasicStroke(1));
                     if (l.getPosition(i) != null) {
-                        if(l.getPosition(i + 1) != null) {
-                            g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3, (l.getPosition(i)[1]) / yratio + 3, (l.getPosition(i + 1)[0]) / xratio + 3, (l.getPosition(i + 1)[1]) / yratio + 3));
-                            g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
-                            g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio, (l.getPosition(i + 1)[1]) / yratio, 6, 6));
-                        }
-                        else{
+                        if (l.getPosition(i + 1) != null) {
+                            g2.draw(new Line2D.Double(  (l.getPosition(i)[0]) / xratio + 3,
+                                                        (l.getPosition(i)[1]) / yratio + 3,
+                                                        (l.getPosition(i + 1)[0]) / xratio + 3,
+                                                        (l.getPosition(i + 1)[1]) / yratio + 3));
+                            g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio,
+                                                         (l.getPosition(i)[1]) / yratio, 6, 6));
+                            g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio,
+                                                         (l.getPosition(i + 1)[1]) / yratio, 6, 6));
+                        } else {
                             for (int j = i + 2; j < l.getPositionsSize(); j++) {
-                                if(l.getPosition(j) != null){
-                                    Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+                                if (l.getPosition(j) != null) {
+                                    Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT,
+                                                                    BasicStroke.JOIN_BEVEL, 0,
+                                                                    new float[]{9}, 0);
                                     g2.setStroke(dashed);
-                                    g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3, (l.getPosition(i)[1]) / yratio + 3, (l.getPosition(j)[0]) / xratio + 3, (l.getPosition(j)[1]) / yratio + 3));
+                                    g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3,
+                                                        (l.getPosition(i)[1]) / yratio + 3,
+                                                        (l.getPosition(j)[0]) / xratio + 3,
+                                                        (l.getPosition(j)[1]) / yratio + 3));
                                     g2.setStroke(new BasicStroke());
-                                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
-                                    g2.draw(new Ellipse2D.Double((l.getPosition(j)[0]) / xratio, (l.getPosition(j)[1]) / yratio, 6, 6));
+                                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio,
+                                                                 (l.getPosition(i)[1]) / yratio, 6, 6));
+                                    g2.draw(new Ellipse2D.Double((l.getPosition(j)[0]) / xratio,
+                                                                 (l.getPosition(j)[1]) / yratio, 6, 6));
                                     break;
                                 }
                             }
                         }
                     }
                     if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0]) / xratio - 3), (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
+                                     (int) ((l.getPosition(i + 1)[0]) / xratio - 3),
+                                     (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
                     }
                 }
-                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xratio, l.getPosition(0)[1] / yratio, 6, 6));
+                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xratio,
+                                             l.getPosition(0)[1] / yratio, 6, 6));
             }
         }
-
     }
-
 
     public Dimension getPreferredSize() {
         return new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
-
     /**
      * Finds the first square containing a point.
-     *
      * @param p a point
      * @return the first square that contains p
      */
@@ -920,22 +833,20 @@ class ImageComponent extends JComponent {
 
     /**
      * Adds a square to the collection.
-     *
      * @param p the center of the square
      */
     public void add(Point2D p) {
         double x = p.getX();
         double y = p.getY();
 
-        current = new Rectangle2D.Double(x - SIDELENGTH / 2, y - SIDELENGTH / 2, SIDELENGTH,
-                SIDELENGTH);
+        current = new Rectangle2D.Double(x - SIDELENGTH / 2.0, y - SIDELENGTH / 2.0,
+                                            SIDELENGTH, SIDELENGTH);
         squares.add(current);
         repaint();
     }
 
     /**
      * Removes a square from the collection.
-     *
      * @param s the square to remove
      */
     public void remove(Rectangle2D s) {
@@ -945,36 +856,32 @@ class ImageComponent extends JComponent {
         repaint();
     }
 
-    public void mouseClicked(MouseEvent event) {
-        // remove the current square if double clicked
-        current = find(event.getPoint());
-        if (current != null && event.getClickCount() >= 2) remove(current);
-    }
-
-
     private class MouseHandler extends MouseAdapter {
 
+        /**
+         * add a new square if the cursor isn't inside a square
+         */
         public void mousePressed(MouseEvent event) {
-            // add a new square if the cursor isn't inside a square
             current = find(event.getPoint());
             if (squares.size() < maxSquares) {
                 if (current == null) add(event.getPoint());
             }
         }
 
-
+        /**
+         * remove the current square if double clicked
+         */
         public void mouseClicked(MouseEvent event) {
-            // remove the current square if double clicked
             current = find(event.getPoint());
             if (current != null && event.getClickCount() >= 2) remove(current);
         }
     }
 
     private class MouseMotionHandler implements MouseMotionListener {
+        /**
+         *set the mouse cursor to cross hairs if it is inside a rectangle
+         */
         public void mouseMoved(MouseEvent event) {
-            // set the mouse cursor to cross hairs if it is inside
-            // a rectangle
-
 
             if (find(event.getPoint()) == null) setCursor(Cursor.getDefaultCursor());
             else setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -986,7 +893,7 @@ class ImageComponent extends JComponent {
                 int y = event.getY();
 
                 // drag the current rectangle to center it at (x, y)
-                current.setFrame(x - SIDELENGTH / 2, y - SIDELENGTH / 2, SIDELENGTH, SIDELENGTH);
+                current.setFrame(x - SIDELENGTH / 2.0, y - SIDELENGTH / 2.0, SIDELENGTH, SIDELENGTH);
                 repaint();
             }
         }
