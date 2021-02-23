@@ -8,26 +8,25 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegionTest {
-    private BufferedImage image;
-
     @Test
-    public void solidColor() throws IOException {
+    public void findsBrightnessOfSolidColor() throws IOException {
         File red = new File("test_resources/red.png");
-        image = ImageIO.read(red);
+        BufferedImage image = ImageIO.read(red);
         Region region = new Region(image);
-        assertEquals((255)/3, region.getAvgValue());
+        assertEquals(255 / 3, region.getAvgValue());
 
     }
 
     @Test
-    public void multiColor() throws IOException {
+    public void findsBrightnessOfMultipleColors() throws IOException {
         File redGreen = new File("test_resources/red_green.png");
-        image = ImageIO.read(redGreen);
+        BufferedImage image = ImageIO.read(redGreen);
         Region region = new Region(image);
-        assertEquals((255)/3, region.getAvgValue());
+        assertEquals(255 / 3, region.getAvgValue());
+
         File blackWhite = new File("test_resources/black_white.png");
-        image = ImageIO.read(blackWhite);
-        Region region2 = new Region(image);
-        assertEquals((255)/2, region2.getAvgValue());
+        BufferedImage image2 = ImageIO.read(blackWhite);
+        Region region2 = new Region(image2);
+        assertEquals(255 / 2, region2.getAvgValue());
     }
 }

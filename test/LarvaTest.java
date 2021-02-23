@@ -6,16 +6,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LarvaTest {
     @Test
-    public void initialLarva(){
+    public void setsInitialPosition(){
         Larva larva = new Larva(1.0, 2.0);
         assertArrayEquals(new Double[]{1.0, 2.0}, larva.getPosition(0));
     }
 
     @Test
-    public void multiplePositions() {
+    public void setsSubsequentPositions() {
+        // Add positions to larva
         Larva larva = new Larva(1.0, 2.0);
         larva.setNewPosition(new Double[]{3.0, 5.0});
         larva.setNewPosition(new Double[]{4.0, 3.0});
+        // Add same positions to list
         ArrayList<Double[]> expectedArray = new ArrayList<Double[]>();
         expectedArray.add(new Double[]{1.0, 2.0});
         expectedArray.add(new Double[]{3.0, 5.0});
@@ -27,17 +29,17 @@ class LarvaTest {
     }
 
     @Test
-    public void removesPosition(){
+    public void removesPositions(){
+        // Add positions to larva
         Larva larva = new Larva(1.0, 2.0);
         larva.setNewPosition(new Double[]{3.0, 5.0});
         larva.setNewPosition(new Double[]{4.0, 3.0});
         larva.setNewPosition(new Double[]{6.0, 4.0});
         larva.setNewPosition(new Double[]{4.0, 3.0});
+        // Remove all but the first
         larva.trimPositions(1);
-        ArrayList<Double[]> expectedArray = new ArrayList<Double[]>();
-        expectedArray.add(new Double[]{1.0, 2.0});
         assertEquals(1, larva.getPositionsSize());
-        assertArrayEquals(expectedArray.get(0), larva.getCoordinates().get(0));
+        assertArrayEquals(new Double[]{1.0, 2.0}, larva.getCoordinates().get(0));
 
 
     }
