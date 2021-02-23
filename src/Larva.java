@@ -29,9 +29,7 @@ public class Larva {
     public int getPositionsSize(){ return positions.size(); }
 
 	/**
-	 * useful for overwriting larva positions
-	 * delete all indices including and after the index of value frame
-	 * @param frame
+	 * Removes all frames from given frame to the end.
 	 */
 
 	public void trimPositions(int frame){
