@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.awt.geom.*;
-import java.util.concurrent.TimeUnit;
 
 public class GUI extends JFrame {
     private int currentFrame;
@@ -191,21 +190,8 @@ public class GUI extends JFrame {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    try {
-                        frame.removeDirectory(frame.movie);
-                        frame.removeShortfile(frame.movie.getOutputPathLong());
-                        System.exit(1);
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        System.exit(1);
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                        System.exit(1);
-                    } catch (NullPointerException e1) {
-                        e1.printStackTrace();
-                        System.exit(1);
-                    }
-
+                    frame.deleteDirectory(frame.movie.getImgDir());
+                    frame.deleteDirectory(frame.movie.getOutputPathLong());
                     System.exit(0);
                 }
             };
@@ -241,21 +227,19 @@ public class GUI extends JFrame {
 
     }
 
-
-
-    /**
-     * removes directory that was created by ffmpeg
-     **/
-    public void removeDirectory(Video movie) throws IOException, InterruptedException {
-
-        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-        if (movie != null) {
-            String[] command = new String[]{"rm", "-rf", System.getProperty("user.dir") + "/" + movie.getImgDir()};
-            java.lang.Process p = rt.exec(command);
-            p.waitFor();
-        }
+    boolean deleteDirectory(String dirName){
+        return deleteDirectory(new File(dirName));
     }
 
+    boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
+    }
 
     public int getTempLarvaIndex() {
         return tempLarvaIndex;
@@ -264,16 +248,6 @@ public class GUI extends JFrame {
     public void setTempLarvaIndex(int tempLarvaIndex) {
         this.tempLarvaIndex = tempLarvaIndex;
     }
-
-    public void removeShortfile(String dir) throws IOException, InterruptedException {
-
-        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-
-        String[] command = new String[]{"rm", "-f", dir};
-        java.lang.Process p = rt.exec(command);
-        p.waitFor();
-    }
-
 
     /**
      * Allows the user to select a file from the computer
@@ -294,34 +268,15 @@ public class GUI extends JFrame {
             if (name == null) {
                 return;
             }
-
             if (movie != null) {
-                try {
-                    removeShortfile(frame.movie.getOutputPathLong());
-                } catch (NullPointerException e1) {
-                    e1.printStackTrace();
-                    System.exit(1);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                deleteDirectory(frame.movie.getOutputPathLong());
             }
 
             if (name != null) {
-                try {
-                    removeDirectory(movie);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
+                deleteDirectory(movie.getImgDir());
                 fileName = name;
                 movieDir = dir;
-
-
                 currentFrame = 0;
-
             }
             //Double Option Test
             String startValue = null;
@@ -408,16 +363,6 @@ public class GUI extends JFrame {
             repaint();
         }
 
-
-        public void removeDirectory(Video movie) throws IOException, InterruptedException {
-
-            java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-            if (movie != null) {
-                String[] command = new String[]{"rm", "-rf", System.getProperty("user.dir") + "/" + movie.getImgDir()};
-                java.lang.Process p = rt.exec(command);
-                p.waitFor();
-            }
-        }
     }
 
     /**
