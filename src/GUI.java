@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -28,6 +29,7 @@ public class GUI extends JFrame {
     private JButton startLarvaeSelection;
     private JButton endLarvaeSelection;
     private JButton exportCSV;
+    private JButton screenshot;
     private JButton resetPosition;
     private JButton stopResetPosition;
     private JButton setSinglePoint;
@@ -64,6 +66,7 @@ public class GUI extends JFrame {
         endLarvaeSelection = new JButton("Finish Larvae Selection");
         showPaths = new JCheckBox("Show Larvae Paths");
         exportCSV = new JButton(("Export as CSV file"));
+        screenshot = new JButton(("Screenshot current frame"));
         resetPosition = new JButton("Retrack Larva @ Current Frame");
         stopResetPosition = new JButton("Finish Larva Retrack");
         setSinglePoint = new JButton("Reset Larva Position @ Current Frame");
@@ -94,6 +97,7 @@ public class GUI extends JFrame {
         buttonPanel.add(resetPosition);
         buttonPanel.add(stopResetPosition);
         buttonPanel.add(exportCSV);
+        buttonPanel.add(screenshot);
         buttonPanel.add(displayFrameNum);
         buttonPanel.add(cropProgress);
 
@@ -108,6 +112,7 @@ public class GUI extends JFrame {
         resetPosition.setVisible(false);
         stopResetPosition.setVisible(false);
         exportCSV.setVisible(false);
+        screenshot.setVisible(false);
         displayFrameNum.setVisible(false);
         cropProgress.setVisible(false);
         setSinglePoint.setVisible(false);
@@ -129,6 +134,7 @@ public class GUI extends JFrame {
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
         ShowPathAction showPathAction = new ShowPathAction();
         CSVExportAction exportAction = new CSVExportAction();
+        screenshotAction screenshotAction = new screenshotAction();
         ResetPositionAction resetPositionAction = new ResetPositionAction(this);
         StopResetAction stopResetAction = new StopResetAction(this);
         StartSingleReset startSingleReset = new StartSingleReset(this);
@@ -157,6 +163,7 @@ public class GUI extends JFrame {
         resetPosition.addActionListener(resetPositionAction);
         stopResetPosition.addActionListener(stopResetAction);
         exportCSV.addActionListener(exportAction);
+        screenshot.addActionListener(screenshotAction);
         setSinglePoint.addActionListener(startSingleReset);
         endSetSinglePoint.addActionListener(endSingleReset);
 
@@ -307,6 +314,7 @@ public class GUI extends JFrame {
             endLarvaeSelection.setVisible(true);
             showPaths.setVisible(true);
             exportCSV.setVisible(true);
+            screenshot.setVisible(true);
             setSinglePoint.setVisible(true);
             endSetSinglePoint.setVisible(true);
             resetPosition.setVisible(true);
@@ -320,6 +328,7 @@ public class GUI extends JFrame {
             showPaths.setSelected(false);
             frame.displayPaths = false;
             exportCSV.setEnabled(false);
+            screenshot.setEnabled(false);
             setSinglePoint.setEnabled(false);
             endSetSinglePoint.setEnabled(false);
             resetPosition.setEnabled(false);
@@ -484,6 +493,7 @@ public class GUI extends JFrame {
             endLarvaeSelection.setEnabled(false);
             showPaths.setEnabled(true);
             exportCSV.setEnabled(true);
+            screenshot.setEnabled(true);
             resetPosition.setVisible(true);
             resetPosition.setEnabled(true);
             setSinglePoint.setEnabled(true);
@@ -537,6 +547,7 @@ public class GUI extends JFrame {
             nextFrame.setEnabled(false);
             prevFrame.setEnabled(false);
             exportCSV.setEnabled(false);
+            screenshot.setEnabled(false);
             setSinglePoint.setEnabled(false);
             frame.maxSquares = 1;
 
@@ -570,6 +581,7 @@ public class GUI extends JFrame {
                 nextFrame.setEnabled(true);
                 prevFrame.setEnabled(true);
                 exportCSV.setEnabled(true);
+                screenshot.setEnabled(true);
                 setSinglePoint.setEnabled(true);
 
                 movie.resetLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
@@ -626,6 +638,7 @@ public class GUI extends JFrame {
             //nextFrame.setEnabled(false);
             //prevFrame.setEnabled(false);
             exportCSV.setEnabled(false);
+            screenshot.setEnabled(false);
             resetPosition.setEnabled(false);
 
             frame.maxSquares = 1;
@@ -660,6 +673,7 @@ public class GUI extends JFrame {
 //                nextFrame.setEnabled(true);
 //                prevFrame.setEnabled(true);
                 exportCSV.setEnabled(true);
+                screenshot.setEnabled(true);
                 resetPosition.setEnabled(true);
 
                 revalidate();
@@ -684,6 +698,30 @@ public class GUI extends JFrame {
             }
             CSVExport exporter = new CSVExport(movie, frames);
             exporter.export();
+        }
+    }
+
+    private class screenshotAction implements ActionListener {
+        public screenshotAction() {}
+
+        public void actionPerformed(ActionEvent event) {
+            FileDialog fd = new FileDialog(GUI.this, "Select where to save image", FileDialog.SAVE);
+            fd.setFile("image.png");
+            fd.setVisible(true);
+            BufferedImage bi = new BufferedImage(frame.getSize().width, frame.getSize().height, BufferedImage.TYPE_INT_ARGB);
+            Graphics g = bi.createGraphics();
+            frame.paint(g);
+            g.dispose();
+
+            String name = fd.getDirectory() + fd.getFile();
+            if(!name.endsWith(".png")) name = name + ".png";
+            File file = new File(name);
+            try {
+                ImageIO.write(bi, "png", file);
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
         }
     }
 
