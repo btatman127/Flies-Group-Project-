@@ -812,7 +812,12 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            int frames = movie.getLarva().get(0).getCoordinates().size();
+            int frames = 0;
+            for(Larva larva : movie.getLarva()){
+                if(larva.getCoordinates().size() > frames){
+                    frames = larva.getCoordinates().size();
+                }
+            }
             CSVExport exporter = new CSVExport(movie, frames);
             exporter.export();
         }
@@ -919,15 +924,29 @@ class ImageComponent extends JComponent {
                         break;
                     }
                     g2.setStroke(new BasicStroke(1));
-                    g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3, (l.getPosition(i)[1]) / yratio + 3, (l.getPosition(i + 1)[0]) / xratio + 3, (l.getPosition(i + 1)[1]) / yratio + 3));
-                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
-                    g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio, (l.getPosition(i + 1)[1]) / yratio, 6, 6));
-
-                    if (i == currentFrame - 1) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0]) / xratio - 3), (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
-
+                    if (l.getPosition(i) != null) {
+                        if(l.getPosition(i + 1) != null) {
+                            g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3, (l.getPosition(i)[1]) / yratio + 3, (l.getPosition(i + 1)[0]) / xratio + 3, (l.getPosition(i + 1)[1]) / yratio + 3));
+                            g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
+                            g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio, (l.getPosition(i + 1)[1]) / yratio, 6, 6));
+                        }
+                        else{
+                            for (int j = i + 2; j < l.getPositionsSize(); j++) {
+                                if(l.getPosition(j) != null){
+                                    Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+                                    g2.setStroke(dashed);
+                                    g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3, (l.getPosition(i)[1]) / yratio + 3, (l.getPosition(j)[0]) / xratio + 3, (l.getPosition(j)[1]) / yratio + 3));
+                                    g2.setStroke(new BasicStroke());
+                                    g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio, (l.getPosition(i)[1]) / yratio, 6, 6));
+                                    g2.draw(new Ellipse2D.Double((l.getPosition(j)[0]) / xratio, (l.getPosition(j)[1]) / yratio, 6, 6));
+                                    break;
+                                }
+                            }
+                        }
                     }
-
+                    if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1), (int) ((l.getPosition(i + 1)[0]) / xratio - 3), (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
+                    }
                 }
                 g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xratio, l.getPosition(0)[1] / yratio, 6, 6));
             }
