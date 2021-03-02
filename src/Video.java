@@ -23,7 +23,7 @@ public class Video {
     //TRACKER
     private Region[][][] regions; //Region[frame number][x-coordinate][y-coordinate]
     private boolean[][][] larvaLoc;
-    private int threshold;// = 255 - (int) (255 * .2);
+    private static int threshold = 204;
     private int regionDim;// = 8;
     //Array of islands for each frame
     //Array of (arraylists of (double arrays))
@@ -34,9 +34,6 @@ public class Video {
 
     // length and/or width of each grid square in mm
     private ArrayList<Larva> larvae;
-
-    //factor that converts pixels to mm
-    private double scaleFactor;
 
     public String getOutputPathLong() {
         return outputPathLong;
@@ -83,10 +80,6 @@ public class Video {
         int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
-
-
-        threshold = 255 - (int) (255 * .2);
-
     }
 
 
@@ -185,16 +178,6 @@ public class Video {
         l.getCoordinates().get(firstFrame)[0] = pt[0];
         l.getCoordinates().get(firstFrame)[1] = pt[1];
 
-    }
-
-    /**
-     * Get the coordinates of the larvae on a specific frame.
-     *
-     * @param frame The frame to get the larvae coordinates for.
-     * @return An Arraylist of Double[], one for each larva.
-     */
-    public ArrayList<Double[]> getLarvaCoordinates(int frame) {
-        return islands.get(frame);
     }
 
     /**
@@ -472,8 +455,12 @@ public class Video {
         return imgDir;
     }
 
-    public String getMovieDir() {
-        return movieDir;
+    public String getOriginalMovieName() {
+        int lastDot = movieNameLong.lastIndexOf('.');
+        if (lastDot == -1) {
+            lastDot = movieNameLong.length();
+        }
+        return movieNameLong.substring(0, lastDot);
     }
 
     public String getMovieName() {
@@ -483,15 +470,6 @@ public class Video {
     public int getNumImages() {
         return numImages;
     }
-
-    public void setScaleFactor(double scaleFactor) {
-        this.scaleFactor = scaleFactor;
-    }
-
-    public double getScaleFactor() {
-        return scaleFactor;
-    }
-
 
     public boolean isVideoInitialized() {
         return videoInitialized;

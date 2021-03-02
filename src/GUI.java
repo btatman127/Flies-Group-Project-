@@ -1,7 +1,6 @@
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -134,7 +133,7 @@ public class GUI extends JFrame {
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
         ShowPathAction showPathAction = new ShowPathAction();
         CSVExportAction exportAction = new CSVExportAction();
-        screenshotAction screenshotAction = new screenshotAction();
+        ScreenshotAction screenshotAction = new ScreenshotAction();
         ResetPositionAction resetPositionAction = new ResetPositionAction(this);
         StopResetAction stopResetAction = new StopResetAction(this);
         StartSingleReset startSingleReset = new StartSingleReset(this);
@@ -688,8 +687,15 @@ public class GUI extends JFrame {
 
     private class CSVExportAction implements ActionListener {
         public CSVExportAction() {}
-
         public void actionPerformed(ActionEvent event) {
+
+            FileDialog fd = new FileDialog(GUI.this, "Select where to save csv", FileDialog.SAVE);
+            fd.setFile(movie.getOriginalMovieName() + ".csv");
+            fd.setVisible(true);
+            String name = fd.getDirectory() + fd.getFile();
+            if(!name.endsWith(".csv")) name = name + ".csv";
+            File file = new File(name);
+
             int frames = 0;
             for (Larva larva : movie.getLarva()) {
                 if (larva.getCoordinates().size() > frames) {
@@ -697,16 +703,17 @@ public class GUI extends JFrame {
                 }
             }
             CSVExport exporter = new CSVExport(movie, frames);
-            exporter.export();
+            exporter.export(file);
         }
     }
 
-    private class screenshotAction implements ActionListener {
-        public screenshotAction() {}
+    private class ScreenshotAction implements ActionListener {
+        public ScreenshotAction() {}
 
         public void actionPerformed(ActionEvent event) {
             FileDialog fd = new FileDialog(GUI.this, "Select where to save image", FileDialog.SAVE);
-            fd.setFile("image.png");
+            String defaultName = movie.getOriginalMovieName() + ".frame_" + (currentFrame + 1) + ".png";
+            fd.setFile(defaultName);
             fd.setVisible(true);
             BufferedImage bi = new BufferedImage(frame.getSize().width, frame.getSize().height, BufferedImage.TYPE_INT_ARGB);
             Graphics g = bi.createGraphics();
