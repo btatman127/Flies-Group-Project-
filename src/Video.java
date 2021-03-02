@@ -130,7 +130,7 @@ public class Video {
     }
 
 
-    void resetLarvaPosition(int firstFrame, int larvaIndex, Double pt[]) {
+    void retrackLarvaPositiom(int firstFrame, int larvaIndex, Double pt[]) {
         //starting and frameIndex
         //overwrite position values for larvae[larvaIndex] for each frame
         if (!videoInitialized) {
