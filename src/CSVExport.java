@@ -1,3 +1,4 @@
+import java.io.File;
 import java.util.ArrayList;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -82,12 +83,9 @@ public class CSVExport {
     /**
      * Exports and saves a CSV file containing position, distance, and velocity data for each larva.
      */
-    public void export() {
-
-        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        String fileName = "flies" + timestamp + ".csv";
+    public void export(File file) {
         try {
-            PrintWriter out = new PrintWriter(fileName);
+            PrintWriter out = new PrintWriter(file);
             out.write(result);
             out.close();
         } catch (IOException e) {

@@ -1,12 +1,9 @@
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.io.File;
-import java.util.Arrays;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -23,7 +20,7 @@ public class Video {
     //TRACKER
     private Region[][][] regions; //Region[frame number][x-coordinate][y-coordinate]
     private boolean[][][] larvaLoc;
-    private int threshold;// = 255 - (int) (255 * .2);
+    private static final int THRESHOLD = 204;
     private int regionDim;// = 8;
     //Array of islands for each frame
     //Array of (arraylists of (double arrays))
@@ -34,9 +31,6 @@ public class Video {
 
     // length and/or width of each grid square in mm
     private ArrayList<Larva> larvae;
-
-    //factor that converts pixels to mm
-    private double scaleFactor;
 
     public String getOutputPathLong() {
         return outputPathLong;
@@ -83,10 +77,6 @@ public class Video {
         int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
         numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
-
-
-        threshold = 255 - (int) (255 * .2);
-
     }
 
 
@@ -188,16 +178,6 @@ public class Video {
     }
 
     /**
-     * Get the coordinates of the larvae on a specific frame.
-     *
-     * @param frame The frame to get the larvae coordinates for.
-     * @return An Arraylist of Double[], one for each larva.
-     */
-    public ArrayList<Double[]> getLarvaCoordinates(int frame) {
-        return islands.get(frame);
-    }
-
-    /**
      * goes through larvae positions and checks for position overlap on same frames
      **/
     private boolean findCollisions() {
@@ -272,7 +252,7 @@ public class Video {
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
-                larvaLoc[frame][i][j] = avg < threshold;
+                larvaLoc[frame][i][j] = avg < THRESHOLD;
                 int b = 255;
                 if (larvaLoc[frame][i][j]) {
                     b = 0;
@@ -472,8 +452,12 @@ public class Video {
         return imgDir;
     }
 
-    public String getMovieDir() {
-        return movieDir;
+    public String getOriginalMovieName() {
+        int lastDot = movieNameLong.lastIndexOf('.');
+        if (lastDot == -1) {
+            lastDot = movieNameLong.length();
+        }
+        return movieNameLong.substring(0, lastDot);
     }
 
     public String getMovieName() {
@@ -483,15 +467,6 @@ public class Video {
     public int getNumImages() {
         return numImages;
     }
-
-    public void setScaleFactor(double scaleFactor) {
-        this.scaleFactor = scaleFactor;
-    }
-
-    public double getScaleFactor() {
-        return scaleFactor;
-    }
-
 
     public boolean isVideoInitialized() {
         return videoInitialized;
