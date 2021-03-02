@@ -39,6 +39,10 @@ public class GUI extends JFrame {
     private FileDialog fd;
     public ImageComponent frame;
 
+    public Stack<CurrentActionSettings> history;
+    public final int CROPPING = 0;
+    public final int TRACKING = 1;
+
     public GUI() {
         fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
         fd.setDirectory("C:\\");
@@ -48,6 +52,8 @@ public class GUI extends JFrame {
 
         point1 = new int[2];
         point2 = new int[2];
+
+        history = new Stack<>();
 
         //construct components
         currentFrame = 0;
@@ -380,6 +386,7 @@ public class GUI extends JFrame {
         public StopCropAction() {}
 
         public void actionPerformed(ActionEvent event) {
+            history.push(new CurrentActionSettings(CROPPING));
             cropProgress.setVisible(true);
             try {
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
@@ -457,6 +464,7 @@ public class GUI extends JFrame {
         public StopLarvaeAction() {}
 
         public void actionPerformed(ActionEvent event) {
+//            history.push(new CurrentActionSettings(TRACKING));
             boolean collisionFound;
             double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
             double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
