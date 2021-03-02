@@ -1,12 +1,9 @@
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.io.File;
-import java.util.Arrays;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -23,7 +20,7 @@ public class Video {
     //TRACKER
     private Region[][][] regions; //Region[frame number][x-coordinate][y-coordinate]
     private boolean[][][] larvaLoc;
-    private static int threshold = 204;
+    private static final int THRESHOLD = 204;
     private int regionDim;// = 8;
     //Array of islands for each frame
     //Array of (arraylists of (double arrays))
@@ -255,7 +252,7 @@ public class Video {
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
-                larvaLoc[frame][i][j] = avg < threshold;
+                larvaLoc[frame][i][j] = avg < THRESHOLD;
                 int b = 255;
                 if (larvaLoc[frame][i][j]) {
                     b = 0;
