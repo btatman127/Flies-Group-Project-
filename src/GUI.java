@@ -40,9 +40,8 @@ public class GUI extends JFrame {
     private FileDialog fd;
     public ImageComponent frame;
 
-    public Stack<CurrentActionSettings> history;
+    public Stack<Integer> history;
     public final int CLICKING = 0;
-    public final int TRACKING = 1;
 
     public GUI() {
         fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
@@ -434,6 +433,9 @@ public class GUI extends JFrame {
                 startLarvaeSelection.setEnabled(true);
                 startCrop.setEnabled(true);
                 endCrop.setEnabled(false);
+                undo.setEnabled(false);
+
+                history = new Stack<Integer>();
 
                 frame.setImage(movie.getPathToFrame(currentFrame + 1));
 
@@ -444,6 +446,9 @@ public class GUI extends JFrame {
                 ioe.printStackTrace();
                 System.out.println("Need to have 2 squares to crop the image.");
             }
+
+            history = new Stack<Integer>();
+            undo.setEnabled(false);
         }
     }
 
@@ -482,7 +487,6 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            int num_larva = 0;
             boolean collisionFound;
             double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
             double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
@@ -491,10 +495,11 @@ public class GUI extends JFrame {
 
                 movie.addLarva(addition);
                 frame.larvae.add(addition);
-
-                history.push(new CurrentActionSettings(TRACKING, num_larva++));
-                undo.setEnabled(true);
             }
+
+            undo.setEnabled(false);
+            history = new Stack<Integer>();
+
             for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));
             }
@@ -553,6 +558,7 @@ public class GUI extends JFrame {
             JOptionPane.showMessageDialog(null, message);
             gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
 
+            undo.setEnabled(false); //change in the future to allow user to not retrack if they missclicked
             stopRetrackPosition.setEnabled(true);
             retrackPosition.setEnabled(false);
             nextFrame.setEnabled(false);
@@ -584,7 +590,6 @@ public class GUI extends JFrame {
                 pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
                 movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
-
                 frame.remove(frame.squares.get(0));
 
                 stopRetrackPosition.setEnabled(false);
@@ -593,6 +598,8 @@ public class GUI extends JFrame {
                 prevFrame.setEnabled(true);
                 exportCSV.setEnabled(true);
                 screenshot.setEnabled(true);
+                undo.setEnabled(false);
+                history = new Stack<Integer>();
 
                 movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
 
@@ -610,6 +617,10 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            history.pop();
+            frame.squares.remove(frame.squares.size() - 1);
+            repaint();
+            if (history.isEmpty()) {undo.setEnabled(false);}
         }
     }
 
@@ -821,7 +832,7 @@ public class GUI extends JFrame {
             currentMouseLocationRectangle = new Rectangle2D.Double(x - SIDELENGTH / 2.0, y - SIDELENGTH / 2.0,
                     SIDELENGTH, SIDELENGTH);
             squares.add(currentMouseLocationRectangle);
-            history.push(new CurrentActionSettings(CLICKING));
+            history.push(CLICKING);
             undo.setEnabled(true);
             repaint();
         }
