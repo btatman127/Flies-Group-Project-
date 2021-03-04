@@ -41,7 +41,6 @@ public class GUI extends JFrame {
 
     public GUI() {
         fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
-        fd.setDirectory("C:\\");
 
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
