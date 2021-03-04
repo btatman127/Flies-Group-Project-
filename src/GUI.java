@@ -558,6 +558,7 @@ public class GUI extends JFrame {
                 movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
 
                 frame.remove(frame.squares.get(0));
+                frame.maxSquares = 0;
 
                 stopRetrackPosition.setEnabled(false);
                 retrackPosition.setEnabled(true);
