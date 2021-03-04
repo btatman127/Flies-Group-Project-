@@ -491,6 +491,7 @@ public class GUI extends JFrame {
                 JOptionPane.showMessageDialog(null, message);
             }
             frame.vidInitialized = true;
+            buttonPanel.requestFocus();
             repaint();
         }
     }
@@ -565,7 +566,7 @@ public class GUI extends JFrame {
                 screenshot.setEnabled(true);
 
                 movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
-
+                buttonPanel.requestFocus();
                 revalidate();
                 repaint();
 
