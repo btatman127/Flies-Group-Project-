@@ -554,6 +554,7 @@ public class GUI extends JFrame {
                 larvaeNumber[i] = "" + (i + 1);
             }
 
+            gui.setTempLarvaIndex(-1);
             JComboBox larvaNumberOption = new JComboBox(larvaeNumber);
             Object[] message = {
                     "Please select larva number to retrack position.",
@@ -565,14 +566,19 @@ public class GUI extends JFrame {
             gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
 
             undo.setEnabled(false); //change in the future to allow user to not retrack if they missclicked
-            stopRetrackPosition.setEnabled(true);
-            retrackPosition.setEnabled(false);
-            exportCSV.setEnabled(false);
-            screenshot.setEnabled(false);
-            frame.maxSquares = 1;
-
-            retrackPosition.setEnabled(false);
-            stopRetrackPosition.setEnabled(true);
+            if(gui.tempLarvaIndex == -1) {
+                stopRetrackPosition.setEnabled(false);
+                retrackPosition.setEnabled(true);
+                exportCSV.setEnabled(true);
+                screenshot.setEnabled(true);
+                frame.maxSquares = 0;
+            } else {
+                stopRetrackPosition.setEnabled(true);
+                retrackPosition.setEnabled(false);
+                exportCSV.setEnabled(false);
+                screenshot.setEnabled(false);
+                frame.maxSquares = 1;
+            }
         }
     }
 
@@ -590,12 +596,15 @@ public class GUI extends JFrame {
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
                 Double[] pt = new Double[2];
-                pt[0] = (frame.squares.get(0).getCenterX() * xratio);
-                pt[1] = (frame.squares.get(0).getCenterY() * yratio);
+                if (frame.squares.size() > 0) {
+                    pt[0] = (frame.squares.get(0).getCenterX() * xratio);
+                    pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
-                movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
-                frame.remove(frame.squares.get(0));
-                frame.maxSquares = 0;
+                    movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
+                    frame.remove(frame.squares.get(0));
+                    frame.maxSquares = 0;
+                    movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
+                }
 
                 stopRetrackPosition.setEnabled(false);
                 retrackPosition.setEnabled(true);
@@ -605,7 +614,6 @@ public class GUI extends JFrame {
                 undo.setEnabled(false);
                 history = new Stack<Integer>();
 
-                movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
                 buttonPanel.requestFocus();
                 revalidate();
                 repaint();
