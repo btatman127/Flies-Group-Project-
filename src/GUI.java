@@ -17,7 +17,7 @@ public class GUI extends JFrame {
     private String movieDir;
     private Video movie;
     private int tempLarvaIndex;
-    private boolean nextPrevFrameEnabled;
+    private boolean nextPrevFrameEnabled = false;
 
     private JPanel buttonPanel;
     private JButton openMovie;
@@ -118,7 +118,7 @@ public class GUI extends JFrame {
         cropProgress.setVisible(false);
         undo.setVisible(false);
 
-        enableNextPrevFrame();
+        disableNextPrevFrame();
 
         //add the image component to the screen
         frame = new ImageComponent("welcome.png");
@@ -516,6 +516,7 @@ public class GUI extends JFrame {
             retrackPosition.setEnabled(true);
             stopRetrackPosition.setVisible(true);
             stopRetrackPosition.setEnabled(false);
+            enableNextPrevFrame();
 
             //Initializes the tracking process within the Video class
             collisionFound = movie.createFrames();
@@ -526,6 +527,7 @@ public class GUI extends JFrame {
                 JOptionPane.showMessageDialog(null, message);
             }
             frame.vidInitialized = true;
+            buttonPanel.requestFocus();
             repaint();
         }
     }
@@ -538,8 +540,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            nextFrame.setEnabled(false);
-            prevFrame.setEnabled(false);
+            disableNextPrevFrame();
 
             String[] larvaeNumber = new String[movie.getLarva().size()];
             for (int i = 0; i < movie.getLarva().size(); i++) {
@@ -563,8 +564,6 @@ public class GUI extends JFrame {
             undo.setEnabled(false); //change in the future to allow user to not retrack if they missclicked
             stopRetrackPosition.setEnabled(true);
             retrackPosition.setEnabled(false);
-            nextFrame.setEnabled(false);
-            prevFrame.setEnabled(false);
             exportCSV.setEnabled(false);
             screenshot.setEnabled(false);
             frame.maxSquares = 1;
@@ -597,15 +596,14 @@ public class GUI extends JFrame {
 
                 stopRetrackPosition.setEnabled(false);
                 retrackPosition.setEnabled(true);
-                nextFrame.setEnabled(true);
-                prevFrame.setEnabled(true);
+                enableNextPrevFrame();
                 exportCSV.setEnabled(true);
                 screenshot.setEnabled(true);
                 undo.setEnabled(false);
                 history = new Stack<Integer>();
 
                 movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
-
+                buttonPanel.requestFocus();
                 revalidate();
                 repaint();
 
