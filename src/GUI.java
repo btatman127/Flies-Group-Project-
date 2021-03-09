@@ -309,6 +309,7 @@ public class GUI extends JFrame {
             }
 
             frame.movie = movie;
+            frame.squares = new ArrayList<>();
             //DIRECTLY AFTER OPENING MOVIE FILE
             nextFrame.setVisible(true);
             prevFrame.setVisible(true);
@@ -383,6 +384,7 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             frame.maxSquares = 2;
+            frame.squares = new ArrayList<>();
             startCrop.setEnabled(false);
             endCrop.setEnabled(true);
             startLarvaeSelection.setEnabled(false);
@@ -591,6 +593,7 @@ public class GUI extends JFrame {
 
                 movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
                 frame.remove(frame.squares.get(0));
+                frame.maxSquares = 0;
 
                 stopRetrackPosition.setEnabled(false);
                 retrackPosition.setEnabled(true);
