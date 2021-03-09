@@ -653,21 +653,14 @@ class ImageComponent extends JComponent {
     private Image image;
 
     public ImageComponent(String fileName) {
-
         maxSquares = 0;
         displayPaths = false;
-        image = new ImageIcon(fileName).getImage();
-        try {
-            image = ImageIO.read(new File(fileName));
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
+        image = new ImageIcon(getClass().getResource(fileName)).getImage();
         larvae = new ArrayList<>();
         squares = new ArrayList<>();
         current = null;
         addMouseListener(new MouseHandler());
         addMouseMotionListener(new MouseMotionHandler());
-
     }
 
     public void setImage(String fileName) {
