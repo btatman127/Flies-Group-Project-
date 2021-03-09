@@ -250,7 +250,7 @@ public class PreProcessor {
 }
 
 
-class LimitedQueue extends LinkedList<Integer> {
+class     LimitedQueue extends LinkedList<Integer> {
     private int limit;
 
     public LimitedQueue(int limit) {

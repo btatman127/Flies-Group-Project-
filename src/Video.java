@@ -434,18 +434,19 @@ public class Video {
     public ArrayList<Larva> getLarva() {
         return larvae;
     }
+    public void reInitializeLarvaArrayList() {larvae = new ArrayList<Larva>();}
 
     public void addLarva(Larva l) {
         Double[] a = l.getPosition(0);
         larvae.add(l);
     }
 
+    public void removeLarvaFromArrayListByIndex(int larvaIndex) {
+        larvae.remove(larvaIndex);
+    }
+
     public String getPathToFrame(int index) {
-        String path;
-
-        path = imgDir + "/img" + String.format("%04d", index) + ".png";
-
-        return path;
+        return imgDir + "/img" + String.format("%04d", index) + ".png";
     }
 
     public String getImgDir() {
