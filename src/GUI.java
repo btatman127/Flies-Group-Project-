@@ -243,7 +243,7 @@ public class GUI extends JFrame {
             }
             fileName = name;
             movieDir = dir;
-            currentFrame = 0;
+            currentFrame = 1;
 
             //Double Option Test
             String startValue;
@@ -321,7 +321,7 @@ public class GUI extends JFrame {
             displayFrameNum.setEditable(false);
 
             pack();
-            frame.setImage(movie.getPathToFrame(currentFrame + 1));
+            frame.setImage(movie.getPathToFrame(currentFrame));
             validate();
             repaint();
         }
@@ -433,9 +433,9 @@ public class GUI extends JFrame {
         public StartLarvaeAction() {}
 
         public void actionPerformed(ActionEvent event) {
-            currentFrame = 1;
-            frame.setImage(movie.getPathToFrame(currentFrame));
-            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+            currentFrame = 0;
+            frame.setImage(movie.getPathToFrame(currentFrame + 1));
+            displayFrameNum.setText("Frame " + (currentFrame + 1) + " of " + movie.getNumImages());
             frame.maxSquares = 5;
             startCrop.setEnabled(false);
             endCrop.setEnabled(false);
