@@ -10,7 +10,7 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
 class CropThread implements Runnable{
-	private Thread t;
+//	private Thread t;
 	private String threadName;
 	//private int progress;
 	private JProgressBar progressBar;
@@ -28,44 +28,59 @@ class CropThread implements Runnable{
 		this.directory = directory;
 		this.progressBar = progressBar;
 	}
-	
+
 	public void run() {
-		try {
-			int i = 1;
-			while (i <= frames) {
-				final int j = i;
-				try {
-					EventQueue.invokeAndWait(() -> {
-		                try {
-							final BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", j) + ".png"));
-		                	BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
-		                	ImageIO.write(subimage, "png", new File(directory + "/img" + String.format("%04d", j) + ".png"));
-						}
-						catch(IOException ioe) {
-							ioe.printStackTrace();
-						}
-						progressBar.setValue(j);
-					});
-				}
-				catch(InvocationTargetException ine) {
-					ine.printStackTrace();
-				}
-				
-				//Thread.sleep(1);
-				i++;
+		int i = 1;
+		while (i <= frames) {
+			try {
+				final BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i++) + ".png"));
+				BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
+				ImageIO.write(subimage, "png", new File(directory + "/img" + String.format("%04d", i++) + ".png"));
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
 			}
+			progressBar.setValue(i++);
 		}
-		catch(InterruptedException ine) {
-			ine.printStackTrace();
-		}
+
 		progressBar.setVisible(false);
 	}
+//	public void run() {
+//		try {
+//			int i = 1;
+//			while (i <= frames) {
+//				final int j = i;
+//				try {
+//					EventQueue.invokeAndWait(() -> {
+//		                try {
+//							final BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", j) + ".png"));
+//		                	BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
+//		                	ImageIO.write(subimage, "png", new File(directory + "/img" + String.format("%04d", j) + ".png"));
+//						}
+//						catch(IOException ioe) {
+//							ioe.printStackTrace();
+//						}
+//						progressBar.setValue(j);
+//					});
+//				}
+//				catch(InvocationTargetException ine) {
+//					ine.printStackTrace();
+//				}
+//
+//				//Thread.sleep(1);
+//				i++;
+//			}
+//		}
+//		catch(InterruptedException ine) {
+//			ine.printStackTrace();
+//		}
+//		progressBar.setVisible(false);
+//	}
 	
-	public void start() {
-		if (t == null) {
-			t = new Thread(this, threadName);
-			t.start();
-		}
-	}
+//	public void start() {
+//		if (t == null) {
+//			t = new Thread(this, threadName);
+//			t.start();
+//		}
+//	}
 
 }
