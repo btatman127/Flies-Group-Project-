@@ -43,6 +43,66 @@ public class GUI extends JFrame {
     public Stack<Integer> history;
     public final int CLICKING = 0;
 
+    private enum ButtonState{
+        INVISIBLE(false, false),
+        DISABLED(true, false),
+        ENABLED(true, true);
+
+        final boolean visible;
+        final boolean enabled;
+
+        ButtonState(boolean visible, boolean enabled) {
+            this.visible = visible;
+            this.enabled = enabled;
+        }
+    }
+
+    private enum ProgramState{
+        OPEN(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE);
+        /*PRE_CROP(),
+        CROPPING(),
+        POST_CROP(),
+        SELECTING_LARVAE(),
+        TRACKING(),
+        RETRACKING()*/
+
+        final ButtonState openMovie;
+        final ButtonState nextFrame;
+        final ButtonState prevFrame;
+        final ButtonState startCrop;
+        final ButtonState endCrop;
+        final ButtonState startLarvaeSelection;
+        final ButtonState endLarvaeSelection;
+        final ButtonState showPaths;
+        final ButtonState exportCSV;
+        final ButtonState screenshot;
+        final ButtonState retrackPosition;
+        final ButtonState stopRetrackPosition;
+        final ButtonState undo;
+
+        ProgramState(ButtonState openMovie, ButtonState nextFrame, ButtonState prevFrame, ButtonState startCrop,
+                     ButtonState endCrop, ButtonState startLarvaeSelection, ButtonState endLarvaeSelection,
+                     ButtonState showPaths, ButtonState exportCSV, ButtonState screenshot,
+                     ButtonState retrackPosition, ButtonState stopRetrackPosition, ButtonState undo){
+            this.openMovie = openMovie;
+            this.nextFrame = nextFrame;
+            this.prevFrame = prevFrame;
+            this.startCrop = startCrop;
+            this.endCrop = endCrop;
+            this.startLarvaeSelection = startLarvaeSelection;
+            this.endLarvaeSelection = endLarvaeSelection;
+            this.showPaths = showPaths;
+            this.exportCSV = exportCSV;
+            this.screenshot = screenshot;
+            this.retrackPosition = retrackPosition;
+            this.stopRetrackPosition = stopRetrackPosition;
+            this.undo = undo;
+        }
+    }
+
     public GUI() {
         fd = new FileDialog(this, "Choose a File", FileDialog.LOAD);
         fd.setDirectory("C:\\");
