@@ -180,8 +180,10 @@ public class GUI extends JFrame {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    frame.deleteDirectory(frame.movie.getImgDir());
-                    frame.deleteDirectory(frame.movie.getOutputPathLong());
+                    if(frame.movie!= null) {
+                        frame.deleteDirectory(frame.movie.getImgDir());
+                        frame.deleteDirectory(frame.movie.getOutputPathLong());
+                    }
                     System.exit(0);
                 }
             };
