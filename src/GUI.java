@@ -433,21 +433,22 @@ public class GUI extends JFrame {
                 repaint();
 
                 startLarvaeSelection.setEnabled(true);
-                startCrop.setEnabled(true);
+                startCrop.setEnabled(false);
                 endCrop.setEnabled(false);
                 undo.setEnabled(false);
 
                 history = new Stack<Integer>();
 
-                frame.setImage(movie.getPathToFrame(currentFrame + 1));
-
-                revalidate();
-                repaint();
-
             } catch (IOException ioe) {
                 ioe.printStackTrace();
                 System.out.println("Need to have 2 squares to crop the image.");
             }
+
+            currentFrame = 1;
+            frame.setImage(movie.getPathToFrame(currentFrame));
+            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+            revalidate();
+            repaint();
 
             history = new Stack<Integer>();
             undo.setEnabled(false);

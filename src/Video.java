@@ -446,11 +446,7 @@ public class Video {
     }
 
     public String getPathToFrame(int index) {
-        String path;
-
-        path = imgDir + "/img" + String.format("%04d", index) + ".png";
-
-        return path;
+        return imgDir + "/img" + String.format("%04d", index) + ".png";
     }
 
     public String getImgDir() {
