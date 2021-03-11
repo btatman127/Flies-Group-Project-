@@ -270,7 +270,7 @@ public class GUI extends JFrame {
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             JCheckBox fullLength = new JCheckBox();
-            fullLength.setSelected(true);
+            fullLength.setSelected(false);
             Object[] message = {
                     "Please enter Start and Stop time in seconds.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
@@ -279,9 +279,12 @@ public class GUI extends JFrame {
                     "Select full video:", fullLength
             };
 
-            JOptionPane.showMessageDialog(null, message);
-
-            if (fullLength.isSelected()) {
+            int result = JOptionPane.showConfirmDialog(null, message,
+                    "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
+            if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+                return;
+            }
+            if (fullLength.isSelected() || startTime.getText().equals("") || endTime.getText().equals("")) {
                 startValue = "0";
                 endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
             } else {
