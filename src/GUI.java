@@ -503,7 +503,6 @@ public class GUI extends JFrame {
                 Larva addition = new Larva(r.getCenterX() * xratio, r.getCenterY() * yratio);
 
                 movie.addLarva(addition);
-                frame.larvae.add(addition);
             }
 
             undo.setEnabled(false);
@@ -713,7 +712,6 @@ public class GUI extends JFrame {
         private static final int SIDELENGTH = 7;
         public int maxSquares;
         public ArrayList<Rectangle2D> squares;
-        public ArrayList<Larva> larvae;
         public int currentFrame;
         public boolean displayPaths;
         public boolean vidInitialized;
@@ -732,7 +730,6 @@ public class GUI extends JFrame {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-            larvae = new ArrayList<>();
             squares = new ArrayList<>();
             currentMouseLocationRectangle = null;
             addMouseListener(new MouseHandler());
@@ -765,7 +762,7 @@ public class GUI extends JFrame {
 
             //draw lines between larvae positions
             if (displayPaths) {
-                larvae = movie.getLarva();
+                ArrayList<Larva> larvae = movie.getLarva();
                 for (Larva l : larvae) {
                     g2.setColor(colors[larvae.indexOf(l)]);
                     double xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
