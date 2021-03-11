@@ -17,7 +17,7 @@ public class GUI extends JFrame {
     private String movieDir;
     private Video movie;
     private int tempLarvaIndex;
-    private boolean nextPrevFrameEnabled = false;
+    private boolean changeFrameEnabled = false;
 
     private JPanel buttonPanel;
     private JButton openMovie;
@@ -58,63 +58,59 @@ public class GUI extends JFrame {
     }
 
     private enum ProgramState{
-        OPEN(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        OPEN(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        PRE_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
+        PRE_CROP(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        CROPPING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        CROPPING(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.DISABLED),
-        POST_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
+        POST_CROP(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        SELECTING_LARVAE(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        SELECTING_LARVAE(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.DISABLED),
-        TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
+        TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
+                ButtonState.ENABLED,  ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        RETRACKING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        RETRACKING(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
+                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.DISABLED);
 
         final ButtonState openMovie;
-        final ButtonState nextFrame;
-        final ButtonState prevFrame;
+        final ButtonState changeFrame;
         final ButtonState startCrop;
         final ButtonState confirmCrop;
         final ButtonState startLarvaeSelection;
         final ButtonState confirmLarvaeSelection;
         final ButtonState showPaths;
-        final ButtonState exportCSV;
-        final ButtonState screenshot;
+        final ButtonState exportPaths;
         final ButtonState retrackPosition;
         final ButtonState confirmRetrackPosition;
         final ButtonState undo;
 
-        ProgramState(ButtonState openMovie, ButtonState nextFrame, ButtonState prevFrame, ButtonState startCrop,
+        ProgramState(ButtonState openMovie, ButtonState changeFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
-                     ButtonState showPaths, ButtonState exportCSV, ButtonState screenshot,
+                     ButtonState showPaths, ButtonState exportPaths,
                      ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo){
             this.openMovie = openMovie;
-            this.nextFrame = nextFrame;
-            this.prevFrame = prevFrame;
+            this.changeFrame = changeFrame;
             this.startCrop = startCrop;
             this.confirmCrop = confirmCrop;
             this.startLarvaeSelection = startLarvaeSelection;
             this.confirmLarvaeSelection = confirmLarvaeSelection;
             this.showPaths = showPaths;
-            this.exportCSV = exportCSV;
-            this.screenshot = screenshot;
+            this.exportPaths = exportPaths;
             this.retrackPosition = retrackPosition;
             this.confirmRetrackPosition = confirmRetrackPosition;
             this.undo = undo;
@@ -162,7 +158,7 @@ public class GUI extends JFrame {
         displayFrameNum.setVisible(false);
 
         //make new panel for buttons
-        buttonPanel = new JPanel());
+        buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
         //add the buttons to the panel
@@ -259,13 +255,13 @@ public class GUI extends JFrame {
         openMovie.setVisible(programState.openMovie.visible);
         openMovie.setEnabled(programState.openMovie.enabled);
 
-        nextFrame.setVisible(programState.nextFrame.visible);
-        nextFrame.setEnabled(programState.nextFrame.enabled);
+        prevFrame.setVisible(programState.changeFrame.visible);
+        prevFrame.setEnabled(programState.changeFrame.enabled);
 
-        prevFrame.setVisible(programState.prevFrame.visible);
-        prevFrame.setEnabled(programState.prevFrame.enabled);
+        nextFrame.setVisible(programState.changeFrame.visible);
+        nextFrame.setEnabled(programState.changeFrame.enabled);
 
-        nextPrevFrameEnabled = programState.prevFrame.enabled;
+        changeFrameEnabled = programState.changeFrame.enabled;
 
         startCrop.setVisible(programState.startCrop.visible);
         startCrop.setEnabled(programState.startCrop.enabled);
@@ -282,11 +278,11 @@ public class GUI extends JFrame {
         showPaths.setVisible(programState.showPaths.visible);
         showPaths.setEnabled(programState.showPaths.enabled);
 
-        exportCSV.setVisible(programState.exportCSV.visible);
-        exportCSV.setEnabled(programState.exportCSV.enabled);
+        exportCSV.setVisible(programState.exportPaths.visible);
+        exportCSV.setEnabled(programState.exportPaths.enabled);
 
-        screenshot.setVisible(programState.screenshot.visible);
-        screenshot.setEnabled(programState.screenshot.enabled);
+        screenshot.setVisible(programState.exportPaths.visible);
+        screenshot.setEnabled(programState.exportPaths.enabled);
 
         retrackPosition.setVisible(programState.retrackPosition.visible);
         retrackPosition.setEnabled(programState.retrackPosition.enabled);
@@ -428,7 +424,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if (!nextPrevFrameEnabled) return;
+            if (!changeFrameEnabled) return;
 
             if (currentFrame + number >= 0 && currentFrame + number < movie.getNumImages()) {
                 currentFrame += number;
@@ -471,6 +467,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            if(frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
             try {
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
@@ -551,6 +548,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            if(frame.squares.size() < 1) return;
             boolean collisionFound;
             double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
             double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
@@ -626,6 +624,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            if(frame.squares.size() < frame.maxSquares) return;
             try {
                 BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
