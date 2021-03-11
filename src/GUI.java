@@ -99,7 +99,7 @@ public class GUI extends JFrame {
         final ButtonState screenshot;
         final ButtonState retrackPosition;
         final ButtonState confirmRetrackPosition;
-          final ButtonState undo;
+        final ButtonState undo;
 
         ProgramState(ButtonState openMovie, ButtonState nextFrame, ButtonState prevFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
@@ -145,22 +145,24 @@ public class GUI extends JFrame {
         confirmCrop = new JButton("Confirm Crop");
         startLarvaeSelection = new JButton("Start Larvae Selection");
         confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
-        showPaths = new JCheckBox("Show Larvae Paths");
+        showPaths = new JCheckBox("Show Larvae Paths", true);
         exportCSV = new JButton(("Export as CSV file"));
         screenshot = new JButton(("Screenshot current frame"));
         retrackPosition = new JButton("Retrack Larva @ Current Frame");
         confirmRetrackPosition = new JButton("Confirm Larva Retrack");
         undo = new JButton("Undo");
         cropProgress = new JProgressBar();
+        cropProgress.setVisible(false);
 
         DefaultStyledDocument sd = new DefaultStyledDocument();
         displayFrameNum = new JTextPane(sd);
         SimpleAttributeSet as = new SimpleAttributeSet();
         StyleConstants.setAlignment(as, StyleConstants.ALIGN_CENTER);
         displayFrameNum.setParagraphAttributes(as, true);
+        displayFrameNum.setVisible(false);
 
         //make new panel for buttons
-        buttonPanel = new JPanel();
+        buttonPanel = new JPanel());
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
         //add the buttons to the panel
@@ -277,6 +279,9 @@ public class GUI extends JFrame {
         confirmLarvaeSelection.setVisible(programState.confirmLarvaeSelection.visible);
         confirmLarvaeSelection.setEnabled(programState.confirmLarvaeSelection.enabled);
 
+        showPaths.setVisible(programState.showPaths.visible);
+        showPaths.setEnabled(programState.showPaths.enabled);
+
         exportCSV.setVisible(programState.exportCSV.visible);
         exportCSV.setEnabled(programState.exportCSV.enabled);
 
@@ -291,6 +296,10 @@ public class GUI extends JFrame {
 
         undo.setVisible(programState.undo.visible);
         undo.setEnabled(programState.undo.enabled);
+
+        pack();
+        revalidate();
+        repaint();
     }
 
     boolean deleteDirectory(String dirName) {
@@ -396,6 +405,7 @@ public class GUI extends JFrame {
             frame.displayPaths = false;
             displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
             displayFrameNum.setEditable(false);
+            displayFrameNum.setVisible(true);
 
             setButtonStates(ProgramState.PRE_CROP);
 
