@@ -269,14 +269,11 @@ public class GUI extends JFrame {
             String endValue;
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
-            JCheckBox fullLength = new JCheckBox();
-            fullLength.setSelected(false);
             Object[] message = {
                     "Please enter Start and Stop time in seconds.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
                     "Start time:", startTime,
-                    "End Time:", endTime,
-                    "Select full video:", fullLength
+                    "End Time:", endTime
             };
 
             int result = JOptionPane.showConfirmDialog(null, message,
@@ -284,28 +281,36 @@ public class GUI extends JFrame {
             if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
                 return;
             }
-            if (fullLength.isSelected() || startTime.getText().equals("") || endTime.getText().equals("")) {
+
+            if (startTime.getText().equals("") || Integer.parseInt(startTime.getText()) < 0) {
                 startValue = "0";
-                endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
             } else {
                 startValue = startTime.getText();
-                endValue = endTime.getText();
-                while (!PreProcessor.validateTime(startTime.getText(),
-                        PreProcessor.getDurationSeconds(movieDir, fileName)) ||
-                        !PreProcessor.validateTime(endTime.getText(),
-                                PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                    System.out.println("Invalid Time. ");
-                    JOptionPane.showMessageDialog(null, message);
+            }
 
-                    if (PreProcessor.validateTime(startTime.getText(),
-                            PreProcessor.getDurationSeconds(movieDir, fileName)) &&
-                            PreProcessor.validateTime(endTime.getText(),
-                                    PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                        startValue = startTime.getText();
-                        endValue = endTime.getText();
-                    }
+            if (endTime.getText().equals("") || Integer.parseInt(endTime.getText()) >
+                    Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
+            } else {
+                endValue = endTime.getText();
+            }
+
+            while (!PreProcessor.validateTime(startTime.getText(),
+                    PreProcessor.getDurationSeconds(movieDir, fileName)) ||
+                    !PreProcessor.validateTime(endTime.getText(),
+                            PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                System.out.println("Invalid Time. ");
+                JOptionPane.showMessageDialog(null, message);
+
+                if (PreProcessor.validateTime(startTime.getText(),
+                        PreProcessor.getDurationSeconds(movieDir, fileName)) &&
+                        PreProcessor.validateTime(endTime.getText(),
+                                PreProcessor.getDurationSeconds(movieDir, fileName))) {
+                    startValue = startTime.getText();
+                    endValue = endTime.getText();
                 }
             }
+
             //Create new movie
             try {
                 movie = new Video(movieDir, fileName, Integer.parseInt(startValue), Integer.parseInt(endValue));
