@@ -429,9 +429,10 @@ public class GUI extends JFrame {
                 revalidate();
                 repaint();
 
-                new Thread(new CropThread("crop", point1, point2, movie.getNumImages(),
-                        movie.getImgDir(), cropProgress)).start();
-
+                new CropImages(point1, point2, movie.getNumImages(),
+                        movie.getImgDir(), cropProgress).run();
+                pack();
+                revalidate();
                 repaint();
 
                 startLarvaeSelection.setEnabled(true);
@@ -439,7 +440,7 @@ public class GUI extends JFrame {
                 endCrop.setEnabled(false);
                 undo.setEnabled(false);
 
-                history = new Stack<Integer>();
+                history = new Stack<>();
 
             } catch (IOException ioe) {
                 ioe.printStackTrace();
@@ -452,7 +453,7 @@ public class GUI extends JFrame {
             revalidate();
             repaint();
 
-            history = new Stack<Integer>();
+            history = new Stack<>();
             undo.setEnabled(false);
         }
     }
@@ -503,7 +504,7 @@ public class GUI extends JFrame {
             }
 
             undo.setEnabled(false);
-            history = new Stack<Integer>();
+            history = new Stack<>();
 
             for (int i = frame.squares.size() - 1; i >= 0; i--) {
                 frame.remove(frame.squares.get(i));
@@ -612,7 +613,7 @@ public class GUI extends JFrame {
                 exportCSV.setEnabled(true);
                 screenshot.setEnabled(true);
                 undo.setEnabled(false);
-                history = new Stack<Integer>();
+                history = new Stack<>();
 
                 buttonPanel.requestFocus();
                 revalidate();
