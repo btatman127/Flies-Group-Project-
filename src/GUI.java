@@ -674,7 +674,7 @@ public class GUI extends JFrame {
             String defaultName = movie.getOriginalMovieName() + ".frame_" + (currentFrame + 1) + ".png";
             fd.setFile(defaultName);
             fd.setVisible(true);
-            BufferedImage bi = new BufferedImage(frame.getSize().width, frame.getSize().height, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null), frame.getImage().getHeight(null), BufferedImage.TYPE_INT_ARGB);
             Graphics g = bi.createGraphics();
             frame.paint(g);
             g.dispose();
