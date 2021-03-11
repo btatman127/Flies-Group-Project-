@@ -517,6 +517,8 @@ public class GUI extends JFrame {
             startLarvaeSelection.setEnabled(false);
             finishLarvaeSelection.setEnabled(false);
             showPaths.setEnabled(true);
+            showPaths.setSelected(true);
+            frame.displayPaths = true;
             exportCSV.setEnabled(true);
             screenshot.setEnabled(true);
             retrackPosition.setVisible(true);
