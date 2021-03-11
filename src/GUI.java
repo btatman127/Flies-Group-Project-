@@ -19,21 +19,21 @@ public class GUI extends JFrame {
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
 
-    private JPanel buttonPanel;
-    private JButton openMovie;
-    private JButton nextFrame;
-    private JButton prevFrame;
-    private JButton startCrop;
-    private JButton confirmCrop;
-    private JButton startLarvaeSelection;
-    private JButton confirmLarvaeSelection;
-    private JButton exportCSV;
-    private JButton screenshot;
-    private JButton retrackPosition;
-    private JButton confirmRetrackPosition;
-    private JButton undo;
+    private final JPanel buttonPanel;
+    private final JButton openMovie = new JButton("Open Movie");
+    private final JButton nextFrame = new JButton("Next Frame");
+    private final JButton prevFrame = new JButton("Previous Frame");
+    private final JButton startCrop = new JButton("Start Crop");
+    private final JButton confirmCrop = new JButton("Confirm Crop");
+    private final JButton startLarvaeSelection = new JButton("Start Larvae Selection");
+    private final JButton confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
+    private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
+    private final JButton exportCSV = new JButton(("Export as CSV file"));
+    private final JButton screenshot = new JButton(("Screenshot current frame"));
+    private final JButton retrackPosition = new JButton("Retrack Larva @ Current Frame");
+    private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
+    private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
-    private JCheckBox showPaths;
     private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
@@ -133,20 +133,6 @@ public class GUI extends JFrame {
         currentFrame = 0;
         tempLarvaIndex = -1;
 
-        //make buttons for frames
-        openMovie = new JButton("Open Movie");
-        nextFrame = new JButton("Next Frame");
-        prevFrame = new JButton("Previous Frame");
-        startCrop = new JButton("Start Crop");
-        confirmCrop = new JButton("Confirm Crop");
-        startLarvaeSelection = new JButton("Start Larvae Selection");
-        confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
-        showPaths = new JCheckBox("Show Larvae Paths", true);
-        exportCSV = new JButton(("Export as CSV file"));
-        screenshot = new JButton(("Screenshot current frame"));
-        retrackPosition = new JButton("Retrack Larva @ Current Frame");
-        confirmRetrackPosition = new JButton("Confirm Larva Retrack");
-        undo = new JButton("Undo");
         cropProgress = new JProgressBar();
         cropProgress.setVisible(false);
 
