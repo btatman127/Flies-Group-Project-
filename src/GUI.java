@@ -275,12 +275,10 @@ public class GUI extends JFrame {
             currentFrame = 0;
 
             //Double Option Test
-            int startValue;
-            int endValue;
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             Object[] message = {
-                    "Please enter Start and Stop time in seconds.\n If left blank will default to max video length",
+                    "Please enter Start and Stop time in seconds.\n Leave blank to default to full video length.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
                     "Start time:", startTime,
                     "End Time:", endTime
@@ -292,29 +290,22 @@ public class GUI extends JFrame {
                 return;
             }
 
-            int parsedStartTime = parseVideoLengthInput(startTime.getText());
+            int startValue = parseVideoLengthInput(startTime.getText());
             int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
-            if (!startTime.getText().equals("") && (parsedStartTime < 0 || parsedStartTime > finalTime ||
-                parsedStartTime == finalTime)) {
+            if (startTime.getText().equals("")) {
                 startValue = 0;
-                parsedStartTime = 0;
-                JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0");
-            } else if (startTime.getText().equals("")){
+            } else if (startValue < 0 || startValue >= finalTime) {
                 startValue = 0;
-            } else {
-                startValue = parsedStartTime;
+                JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0.");
             }
 
-            int parsedEndTime = parseVideoLengthInput(endTime.getText());
-            if (!endTime.getText().equals("") && (parsedEndTime > finalTime || parsedEndTime < 0) ||
-                parsedStartTime >= parsedEndTime || parsedEndTime == 0) {
+            int endValue = parseVideoLengthInput(endTime.getText());
+            if (endTime.getText().equals("")) {
+                endValue = finalTime;
+            } else if (endValue > finalTime || endValue <= startValue) {
                 endValue = finalTime;
                 JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
-                                              endValue);
-            } else if (endTime.getText().equals("")){
-                endValue = finalTime;
-            } else {
-                endValue = parsedEndTime;
+                                              endValue + ".");
             }
 
             //Create new movie
