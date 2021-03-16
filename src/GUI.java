@@ -245,7 +245,17 @@ public class GUI extends JFrame {
      * If cancel is selected nothing happens
      */
     class OpenL implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
+        private int parseVideoLengthInput(String input) {
+            int temp = -1;
+            try {
+                temp = Integer.parseInt(input);
+            } catch (NumberFormatException exception) {
+            }
+
+            return temp;
+        }
+
+        public void actionPerformed(ActionEvent e) throws NumberFormatException{
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
             String name = fd.getFile();
@@ -282,15 +292,20 @@ public class GUI extends JFrame {
                 return;
             }
 
-            if (startTime.getText().equals("") || Integer.parseInt(startTime.getText()) < 0) {
+
+
+            if (startTime.getText().equals("") || parseVideoLengthInput(startTime.getText()) < 0 ||
+                    Integer.parseInt(startTime.getText()) >
+                    Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName))) {
                 startValue = "0";
                 JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0");
             } else {
                 startValue = startTime.getText();
             }
 
-            if (endTime.getText().equals("") || Integer.parseInt(endTime.getText()) >
-                    Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName))) {
+            if (endTime.getText().equals("") || parseVideoLengthInput(endTime.getText()) >
+                    Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName)) ||
+                    parseVideoLengthInput(endTime.getText()) < 0) {
                 endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
                 JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
                                               endValue);
