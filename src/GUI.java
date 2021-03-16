@@ -317,7 +317,17 @@ public class GUI extends JFrame {
      * If cancel is selected nothing happens
      */
     class OpenL implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
+        private int parseVideoLengthInput(String input) throws NumberFormatException{
+            int temp = -1;
+            try {
+                temp = Integer.parseInt(input);
+            } catch (NumberFormatException exception) {
+            }
+
+            return temp;
+        }
+
+        public void actionPerformed(ActionEvent e) throws NumberFormatException{
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
             String name = fd.getFile();
@@ -337,18 +347,13 @@ public class GUI extends JFrame {
             currentFrame = 1;
 
             //Double Option Test
-            String startValue;
-            String endValue;
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
-            JCheckBox fullLength = new JCheckBox();
-            fullLength.setSelected(false);
             Object[] message = {
-                    "Please enter Start and Stop time in seconds.",
+                    "Please enter Start and Stop time in seconds.\n Leave blank to default to full video length.",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
                     "Start time:", startTime,
-                    "End Time:", endTime,
-                    "Select full video:", fullLength
+                    "End Time:", endTime
             };
 
             int result = JOptionPane.showConfirmDialog(null, message,
@@ -356,31 +361,28 @@ public class GUI extends JFrame {
             if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
                 return;
             }
-            if (fullLength.isSelected() || startTime.getText().equals("") || endTime.getText().equals("")) {
-                startValue = "0";
-                endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
-            } else {
-                startValue = startTime.getText();
-                endValue = endTime.getText();
-                while (!PreProcessor.validateTime(startTime.getText(),
-                        PreProcessor.getDurationSeconds(movieDir, fileName)) ||
-                        !PreProcessor.validateTime(endTime.getText(),
-                                PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                    System.out.println("Invalid Time. ");
-                    JOptionPane.showMessageDialog(null, message);
 
-                    if (PreProcessor.validateTime(startTime.getText(),
-                            PreProcessor.getDurationSeconds(movieDir, fileName)) &&
-                            PreProcessor.validateTime(endTime.getText(),
-                                    PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                        startValue = startTime.getText();
-                        endValue = endTime.getText();
-                    }
-                }
+            int startValue = parseVideoLengthInput(startTime.getText());
+            int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
+            if (startTime.getText().equals("")) {
+                startValue = 0;
+            } else if (startValue < 0 || startValue >= finalTime) {
+                startValue = 0;
+                JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0.");
             }
+
+            int endValue = parseVideoLengthInput(endTime.getText());
+            if (endTime.getText().equals("")) {
+                endValue = finalTime;
+            } else if (endValue > finalTime || endValue <= startValue) {
+                endValue = finalTime;
+                JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
+                                              endValue + ".");
+            }
+
             //Create new movie
             try {
-                movie = new Video(movieDir, fileName, Integer.parseInt(startValue), Integer.parseInt(endValue));
+                movie = new Video(movieDir, fileName, startValue, endValue);
             } catch (IOException | InterruptedException e1) {
                 e1.printStackTrace();
             }
