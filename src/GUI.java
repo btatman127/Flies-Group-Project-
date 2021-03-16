@@ -4,12 +4,17 @@ import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.awt.geom.*;
+import java.util.List;
 
 public class GUI extends JFrame {
     private int currentFrame;
@@ -170,7 +175,7 @@ public class GUI extends JFrame {
         frame.setBorder(BorderFactory.createEtchedBorder());
 
         //create actions for the buttons
-        OpenL openAction = new OpenL();
+        VideoOpener openAction = new VideoOpener();
         Action nextAction = new StepAction(1);
         Action prevAction = new StepAction(-1);
         StartCropAction startCropAction = new StartCropAction();
@@ -184,6 +189,19 @@ public class GUI extends JFrame {
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
 
+        // Set drag-and-drop target
+        setDropTarget(new DropTarget() {
+            public synchronized void drop(DropTargetDropEvent event) {
+                try {
+                    event.acceptDrop(DnDConstants.ACTION_COPY);
+                    List<File> droppedFiles = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    File video = droppedFiles.get(0);
+                    openMovie(video.getName(), video.getPath());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
         InputMap imap = buttonPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -309,6 +327,79 @@ public class GUI extends JFrame {
         this.tempLarvaIndex = tempLarvaIndex;
     }
 
+    private int parseVideoLengthInput(String input) {
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException exception) {
+            return -1;
+        }
+    }
+
+    private void openMovie(String name, String dir) {
+        if (movie != null) {
+            deleteDirectory(frame.movie.getOutputPathLong());
+            deleteDirectory(movie.getImgDir());
+        }
+        fileName = name;
+        movieDir = dir;
+        currentFrame = 1;
+
+        //Double Option Test
+        JTextField startTime = new JTextField();
+        JTextField endTime = new JTextField();
+        Object[] message = {
+                "Please enter Start and Stop time in seconds.\n Leave blank to default to full video length.",
+                "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
+                "Start time:", startTime,
+                "End Time:", endTime
+        };
+
+        int result = JOptionPane.showConfirmDialog(null, message,
+                "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
+        if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+            return;
+        }
+
+        int startValue = parseVideoLengthInput(startTime.getText());
+        int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
+        if (startTime.getText().equals("")) {
+            startValue = 0;
+        } else if (startValue < 0 || startValue >= finalTime) {
+            startValue = 0;
+            JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0.");
+        }
+
+        int endValue = parseVideoLengthInput(endTime.getText());
+        if (endTime.getText().equals("")) {
+            endValue = finalTime;
+        } else if (endValue > finalTime || endValue <= startValue) {
+            endValue = finalTime;
+            JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
+                    endValue + ".");
+        }
+
+        //Create new movie
+        try {
+            movie = new Video(movieDir, fileName, startValue, endValue);
+        } catch (IOException | InterruptedException e1) {
+            e1.printStackTrace();
+        }
+
+        frame.movie = movie;
+        frame.squares = new ArrayList<>();
+
+        frame.displayPaths = false;
+        displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+        displayFrameNum.setEditable(false);
+        displayFrameNum.setVisible(true);
+
+        setButtonStates(ProgramState.PRE_CROP);
+
+        pack();
+        frame.setImage(movie.getPathToFrame(currentFrame));
+        validate();
+        repaint();
+    }
     /**
      * Allows the user to select a file from the computer
      * Saves the file name to the global variable fileName
@@ -316,17 +407,7 @@ public class GUI extends JFrame {
      * If a file is selected then all other buttons are made visible and the initially useful ones are enabled
      * If cancel is selected nothing happens
      */
-    class OpenL implements ActionListener {
-        private int parseVideoLengthInput(String input) throws NumberFormatException{
-            int temp = -1;
-            try {
-                temp = Integer.parseInt(input);
-            } catch (NumberFormatException exception) {
-            }
-
-            return temp;
-        }
-
+    class VideoOpener implements ActionListener {
         public void actionPerformed(ActionEvent e) throws NumberFormatException{
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
@@ -338,69 +419,7 @@ public class GUI extends JFrame {
                 return;
             }
 
-            if (movie != null) {
-                deleteDirectory(frame.movie.getOutputPathLong());
-                deleteDirectory(movie.getImgDir());
-            }
-            fileName = name;
-            movieDir = dir;
-            currentFrame = 1;
-
-            //Double Option Test
-            JTextField startTime = new JTextField();
-            JTextField endTime = new JTextField();
-            Object[] message = {
-                    "Please enter Start and Stop time in seconds.\n Leave blank to default to full video length.",
-                    "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
-                    "Start time:", startTime,
-                    "End Time:", endTime
-            };
-
-            int result = JOptionPane.showConfirmDialog(null, message,
-                    "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
-            if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
-                return;
-            }
-
-            int startValue = parseVideoLengthInput(startTime.getText());
-            int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
-            if (startTime.getText().equals("")) {
-                startValue = 0;
-            } else if (startValue < 0 || startValue >= finalTime) {
-                startValue = 0;
-                JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0.");
-            }
-
-            int endValue = parseVideoLengthInput(endTime.getText());
-            if (endTime.getText().equals("")) {
-                endValue = finalTime;
-            } else if (endValue > finalTime || endValue <= startValue) {
-                endValue = finalTime;
-                JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
-                                              endValue + ".");
-            }
-
-            //Create new movie
-            try {
-                movie = new Video(movieDir, fileName, startValue, endValue);
-            } catch (IOException | InterruptedException e1) {
-                e1.printStackTrace();
-            }
-
-            frame.movie = movie;
-            frame.squares = new ArrayList<>();
-
-            frame.displayPaths = false;
-            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
-            displayFrameNum.setEditable(false);
-            displayFrameNum.setVisible(true);
-
-            setButtonStates(ProgramState.PRE_CROP);
-
-            pack();
-            frame.setImage(movie.getPathToFrame(currentFrame));
-            validate();
-            repaint();
+            openMovie(name, dir);
         }
     }
 
