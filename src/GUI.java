@@ -284,6 +284,7 @@ public class GUI extends JFrame {
 
             if (startTime.getText().equals("") || Integer.parseInt(startTime.getText()) < 0) {
                 startValue = "0";
+                JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0");
             } else {
                 startValue = startTime.getText();
             }
@@ -291,24 +292,10 @@ public class GUI extends JFrame {
             if (endTime.getText().equals("") || Integer.parseInt(endTime.getText()) >
                     Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName))) {
                 endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
+                JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
+                                              endValue);
             } else {
                 endValue = endTime.getText();
-            }
-
-            while (!PreProcessor.validateTime(startTime.getText(),
-                    PreProcessor.getDurationSeconds(movieDir, fileName)) ||
-                    !PreProcessor.validateTime(endTime.getText(),
-                            PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                System.out.println("Invalid Time. ");
-                JOptionPane.showMessageDialog(null, message);
-
-                if (PreProcessor.validateTime(startTime.getText(),
-                        PreProcessor.getDurationSeconds(movieDir, fileName)) &&
-                        PreProcessor.validateTime(endTime.getText(),
-                                PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                    startValue = startTime.getText();
-                    endValue = endTime.getText();
-                }
             }
 
             //Create new movie
