@@ -292,8 +292,6 @@ public class GUI extends JFrame {
                 return;
             }
 
-
-
             if (startTime.getText().equals("") || parseVideoLengthInput(startTime.getText()) < 0 ||
                     Integer.parseInt(startTime.getText()) >
                     Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName))) {
