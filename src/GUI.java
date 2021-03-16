@@ -294,8 +294,10 @@ public class GUI extends JFrame {
 
             int parsedStartTime = parseVideoLengthInput(startTime.getText());
             int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
-            if (!startTime.getText().equals("") && (parsedStartTime < 0 || parsedStartTime > finalTime)) {
+            if (!startTime.getText().equals("") && (parsedStartTime < 0 || parsedStartTime > finalTime ||
+                parsedStartTime == finalTime)) {
                 startValue = 0;
+                parsedStartTime = 0;
                 JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0");
             } else if (startTime.getText().equals("")){
                 startValue = 0;
@@ -304,7 +306,8 @@ public class GUI extends JFrame {
             }
 
             int parsedEndTime = parseVideoLengthInput(endTime.getText());
-            if (!endTime.getText().equals("") && (parsedEndTime > finalTime || parsedEndTime < 0)) {
+            if (!endTime.getText().equals("") && (parsedEndTime > finalTime || parsedEndTime < 0) ||
+                parsedStartTime >= parsedEndTime) {
                 endValue = finalTime;
                 JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
                                               endValue);
