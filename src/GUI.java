@@ -245,7 +245,7 @@ public class GUI extends JFrame {
      * If cancel is selected nothing happens
      */
     class OpenL implements ActionListener {
-        private int parseVideoLengthInput(String input) {
+        private int parseVideoLengthInput(String input) throws NumberFormatException{
             int temp = -1;
             try {
                 temp = Integer.parseInt(input);
@@ -275,12 +275,12 @@ public class GUI extends JFrame {
             currentFrame = 0;
 
             //Double Option Test
-            String startValue;
-            String endValue;
+            int startValue;
+            int endValue;
             JTextField startTime = new JTextField();
             JTextField endTime = new JTextField();
             Object[] message = {
-                    "Please enter Start and Stop time in seconds.",
+                    "Please enter Start and Stop time in seconds.\n If left blank will default to max video length",
                     "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
                     "Start time:", startTime,
                     "End Time:", endTime
@@ -292,28 +292,31 @@ public class GUI extends JFrame {
                 return;
             }
 
-            if (startTime.getText().equals("") || parseVideoLengthInput(startTime.getText()) < 0 ||
-                    Integer.parseInt(startTime.getText()) >
-                    Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName))) {
-                startValue = "0";
+            int parsedStartTime = parseVideoLengthInput(startTime.getText());
+            int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
+            if (!startTime.getText().equals("") && (parsedStartTime < 0 || parsedStartTime > finalTime)) {
+                startValue = 0;
                 JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0");
+            } else if (startTime.getText().equals("")){
+                startValue = 0;
             } else {
-                startValue = startTime.getText();
+                startValue = parsedStartTime;
             }
 
-            if (endTime.getText().equals("") || parseVideoLengthInput(endTime.getText()) >
-                    Integer.parseInt(PreProcessor.getDurationSeconds(movieDir, fileName)) ||
-                    parseVideoLengthInput(endTime.getText()) < 0) {
-                endValue = PreProcessor.getDurationSeconds(movieDir, fileName);
+            int parsedEndTime = parseVideoLengthInput(endTime.getText());
+            if (!endTime.getText().equals("") && (parsedEndTime > finalTime || parsedEndTime < 0)) {
+                endValue = finalTime;
                 JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
                                               endValue);
+            } else if (endTime.getText().equals("")){
+                endValue = finalTime;
             } else {
-                endValue = endTime.getText();
+                endValue = parsedEndTime;
             }
 
             //Create new movie
             try {
-                movie = new Video(movieDir, fileName, Integer.parseInt(startValue), Integer.parseInt(endValue));
+                movie = new Video(movieDir, fileName, startValue, endValue);
             } catch (IOException | InterruptedException e1) {
                 e1.printStackTrace();
             }
