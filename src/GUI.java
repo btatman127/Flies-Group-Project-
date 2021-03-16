@@ -307,7 +307,7 @@ public class GUI extends JFrame {
 
             int parsedEndTime = parseVideoLengthInput(endTime.getText());
             if (!endTime.getText().equals("") && (parsedEndTime > finalTime || parsedEndTime < 0) ||
-                parsedStartTime >= parsedEndTime) {
+                parsedStartTime >= parsedEndTime || parsedEndTime == 0) {
                 endValue = finalTime;
                 JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
                                               endValue);
