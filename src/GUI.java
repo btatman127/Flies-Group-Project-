@@ -734,6 +734,15 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
+            JCheckBox larva1 = new JCheckBox();
+            larva1.setSelected(true);
+            Object[] message = {
+                    "Select Larva",
+                    "Select full video:", larva1
+            };
+
+            JOptionPane.showMessageDialog(null, message);
+
             frame.displayZones = !frame.displayZones;
             repaint();
         }
@@ -857,14 +866,17 @@ public class GUI extends JFrame {
             if (displayZones){
                 double mm = 76.2; //The grid is 3" by 3", which translates into about 76 mm.
                 assert movie != null;
-                double scale = mm/movie.getDimensions()[0];
+                double xScale = movie.getDimensions()[0]/mm;
+                double yScale = movie.getDimensions()[0]/mm;
                 for (Larva l : larvae) {
                     g2.setColor(colors[larvae.indexOf(l)]);
-                    double[] zoneRadius = new double[]{4.5, 9, 13.5};
-                    for (double radius : zoneRadius) {
-                        radius = radius*scale;
-                        g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - radius,
-                                (l.getPosition(0)[1] / yratio) - radius, radius*2, radius*2));
+                    double initialRadius = 4.5;
+                    for (int i = 1; i < 13; i++) {
+                        double radius = initialRadius * i;
+                        double xRadius = radius*xScale/xratio;
+                        double yRadius = radius*yScale/yratio;
+                        g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - xRadius,
+                                (l.getPosition(0)[1] / yratio) - yRadius, xRadius*2, yRadius*2));
                     }
 
                 }
