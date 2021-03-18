@@ -3,6 +3,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 public class GUITest {
     @Test
@@ -12,7 +13,7 @@ public class GUITest {
         dir.mkdir();
         for (int i = 0; i < 10; i++) {
             try {
-                new File(dirName + "/" + i + ".txt").createNewFile();
+                new File(Paths.get(dirName).resolve(i + ".txt").toString()).createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }

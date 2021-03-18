@@ -12,6 +12,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.awt.geom.*;
 import java.util.List;
@@ -196,7 +197,7 @@ public class GUI extends JFrame {
                     event.acceptDrop(DnDConstants.ACTION_COPY);
                     List<File> droppedFiles = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     File video = droppedFiles.get(0);
-                    openMovie(video.getName(), video.getPath());
+                    setMovieVariables(video.getName(), video.getParent());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -335,16 +336,30 @@ public class GUI extends JFrame {
         }
     }
 
-    private void openMovie(String name, String dir) {
-        if (movie != null) {
-            deleteDirectory(frame.movie.getOutputPathLong());
-            deleteDirectory(movie.getImgDir());
-        }
-        fileName = name;
-        movieDir = dir;
-        currentFrame = 1;
 
-        //Double Option Test
+    private void createMovie(int startValue, int endValue) {
+        try {
+            movie = new Video(movieDir, fileName, startValue, endValue);
+        } catch (IOException | InterruptedException e1) {
+            e1.printStackTrace();
+        }
+
+        frame.movie = movie;
+        frame.squares = new ArrayList<>();
+
+        frame.displayPaths = false;
+        displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+        displayFrameNum.setEditable(false);
+        displayFrameNum.setVisible(true);
+
+        setButtonStates(ProgramState.PRE_CROP);
+        pack();
+        frame.setImage(movie.getPathToFrame(currentFrame));
+        validate();
+        repaint();
+    }
+
+    private void openMovieDurationDialog() {
         JTextField startTime = new JTextField();
         JTextField endTime = new JTextField();
         Object[] message = {
@@ -378,28 +393,22 @@ public class GUI extends JFrame {
                     endValue + ".");
         }
 
-        //Create new movie
-        try {
-            movie = new Video(movieDir, fileName, startValue, endValue);
-        } catch (IOException | InterruptedException e1) {
-            e1.printStackTrace();
+        createMovie(startValue, endValue);
+    }
+
+    public void setMovieVariables(String name, String dir) {
+        if (movie != null) {
+            deleteDirectory(frame.movie.getOutputPathLong());
+            deleteDirectory(movie.getImgDir());
         }
 
-        frame.movie = movie;
-        frame.squares = new ArrayList<>();
+        fileName = name;
+        movieDir = dir;
+        currentFrame = 1;
 
-        frame.displayPaths = false;
-        displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
-        displayFrameNum.setEditable(false);
-        displayFrameNum.setVisible(true);
-
-        setButtonStates(ProgramState.PRE_CROP);
-
-        pack();
-        frame.setImage(movie.getPathToFrame(currentFrame));
-        validate();
-        repaint();
+        openMovieDurationDialog();
     }
+
     /**
      * Allows the user to select a file from the computer
      * Saves the file name to the global variable fileName
@@ -419,7 +428,7 @@ public class GUI extends JFrame {
                 return;
             }
 
-            openMovie(name, dir);
+            setMovieVariables(name, dir);
         }
     }
 
@@ -481,7 +490,7 @@ public class GUI extends JFrame {
             if(frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
             try {
-                BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+                BufferedImage image = ImageIO.read(new File(Paths.get(movie.getImgDir()).resolve("img0001.png").toString()));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -638,7 +647,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if(frame.squares.size() < frame.maxSquares) return;
             try {
-                BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+                BufferedImage image = ImageIO.read(new File(Paths.get(movie.getImgDir()).resolve("img0001.png").toString()));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -711,7 +720,9 @@ public class GUI extends JFrame {
             String defaultName = movie.getOriginalMovieName() + ".frame_" + (currentFrame + 1) + ".png";
             fd.setFile(defaultName);
             fd.setVisible(true);
-            BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null), frame.getImage().getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null),
+                                                 frame.getImage().getHeight(null),
+                                                 BufferedImage.TYPE_INT_ARGB);
             Graphics g = bi.createGraphics();
             frame.paint(g);
             g.dispose();
@@ -723,7 +734,6 @@ public class GUI extends JFrame {
                 ImageIO.write(bi, "png", file);
             } catch (IOException e) {
                 e.printStackTrace();
-
             }
         }
     }
@@ -931,14 +941,11 @@ public class GUI extends JFrame {
                     int x = event.getX();
                     int y = event.getY();
 
-                    // drag the current rectangle to center it at (x, y)
                     currentMouseLocationRectangle.setFrame(x - SIDELENGTH / 2.0, y - SIDELENGTH / 2.0, SIDELENGTH, SIDELENGTH);
                     repaint();
                 }
             }
         }
     }
-
-
 }
 

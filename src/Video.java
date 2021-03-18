@@ -2,6 +2,8 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -57,8 +59,8 @@ public class Video {
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length() - 4) + "SHORTER" + timestamp + ".mov";
 
-        outputPathLong = movieDir + "/" + this.movieName;
-        String inputPathLong = movieDir + "/" + this.movieNameLong;
+        outputPathLong = Paths.get(movieDir).resolve(this.movieName).toString();
+        String inputPathLong = Paths.get(movieDir).resolve(this.movieNameLong).toString();
 
         //call ffmpeg crop method
         PreProcessor.cropVideo(startTime, endTime, inputPathLong, outputPathLong);
@@ -69,14 +71,14 @@ public class Video {
 
         new File(imgDir).mkdir();
 
-        String inputPath = this.movieDir + "/" + this.movieName;
-        String outputPath = System.getProperty("user.dir") + "/" + imgDir + "/img%04d.png";
+        String inputPath = Paths.get(this.movieDir).resolve(this.movieName).toString();
+        String outputPath = Paths.get(System.getProperty("user.dir")).resolve(imgDir).resolve("img%04d.png").toString();
         int fps = 1;
 
         //call ffmpeg extractor
         int duration = endTime - startTime;
         PreProcessor.extractFrames(inputPath, outputPath, fps);
-        numImages = new File(System.getProperty("user.dir") + "/" + imgDir).listFiles().length;
+        numImages = new File(Paths.get(System.getProperty("user.dir")).resolve(imgDir).toString()).listFiles().length;
     }
 
 
@@ -88,14 +90,16 @@ public class Video {
         boolean collisionFound = false;
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         try {
-            BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
+            BufferedImage im = ImageIO.read(new File(Paths.get(imgDir).resolve("img" + String.format("%04d", 1) +
+                                                                               ".png").toString()));
             regionDim = im.getHeight() / 100; //should be a function of cc
             regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             islands = new ArrayList<ArrayList<Double[]>>(numImages);// islands[f][island][coord]
 
             for (int f = 0; f < numImages; f++) {
-                BufferedImage image = ImageIO.read(new File(imgDir + "/cc" + String.format("%04d", f + 1) + ".png"));
+                BufferedImage image = ImageIO.read(new File(Paths.get(imgDir).resolve("cc" +
+                                                   String.format("%04d", f + 1) + ".png").toString()));
                 createRegions(f, image);
                 fillLarvaLoc(f);
 
@@ -192,7 +196,8 @@ public class Video {
                     if (larvae.get(j).getPositionsSize() <= f || larvae.get(j).getPosition(f) == null) {
                         continue;
                     }
-                    if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] && larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
+                    if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] &&
+                        larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
                         collisionFrameIndex.add(f);
                         collisionFound = true;
                     }
@@ -444,7 +449,7 @@ public class Video {
     }
 
     public String getPathToFrame(int index) {
-        return imgDir + "/img" + String.format("%04d", index) + ".png";
+        return Paths.get(imgDir).resolve("img" + String.format("%04d", index) + ".png").toString();
     }
 
     public String getImgDir() {
@@ -477,7 +482,8 @@ public class Video {
      */
     public double[] getDimensions() {
         try {
-            BufferedImage im = ImageIO.read(new File(imgDir + "/img" + String.format("%04d", 1) + ".png"));
+            BufferedImage im = ImageIO.read(new File(Paths.get(imgDir).resolve("img" + String.format("%04d", 1) +
+                                                                               ".png").toString()));
             return new double[]{im.getWidth(), im.getHeight()};
         } catch (IOException ioe) {
             ioe.printStackTrace();

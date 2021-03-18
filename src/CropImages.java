@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.nio.file.Paths;
 import javax.swing.JProgressBar;
 
 class CropImages {
@@ -25,9 +26,11 @@ class CropImages {
 		progressBar.setVisible(true);
 		while (i <= frames) {
 			try {
-				final BufferedImage image = ImageIO.read(new File(directory + "/img" + String.format("%04d", i) + ".png"));
+				final BufferedImage image = ImageIO.read(new File(Paths.get(directory).resolve("img" +
+																		String.format("%04d", i) + ".png").toString()));
 				BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
-				ImageIO.write(subimage, "png", new File(directory + "/img" + String.format("%04d", i) + ".png"));
+				ImageIO.write(subimage, "png", new File(Paths.get(directory).resolve("img" +
+																		String.format("%04d", i) + ".png").toString()));
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}

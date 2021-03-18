@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,23 +42,17 @@ public class PreProcessorTest {
 
 	 @Test
 	 public void ffmpegExtractsImages() throws java.io.IOException, java.lang.InterruptedException {
-
-	 	//create a directory to place images into
-	 	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
 	 	long l = System.currentTimeMillis() / 1000L;
 	 	String dirName = "vidID" + l;
-	 	String[] command = new String[]{"mkdir", dirName};
+	 	new File(dirName).mkdir();
 
-         new File(dirName).mkdir();
-
-	 	String inputPath = System.getProperty("user.dir") + "/test.MOV";
+	 	String inputPath = Paths.get(System.getProperty("user.dir")).resolve("test.MOV").toString();
 	 	System.out.println(inputPath);
-	 	String outputPath = System.getProperty("user.dir") + "/" + dirName + "/img%04d.png";
+	 	String outputPath = Paths.get(System.getProperty("user.dir")).resolve(dirName).resolve("img%04d.png").toString();
 	 	int fps = 1;
 
 	 	//call ffmpeg extractor
 	 	PreProcessor.extractFrames(inputPath, outputPath, fps);
-
 	 }
 
 }
