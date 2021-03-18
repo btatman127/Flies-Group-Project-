@@ -28,6 +28,7 @@ public class GUI extends JFrame {
     private final JButton startLarvaeSelection = new JButton("Start Larvae Selection");
     private final JButton confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
     private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
+    private final JCheckBox showZones = new JCheckBox("Show Larvae Zones", false);
     private final JButton exportCSV = new JButton(("Export as CSV file"));
     private final JButton screenshot = new JButton(("Screenshot current frame"));
     private final JButton retrackPosition = new JButton("Retrack Larva @ Current Frame");
@@ -60,31 +61,31 @@ public class GUI extends JFrame {
     private enum ProgramState{
         OPEN(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
         PRE_CROP(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
         CROPPING(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.DISABLED),
         POST_CROP(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
         SELECTING_LARVAE(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.DISABLED),
         TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.ENABLED,  ButtonState.ENABLED, ButtonState.INVISIBLE,
+                ButtonState.ENABLED, ButtonState.ENABLED,  ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
         RETRACKING(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.ENABLED,
+                ButtonState.ENABLED, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.DISABLED);
 
         final ButtonState openMovie;
@@ -94,6 +95,7 @@ public class GUI extends JFrame {
         final ButtonState startLarvaeSelection;
         final ButtonState confirmLarvaeSelection;
         final ButtonState showPaths;
+        final ButtonState showZones;
         final ButtonState exportPaths;
         final ButtonState retrackPosition;
         final ButtonState confirmRetrackPosition;
@@ -101,7 +103,7 @@ public class GUI extends JFrame {
 
         ProgramState(ButtonState openMovie, ButtonState changeFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
-                     ButtonState showPaths, ButtonState exportPaths,
+                     ButtonState showPaths, ButtonState showZones, ButtonState exportPaths,
                      ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo){
             this.openMovie = openMovie;
             this.changeFrame = changeFrame;
@@ -110,6 +112,7 @@ public class GUI extends JFrame {
             this.startLarvaeSelection = startLarvaeSelection;
             this.confirmLarvaeSelection = confirmLarvaeSelection;
             this.showPaths = showPaths;
+            this.showZones = showZones;
             this.exportPaths = exportPaths;
             this.retrackPosition = retrackPosition;
             this.confirmRetrackPosition = confirmRetrackPosition;
@@ -155,6 +158,7 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(confirmLarvaeSelection);
         buttonPanel.add(showPaths);
+        buttonPanel.add(showZones);
         buttonPanel.add(retrackPosition);
         buttonPanel.add(confirmRetrackPosition);
         buttonPanel.add(exportCSV);
@@ -178,6 +182,7 @@ public class GUI extends JFrame {
         StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
         StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
         ShowPathAction showPathAction = new ShowPathAction();
+        ShowZoneAction showZoneAction = new ShowZoneAction();
         CSVExportAction exportAction = new CSVExportAction();
         ScreenshotAction screenshotAction = new ScreenshotAction();
         RetrackPositionAction retrackPositionAction = new RetrackPositionAction(this);
@@ -204,6 +209,7 @@ public class GUI extends JFrame {
         startLarvaeSelection.addActionListener(startLarvaeAction);
         confirmLarvaeSelection.addActionListener(stopLarvaeAction);
         showPaths.addActionListener(showPathAction);
+        showZones.addActionListener(showZoneAction);
         retrackPosition.addActionListener(retrackPositionAction);
         confirmRetrackPosition.addActionListener(stopRetrackAction);
         exportCSV.addActionListener(exportAction);
@@ -264,6 +270,9 @@ public class GUI extends JFrame {
 
         showPaths.setVisible(programState.showPaths.visible);
         showPaths.setEnabled(programState.showPaths.enabled);
+
+        showZones.setVisible(programState.showZones.visible);
+        showZones.setEnabled(programState.showZones.enabled);
 
         exportCSV.setVisible(programState.exportPaths.visible);
         exportCSV.setEnabled(programState.exportPaths.enabled);
@@ -719,6 +728,17 @@ public class GUI extends JFrame {
         }
     }
 
+    private class ShowZoneAction implements ActionListener {
+        public ShowZoneAction(){
+
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            frame.displayZones = !frame.displayZones;
+            repaint();
+        }
+    }
+
     /**
      * A component that displays a tiled image and allows for movable squares to be painted on it
      */
@@ -731,6 +751,7 @@ public class GUI extends JFrame {
         public ArrayList<Rectangle2D> squares;
         public int currentFrame;
         public boolean displayPaths;
+        public boolean displayZones;
         public boolean vidInitialized;
         public Video movie;
 
@@ -740,6 +761,7 @@ public class GUI extends JFrame {
         public ImageComponent(String fileName) {
             maxSquares = 0;
             displayPaths = false;
+            displayZones = false;
 
             image = new ImageIcon(getClass().getResource(fileName)).getImage();
             squares = new ArrayList<>();
@@ -770,14 +792,18 @@ public class GUI extends JFrame {
             for (Rectangle2D r : squares) {
                 g2.draw(r);
             }
-
+            ArrayList<Larva> larvae = new ArrayList<>();
+            double xratio = 0;
+            double yratio = 0;
+            if (movie!=null) {
+                larvae = movie.getLarva();
+                xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
+                yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
+            }
             //draw lines between larvae positions
             if (displayPaths) {
-                ArrayList<Larva> larvae = movie.getLarva();
                 for (Larva l : larvae) {
                     g2.setColor(colors[larvae.indexOf(l)]);
-                    double xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
-                    double yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
                     for (int i = 0; i < currentFrame; i++) {
 
                         //convert pt image space --> window space
@@ -826,6 +852,23 @@ public class GUI extends JFrame {
                     g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xratio,
                             l.getPosition(0)[1] / yratio, 6, 6));
                 }
+            }
+
+            if (displayZones){
+                double mm = 76.2; //The grid is 3" by 3", which translates into about 76 mm.
+                assert movie != null;
+                double scale = mm/movie.getDimensions()[0];
+                for (Larva l : larvae) {
+                    g2.setColor(colors[larvae.indexOf(l)]);
+                    double[] zoneRadius = new double[]{4.5, 9, 13.5};
+                    for (double radius : zoneRadius) {
+                        radius = radius*scale;
+                        g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - radius,
+                                (l.getPosition(0)[1] / yratio) - radius, radius*2, radius*2));
+                    }
+
+                }
+
             }
         }
 
