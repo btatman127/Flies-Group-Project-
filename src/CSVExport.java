@@ -8,14 +8,12 @@ import java.util.Date;
 
 public class CSVExport {
     private static String result;
-    private int frames;
     private double scaleX;
     private double scaleY;
     private Video movie;
 
     public CSVExport(Video movie, int frames) {
         result = "";
-        this.frames = frames;
         this.movie = movie;
         ArrayList<Larva> larvae = movie.getLarva();
 
@@ -138,7 +136,7 @@ public class CSVExport {
                 break;
             }
         }
-        return getTotalDistance(larva)/(frames);
+        return getTotalDistance(larva) / frames;
     }
 
 }

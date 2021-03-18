@@ -8,13 +8,10 @@ import java.io.InputStreamReader;
 import java.lang.Math;
 import java.util.LinkedList;
 import java.nio.file.Paths;
-
+import java.util.Scanner;
 
 
 public class PreProcessor {
-
-    private static String durationSeconds;
-
     /**
      *
      * @param filename The file to scale
@@ -196,7 +193,12 @@ public class PreProcessor {
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
         //TODO look at end time
         int duration = endTime - startTime;
-        String[] command = new String[]{"ffmpeg", "-ss", String.valueOf(startTime), "-i", inputPathLong, "-c", "copy", "-t", String.valueOf(duration), outputPathLong};
+        String[] command = new String[]{
+                "ffmpeg", "-ss", String.valueOf(startTime),
+                "-i", inputPathLong,
+                "-c", "copy",
+                "-t", String.valueOf(duration),
+                outputPathLong};
         java.lang.Process p = rt.exec(command);
         // You can or maybe should wait for the process to complete
         p.waitFor();
@@ -212,60 +214,44 @@ public class PreProcessor {
         is.close();
 
     }
-	
-    /** Gets duration in seconds from ffmpeg as a String**/
-    public static String getDuration(String movieDir, String movieNameLong) throws IOException, InterruptedException {
+
+    /** Gets video duration in seconds from ffmpeg. **/
+    public static int getVideoDuration(File movie) throws IOException {
         String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format",
                                          "compact=print_section=0:nokey=1:escape=csv", "-show_entries",
-                                         "format=duration", Paths.get(movieDir).resolve(movieNameLong).toString()};
+                                         "format=duration", movie.getAbsolutePath()};
 
         java.lang.Runtime rt2 = java.lang.Runtime.getRuntime();
         java.lang.Process p2 = rt2.exec(command2);
 
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(p2.getInputStream()));
-        String s = null;
-        while ((s = stdInput.readLine()) != null) {
-            durationSeconds = s;
-        }
-        //wait for command to finish
-        p2.waitFor();
-        return durationSeconds;
-    }
-    /** Gets duration of movie in seconds from getDuration() and converts to int, contains a try catch to handle exceptions from getDuration()**/
-    public static String getDurationSeconds(String movieDir, String movieNameLong) {
-        try {
-            getDuration(movieDir, movieNameLong);
-        } catch (Exception e) {
-        }
-        double duration = Double.parseDouble(durationSeconds);
-        int durationInt = (int) duration;
-        return Integer.toString(durationInt);
-
+        Scanner scanner = new Scanner(stdInput);
+        return (int) scanner.nextDouble();
     }
 }
 
 
-    class LimitedQueue extends LinkedList<Integer> {
-        private int limit;
+class LimitedQueue extends LinkedList<Integer> {
+    private int limit;
 
-        public LimitedQueue(int limit) {
-            this.limit = limit;
-        }
+    public LimitedQueue(int limit) {
+        this.limit = limit;
+    }
 
-        @Override
-        public boolean add(Integer o) {
-            super.add(o);
-            while (size() > limit) {
-                super.remove();
-            }
-            return true;
+    @Override
+    public boolean add(Integer o) {
+        super.add(o);
+        while (size() > limit) {
+            super.remove();
         }
+        return true;
+    }
 
-        public int sum() {
-            int ans = 0;
-            for (int i = 0; i < this.size(); i++) {
-                ans += this.get(i);
-            }
-            return ans / this.size();
+    public int sum() {
+        int ans = 0;
+        for (int i = 0; i < this.size(); i++) {
+            ans += this.get(i);
         }
+        return ans / this.size();
+    }
 }

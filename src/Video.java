@@ -2,7 +2,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.io.File;
@@ -10,12 +9,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Video {
-    private String movieDir;
-    private String movieName;
-    private String movieNameLong;
+    private File originalVideo;
+    private String shortenedVideo;
     private String imgDir;
     private int numImages;
-    private String outputPathLong;
     private boolean videoInitialized;
 
 
@@ -34,22 +31,10 @@ public class Video {
     // length and/or width of each grid square in mm
     private ArrayList<Larva> larvae;
 
-    public String getOutputPathLong() {
-        return outputPathLong;
-    }
-
-    /**
-     * Constructor for a Video object
-     *
-     * @param movieDir      the movieDir file where the movie is located
-     * @param movieNameLong the name of the movie
-     */
-    public Video(String movieDir, String movieNameLong, int startTime, int endTime) throws
+    public Video(File movie, int startTime, int endTime) throws
             IOException, InterruptedException {
         videoInitialized = false;
-        this.movieDir = movieDir;
-        this.movieNameLong = movieNameLong;
-
+        originalVideo = movie;
 
         //create a list of larva for this video
         larvae = new ArrayList<Larva>();
@@ -57,13 +42,10 @@ public class Video {
 
         //create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        this.movieName = this.movieNameLong.substring(0, this.movieNameLong.length() - 4) + "SHORTER" + timestamp + ".mov";
-
-        outputPathLong = Paths.get(movieDir).resolve(this.movieName).toString();
-        String inputPathLong = Paths.get(movieDir).resolve(this.movieNameLong).toString();
+        shortenedVideo = originalVideo.getAbsolutePath().substring(0, originalVideo.getName().length() - 4) + "SHORTER" + timestamp + ".mov";
 
         //call ffmpeg crop method
-        PreProcessor.cropVideo(startTime, endTime, inputPathLong, outputPathLong);
+        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), shortenedVideo);
 
         java.lang.Runtime rt = java.lang.Runtime.getRuntime();
         Long l = new Long(System.currentTimeMillis() / 1000L);
@@ -71,7 +53,7 @@ public class Video {
 
         new File(imgDir).mkdir();
 
-        String inputPath = Paths.get(this.movieDir).resolve(this.movieName).toString();
+        String inputPath = shortenedVideo;
         String outputPath = Paths.get(System.getProperty("user.dir")).resolve(imgDir).resolve("img%04d.png").toString();
         int fps = 1;
 
@@ -457,15 +439,16 @@ public class Video {
     }
 
     public String getOriginalMovieName() {
-        int lastDot = movieNameLong.lastIndexOf('.');
+        String name = originalVideo.getName();
+        int lastDot = name.lastIndexOf('.');
         if (lastDot == -1) {
-            lastDot = movieNameLong.length();
+            lastDot = name.length();
         }
-        return movieNameLong.substring(0, lastDot);
+        return name.substring(0, lastDot);
     }
 
-    public String getMovieName() {
-        return movieName;
+    public String getShortenedVideo() {
+        return shortenedVideo;
     }
 
     public int getNumImages() {

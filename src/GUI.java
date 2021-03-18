@@ -19,8 +19,7 @@ import java.util.List;
 
 public class GUI extends JFrame {
     private int currentFrame;
-    private String fileName;
-    private String movieDir;
+    private File originalMovie;
     private Video movie;
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
@@ -197,7 +196,7 @@ public class GUI extends JFrame {
                     event.acceptDrop(DnDConstants.ACTION_COPY);
                     List<File> droppedFiles = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     File video = droppedFiles.get(0);
-                    setMovieVariables(video.getName(), video.getParent());
+                    setMovieVariables(video);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -246,7 +245,7 @@ public class GUI extends JFrame {
                 public void windowClosing(WindowEvent e) {
                     if(frame.movie!= null) {
                         frame.deleteDirectory(frame.movie.getImgDir());
-                        frame.deleteDirectory(frame.movie.getOutputPathLong());
+                        frame.deleteDirectory(frame.movie.getShortenedVideo());
                     }
                     System.exit(0);
                 }
@@ -339,7 +338,7 @@ public class GUI extends JFrame {
 
     private void createMovie(int startValue, int endValue) {
         try {
-            movie = new Video(movieDir, fileName, startValue, endValue);
+            movie = new Video(originalMovie, startValue, endValue);
         } catch (IOException | InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -360,11 +359,20 @@ public class GUI extends JFrame {
     }
 
     private void openMovieDurationDialog() {
+        int finalTime;
+        try {
+            finalTime = PreProcessor.getVideoDuration(originalMovie);
+        } catch (IOException error) {
+            JOptionPane.showMessageDialog(null, "Could not find video.");
+            return;
+        }
+
         JTextField startTime = new JTextField();
         JTextField endTime = new JTextField();
         Object[] message = {
-                "Please enter Start and Stop time in seconds.\n Leave blank to default to full video length.",
-                "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
+                "Please enter Start and Stop time in seconds.",
+                "Leave blank to default to full video length.",
+                "Movie duration: " + finalTime + " seconds.",
                 "Start time:", startTime,
                 "End Time:", endTime
         };
@@ -376,7 +384,7 @@ public class GUI extends JFrame {
         }
 
         int startValue = parseVideoLengthInput(startTime.getText());
-        int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
+
         if (startTime.getText().equals("")) {
             startValue = 0;
         } else if (startValue < 0 || startValue >= finalTime) {
@@ -396,14 +404,13 @@ public class GUI extends JFrame {
         createMovie(startValue, endValue);
     }
 
-    public void setMovieVariables(String name, String dir) {
+    public void setMovieVariables(File video) {
         if (movie != null) {
-            deleteDirectory(frame.movie.getOutputPathLong());
+            deleteDirectory(frame.movie.getShortenedVideo());
             deleteDirectory(movie.getImgDir());
         }
 
-        fileName = name;
-        movieDir = dir;
+        originalMovie = video;
         currentFrame = 1;
 
         openMovieDurationDialog();
@@ -420,15 +427,14 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent e) throws NumberFormatException{
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
-            String name = fd.getFile();
-            String dir = fd.getDirectory();
+            File[] files = fd.getFiles();
 
             //if user hits Cancel
-            if (name == null) {
+            if (files.length == 0) {
                 return;
             }
 
-            setMovieVariables(name, dir);
+            setMovieVariables(files[0]);
         }
     }
 
