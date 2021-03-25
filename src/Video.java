@@ -39,26 +39,17 @@ public class Video {
             IOException, InterruptedException {
         videoInitialized = false;
         originalVideo = movie;
-
-        //create a list of larva for this video
         larvae = new ArrayList<>();
 
-
-        //create input and output paths for the whole video
-        shortenedVideo = Files.createTempFile("fly_tracker_video", ".mov");
-        shortenedVideo.toFile().delete();
-        shortenedVideo.toFile().deleteOnExit();
-
-
-        //call ffmpeg crop method
-        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo());
-
-        this.imgDir = Files.createTempDirectory("fly_tracker_images");
+        // Create input and output paths for ffmpeg to use
+        this.imgDir = Files.createTempDirectory("fly_tracker");
         imgDir.toFile().deleteOnExit();
 
+        shortenedVideo = imgDir.resolve("video.mov");
         String outputPath = imgDir.resolve("img%04d.png").toString();
 
-        //call ffmpeg extractor
+        // Extract images with ffmpeg
+        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo());
         PreProcessor.extractFrames(getShortenedVideo(), outputPath, FPS);
         numImages = imgDir.toFile().listFiles().length;
     }
