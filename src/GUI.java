@@ -216,11 +216,28 @@ public class GUI extends JFrame {
         pack();
     }
 
+    private static boolean isffmpegInstalled()
+    {
+        String[] command = {"ffmpeg"};
+        try {
+            Runtime.getRuntime().exec(command);
+        } catch (IOException e) {
+            return false;
+        }
+
+        return true;
+    }
+
     public static void main(String[] args) {
         EventQueue.invokeLater(() ->
         {
             GUI frame = new GUI();
             frame.setTitle("The Larvae Tracker 5000");
+            if (!isffmpegInstalled()) {
+                JOptionPane.showMessageDialog(null, "ffmpeg is not installed.\nProgram exiting.");
+                System.exit(1);
+            }
+
             WindowListener exitListener = new WindowAdapter() {
 
                 @Override
