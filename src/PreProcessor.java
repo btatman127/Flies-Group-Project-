@@ -47,43 +47,13 @@ public class PreProcessor {
     }
 
     /**
-     * Crops all the images
-     *
-     * @param point1 An integer array {x,y} of one coordinate to crop.
-     * @param point2 An integer array {x,y} of one coordinate to crop.
-     * @param frames The total number of frames in the video to crop.
-     */
-    public static void crop(int[] point1, int[] point2, int frames, String directory) {
-        for (int i = 1; i <= frames; i++) {
-            try {
-                BufferedImage image = ImageIO.read(new File(Paths.get(directory).resolve("img" +
-                                                                                         String.format("%04d", i) +
-                                                                                         ".png").toString()));
-                BufferedImage subimage = cropImage(image, point1, point2);
-                ImageIO.write(subimage, "png", new File(Paths.get(directory).resolve("img" +
-                                                                        String.format("%04d", i) + ".png").toString()));
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-    }
-
-    /**
      * @return An integer array {x,y} of the top left point, given any two points.
      */
-    static int[] topLeft(int[] point1, int[] point2) {
-        int point[] = new int[2];
-        if (point1[0] <= point2[0]) {
-            point[0] = point1[0];
-        } else {
-            point[0] = point2[0];
-        }
-        if (point1[1] <= point2[1]) {
-            point[1] = point1[1];
-        } else {
-            point[1] = point2[1];
-        }
-        return point;
+    static int[] findTopLeftCropCorner(int[] point1, int[] point2) {
+        return new int[] {
+            Math.min(point1[0], point2[0]),
+            Math.min(point1[1], point2[1])
+        };
     }
 
     /**
@@ -93,7 +63,7 @@ public class PreProcessor {
      * @return A cropped image.
      */
     static BufferedImage cropImage(BufferedImage image, int[] point1, int[] point2) {
-        int[] topLeft = topLeft(point1, point2);
+        int[] topLeft = findTopLeftCropCorner(point1, point2);
         return image.getSubimage(topLeft[0], topLeft[1],
                                  Math.abs(point1[0] - point2[0]), Math.abs(point1[1] -point2[1]));
     }
@@ -106,11 +76,9 @@ public class PreProcessor {
     static void colorCorrectFrames(int frames, String directory) {
         for (int i = 1; i <= frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File(Paths.get(directory).resolve("img" +
-                                                                        String.format("%04d", i) + ".png").toString()));
+                BufferedImage image = ImageIO.read(new File(Paths.get(directory).resolve(String.format("img%04d.png", i)).toString()));
                 BufferedImage colorImage = colorCorrect(image);
-                ImageIO.write(colorImage, "png", new File(Paths.get(directory).resolve("cc" +
-                                                                        String.format("%04d", i) + ".png").toString()));
+                ImageIO.write(colorImage, "png", new File(Paths.get(directory).resolve(String.format("cc%04d.png", i)).toString()));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -155,32 +123,16 @@ public class PreProcessor {
 
 	/**
 	* Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
-	* @param inputPath
-	* @param outputPath   this String should end with a / character
-	* @param fps    a value of 1 will extract 1 frame for each second of video
+	* @param inputPath the video from which to extract frames
+	* @param outputPath a format string for output image paths
+	* @param fps a value of 1 will extract 1 frame for each second of video
 	*/
 
     public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
-
-        // Get runtime
-        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-
-
-        String[] command = new String[]{"ffmpeg", "-i", inputPath, "-vf", "fps=" + fps, outputPath};
-        java.lang.Process p = rt.exec(command);
-        // You can or maybe should wait for the process to complete
-		p.waitFor();
-
-        //CODE TO COLLECT RESULTANT INPUT STREAM:
-        java.io.InputStream is = p.getInputStream();
-        java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
-        
-		// And print each line
-        String s = null;
-        while ((s = reader.readLine()) != null) {
-            System.out.println(s);
-        }
-        is.close();
+        String[] command = new String[]{
+                "ffmpeg", "-i", inputPath,
+                "-vf", "fps=" + fps, outputPath};
+        Runtime.getRuntime().exec(command).waitFor();
 	}
 
 
@@ -188,10 +140,6 @@ public class PreProcessor {
      * Takes a start time and end time and tells ffmpeg to trim video before images are extracted
      **/
     public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.io.IOException, java.lang.InterruptedException {
-
-
-        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-        //TODO look at end time
         int duration = endTime - startTime;
         String[] command = new String[]{
                 "ffmpeg", "-ss", String.valueOf(startTime),
@@ -199,20 +147,7 @@ public class PreProcessor {
                 "-c", "copy",
                 "-t", String.valueOf(duration),
                 outputPathLong};
-        java.lang.Process p = rt.exec(command);
-        // You can or maybe should wait for the process to complete
-        p.waitFor();
-
-        //CODE TO COLLECT RESULTANT INPUT STREAM:
-        java.io.InputStream is = p.getInputStream();
-        java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
-        // And print each line
-        String s = null;
-        while ((s = reader.readLine()) != null) {
-            System.out.println(s);
-        }
-        is.close();
-
+        Runtime.getRuntime().exec(command).waitFor();
     }
 
     /** Gets video duration in seconds from ffmpeg. **/
@@ -232,7 +167,7 @@ public class PreProcessor {
 
 
 class LimitedQueue extends LinkedList<Integer> {
-    private int limit;
+    private final int limit;
 
     public LimitedQueue(int limit) {
         this.limit = limit;
@@ -249,8 +184,8 @@ class LimitedQueue extends LinkedList<Integer> {
 
     public int sum() {
         int ans = 0;
-        for (int i = 0; i < this.size(); i++) {
-            ans += this.get(i);
+        for (int n : this) {
+            ans += n;
         }
         return ans / this.size();
     }

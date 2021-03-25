@@ -34,9 +34,9 @@ public class PreProcessorTest {
         int[] point1 = {50,50};
         int[] point2 = {100, 150};
         int[] point3 = {100,10};
-        assertArrayEquals(PreProcessor.topLeft(point1, point2), new int[] {50,50});
-        assertArrayEquals(PreProcessor.topLeft(point2, point1), new int[] {50,50});
-        assertArrayEquals(PreProcessor.topLeft(point1, point3), new int[] {50,10});
+        assertArrayEquals(PreProcessor.findTopLeftCropCorner(point1, point2), new int[] {50,50});
+        assertArrayEquals(PreProcessor.findTopLeftCropCorner(point2, point1), new int[] {50,50});
+        assertArrayEquals(PreProcessor.findTopLeftCropCorner(point1, point3), new int[] {50,10});
     }
 
 

@@ -2,6 +2,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.io.File;
@@ -9,10 +10,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Video {
-    private File originalVideo;
-    private String shortenedVideo;
-    private String imgDir;
-    private int numImages;
+    private static final int FPS = 1;
+
+    private final File originalVideo;
+    private final String shortenedVideo;
+    private final Path imgDir;
+    private final int numImages;
     private boolean videoInitialized;
 
 
@@ -25,7 +28,7 @@ public class Video {
     //Array of (arraylists of (double arrays))
     private ArrayList<ArrayList<Double[]>> islands;
     private ArrayList<Integer> collisionFrameIndex;
-    private double islandConstant = 24.0;
+    private static final double ISLAND_CONSTANT = 24.0;
 
 
     // length and/or width of each grid square in mm
@@ -37,30 +40,28 @@ public class Video {
         originalVideo = movie;
 
         //create a list of larva for this video
-        larvae = new ArrayList<Larva>();
+        larvae = new ArrayList<>();
 
 
         //create input and output paths for the whole video
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        shortenedVideo = originalVideo.getAbsolutePath().substring(0, originalVideo.getName().length() - 4) + "SHORTER" + timestamp + ".mov";
+        String originalVideoPath = originalVideo.getAbsolutePath();
+        shortenedVideo = originalVideoPath.substring(0, originalVideoPath.length() - 4) + "SHORTER" + timestamp + ".mov";
 
         //call ffmpeg crop method
         PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), shortenedVideo);
 
-        java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-        Long l = new Long(System.currentTimeMillis() / 1000L);
-        this.imgDir = "vidID" + l.toString();
+        long l = System.currentTimeMillis() / 1000L;
+        this.imgDir = Paths.get(System.getProperty("user.dir")).resolve("vidID" + l);
 
-        new File(imgDir).mkdir();
+        File imageDirectory = new File(imgDir.toString());
+        imageDirectory.mkdir();
 
-        String inputPath = shortenedVideo;
-        String outputPath = Paths.get(System.getProperty("user.dir")).resolve(imgDir).resolve("img%04d.png").toString();
-        int fps = 1;
+        String outputPath = imgDir.resolve("img%04d.png").toString();
 
         //call ffmpeg extractor
-        int duration = endTime - startTime;
-        PreProcessor.extractFrames(inputPath, outputPath, fps);
-        numImages = new File(Paths.get(System.getProperty("user.dir")).resolve(imgDir).toString()).listFiles().length;
+        PreProcessor.extractFrames(shortenedVideo, outputPath, FPS);
+        numImages = imageDirectory.listFiles().length;
     }
 
 
@@ -70,18 +71,16 @@ public class Video {
      */
     public boolean createFrames() {
         boolean collisionFound = false;
-        PreProcessor.colorCorrectFrames(numImages, imgDir);
+        PreProcessor.colorCorrectFrames(numImages, imgDir.toString());
         try {
-            BufferedImage im = ImageIO.read(new File(Paths.get(imgDir).resolve("img" + String.format("%04d", 1) +
-                                                                               ".png").toString()));
+            BufferedImage im = ImageIO.read(new File(imgDir.resolve(String.format("img%04d.png", 1)).toString()));
             regionDim = im.getHeight() / 100; //should be a function of cc
             regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
-            islands = new ArrayList<ArrayList<Double[]>>(numImages);// islands[f][island][coord]
+            islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
 
             for (int f = 0; f < numImages; f++) {
-                BufferedImage image = ImageIO.read(new File(Paths.get(imgDir).resolve("cc" +
-                                                   String.format("%04d", f + 1) + ".png").toString()));
+                BufferedImage image = ImageIO.read(new File(imgDir.resolve(String.format("cc%04d.png", f + 1)).toString()));
                 createRegions(f, image);
                 fillLarvaLoc(f);
 
@@ -106,7 +105,7 @@ public class Video {
     }
 
 
-    void retrackLarvaPositiom(int firstFrame, int larvaIndex, Double[] pt) {
+    void retrackLarvaPosition(int firstFrame, int larvaIndex, Double[] pt) {
         //starting and frameIndex
         //overwrite position values for larvae[larvaIndex] for each frame
         if (!videoInitialized) {
@@ -143,24 +142,12 @@ public class Video {
                 }
             }
 
-            if (minDistance < getDimensions()[1] / islandConstant) {
+            if (minDistance < getDimensions()[1] / ISLAND_CONSTANT) {
                 l.setNewPosition(islands.get(f).get(minIndex));
             } else {
                 l.setNewPosition(null);
             }
         }
-    }
-
-    void resetSingleLarvaPosition(int firstFrame, int larvaIndex, Double[] pt) {
-        if (!videoInitialized) {
-            System.out.println("!!attempted to resetLarvaPosition before fully initializing video!!");
-            return;
-        }
-
-        Larva l = larvae.get(larvaIndex);
-        l.getCoordinates().get(firstFrame)[0] = pt[0];
-        l.getCoordinates().get(firstFrame)[1] = pt[1];
-
     }
 
     /**
@@ -178,8 +165,8 @@ public class Video {
                     if (larvae.get(j).getPositionsSize() <= f || larvae.get(j).getPosition(f) == null) {
                         continue;
                     }
-                    if (larvae.get(i).getPosition(f)[0] == larvae.get(j).getPosition(f)[0] &&
-                        larvae.get(i).getPosition(f)[1] == larvae.get(j).getPosition(f)[1]) {
+                    if (larvae.get(i).getPosition(f)[0].equals(larvae.get(j).getPosition(f)[0]) &&
+                        larvae.get(i).getPosition(f)[1].equals(larvae.get(j).getPosition(f)[1])) {
                         collisionFrameIndex.add(f);
                         collisionFound = true;
                     }
@@ -207,7 +194,6 @@ public class Video {
         }
     }
 
-
     private int getSample(int frame, int x, int y) {
         int average = 0;
         int count = 0;
@@ -222,7 +208,7 @@ public class Video {
                 }
             }
         }
-        return average /= count;
+        return average / count;
     }
 
     /**
@@ -258,7 +244,7 @@ public class Video {
      */
     private ArrayList<Double[]> getIslandList(int frame) {
         //depth first search
-        boolean visited[][] = new boolean[larvaLoc[0].length][larvaLoc[0][0].length];
+        boolean[][] visited = new boolean[larvaLoc[0].length][larvaLoc[0][0].length];
         ArrayList<Double[]> coords = new ArrayList<>();
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
@@ -296,9 +282,9 @@ public class Video {
         double mass = points.size();
         double xc = 0;
         double yc = 0;
-        for (int i = 0; i < mass; i++) {
-            xc += points.get(i)[0];
-            yc += points.get(i)[1];
+        for (double[] point : points) {
+            xc += point[0];
+            yc += point[1];
         }
         island[0] = xc / mass * regionDim;
         island[1] = yc / mass * regionDim;
@@ -399,7 +385,7 @@ public class Video {
                         minIndex = j;
                     }
                 }
-                if (minDistance < getDimensions()[1] / islandConstant) {
+                if (minDistance < getDimensions()[1] / ISLAND_CONSTANT) {
                     l.setNewPosition(islands.get(i).get(minIndex));
                 } else {
                     l.setNewPosition(null);
@@ -419,23 +405,17 @@ public class Video {
     public ArrayList<Larva> getLarva() {
         return larvae;
     }
-    public void reInitializeLarvaArrayList() {larvae = new ArrayList<>();}
 
     public void addLarva(Larva l) {
-        Double[] a = l.getPosition(0);
         larvae.add(l);
     }
 
-    public void removeLarvaFromArrayListByIndex(int larvaIndex) {
-        larvae.remove(larvaIndex);
-    }
-
     public String getPathToFrame(int index) {
-        return Paths.get(imgDir).resolve("img" + String.format("%04d", index) + ".png").toString();
+        return imgDir.resolve(String.format("img%04d.png", index)).toString();
     }
 
     public String getImgDir() {
-        return imgDir;
+        return imgDir.toString();
     }
 
     public String getOriginalMovieName() {
@@ -455,18 +435,13 @@ public class Video {
         return numImages;
     }
 
-    public boolean isVideoInitialized() {
-        return videoInitialized;
-    }
-
     /**
      * @return An array of length 2, where index 0 is the width of the video and index 1 is the height of the video.
      * This is calculated when the method is called; this is not the original width and height of the video!
      */
     public double[] getDimensions() {
         try {
-            BufferedImage im = ImageIO.read(new File(Paths.get(imgDir).resolve("img" + String.format("%04d", 1) +
-                                                                               ".png").toString()));
+            BufferedImage im = ImageIO.read(new File(imgDir.resolve(String.format("img%04d.png", 1)).toString()));
             return new double[]{im.getWidth(), im.getHeight()};
         } catch (IOException ioe) {
             ioe.printStackTrace();

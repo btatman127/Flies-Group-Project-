@@ -662,10 +662,10 @@ public class GUI extends JFrame {
                     pt[0] = (frame.squares.get(0).getCenterX() * xratio);
                     pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
-                    movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
                     frame.remove(frame.squares.get(0));
                     frame.maxSquares = 0;
-                    movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
                 }
 
                 setButtonStates(ProgramState.TRACKING);
