@@ -232,7 +232,7 @@ public class GUI extends JFrame {
         EventQueue.invokeLater(() ->
         {
             GUI frame = new GUI();
-            frame.setTitle("The Larvae Tracker 5000");
+            frame.setTitle("The Larvae Tracker 6000");
             if (!isffmpegInstalled()) {
                 JOptionPane.showMessageDialog(null, "ffmpeg is not installed.\nProgram exiting.");
                 System.exit(1);
