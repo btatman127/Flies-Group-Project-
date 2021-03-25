@@ -8,10 +8,14 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.awt.geom.*;
 
 public class GUI extends JFrame {
+    private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
+
     private int currentFrame;
     private String fileName;
     private String movieDir;
@@ -218,9 +222,10 @@ public class GUI extends JFrame {
 
     private static boolean isffmpegInstalled()
     {
-        String[] command = {"ffmpeg"};
         try {
-            Runtime.getRuntime().exec(command);
+            Runtime rt = Runtime.getRuntime();
+            rt.exec(new String[] {"ffmpeg"});
+            rt.exec(new String[] {"ffprobe"});
         } catch (IOException e) {
             return false;
         }
@@ -234,8 +239,15 @@ public class GUI extends JFrame {
             GUI frame = new GUI();
             frame.setTitle("The Larvae Tracker 6000");
             if (!isffmpegInstalled()) {
-                JOptionPane.showMessageDialog(null, "ffmpeg is not installed.\nProgram exiting.");
-                System.exit(1);
+                try {
+                    Desktop.getDesktop().browse(new URL(DOCUMENTATION_URL).toURI());
+                    JOptionPane.showMessageDialog(null,
+                "ffmpeg is not installed.\nSee ffmpeg installation instructions.\nProgram exiting.");
+                } catch (IOException | URISyntaxException e) {
+                    // Ignore exceptions because we exit anyway.
+                } finally {
+                    System.exit(1);
+                }
             }
 
             WindowListener exitListener = new WindowAdapter() {
