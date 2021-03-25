@@ -14,7 +14,7 @@ public class Video {
     private static final int FPS = 1;
 
     private final File originalVideo;
-    private final String shortenedVideo;
+    private final Path shortenedVideo;
     private final Path imgDir;
     private final int numImages;
     private boolean videoInitialized;
@@ -45,23 +45,21 @@ public class Video {
 
 
         //create input and output paths for the whole video
-        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        String originalVideoPath = originalVideo.getAbsolutePath();
-        shortenedVideo = originalVideoPath.substring(0, originalVideoPath.length() - 4) + "SHORTER" + timestamp + ".mov";
+        shortenedVideo = Files.createTempFile("fly_tracker_video", ".mov");
+        shortenedVideo.toFile().delete();
+        shortenedVideo.toFile().deleteOnExit();
+
 
         //call ffmpeg crop method
-        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), shortenedVideo);
+        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo());
 
-        long l = System.currentTimeMillis() / 1000L;
-
-        this.imgDir = Files.createTempDirectory("vidID" + l);
+        this.imgDir = Files.createTempDirectory("fly_tracker_images");
         imgDir.toFile().deleteOnExit();
-        System.out.println(imgDir.toString());
 
         String outputPath = imgDir.resolve("img%04d.png").toString();
 
         //call ffmpeg extractor
-        PreProcessor.extractFrames(shortenedVideo, outputPath, FPS);
+        PreProcessor.extractFrames(getShortenedVideo(), outputPath, FPS);
         numImages = imgDir.toFile().listFiles().length;
     }
 
@@ -429,7 +427,7 @@ public class Video {
     }
 
     public String getShortenedVideo() {
-        return shortenedVideo;
+        return shortenedVideo.toString();
     }
 
     public int getNumImages() {

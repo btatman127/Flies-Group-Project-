@@ -28,7 +28,7 @@ class CropImages {
         while (i <= frames) {
             try {
                 final BufferedImage image = ImageIO.read(
-                        new File(directory.resolve(String.format("img%04d.png",i)).toString()));
+                        new File(directory.resolve(String.format("img%04d.png", i)).toString()));
                 BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
                 ImageIO.write(subimage, "png",
                         new File(directory.resolve(String.format("img%04d.png", i)).toString()));
