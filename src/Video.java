@@ -2,6 +2,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -52,16 +53,16 @@ public class Video {
         PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), shortenedVideo);
 
         long l = System.currentTimeMillis() / 1000L;
-        this.imgDir = Paths.get(System.getProperty("user.dir")).resolve("vidID" + l);
 
-        File imageDirectory = new File(imgDir.toString());
-        imageDirectory.mkdir();
+        this.imgDir = Files.createTempDirectory("vidID" + l);
+        imgDir.toFile().deleteOnExit();
+        System.out.println(imgDir.toString());
 
         String outputPath = imgDir.resolve("img%04d.png").toString();
 
         //call ffmpeg extractor
         PreProcessor.extractFrames(shortenedVideo, outputPath, FPS);
-        numImages = imageDirectory.listFiles().length;
+        numImages = imgDir.toFile().listFiles().length;
     }
 
 
