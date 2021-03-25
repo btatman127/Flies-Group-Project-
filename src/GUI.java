@@ -18,6 +18,7 @@ public class GUI extends JFrame {
     private Video movie;
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
+    private final static double ZONE_RADIUS = 4.5;
 
     private final JPanel buttonPanel;
     private final JButton openMovie = new JButton("Open Movie");
@@ -29,6 +30,7 @@ public class GUI extends JFrame {
     private final JButton confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
     private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
     private final JCheckBox showZones = new JCheckBox("Show Larvae Zones", false);
+    private JCheckBox[] toggleZones = new JCheckBox[5];
     private final JButton exportCSV = new JButton(("Export as CSV file"));
     private final JButton screenshot = new JButton(("Screenshot current frame"));
     private final JButton retrackPosition = new JButton("Retrack Larva @ Current Frame");
@@ -188,6 +190,15 @@ public class GUI extends JFrame {
         RetrackPositionAction retrackPositionAction = new RetrackPositionAction(this);
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
+
+        ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[5];
+        for (int i = 0; i < 5; i++) {
+            toggleZones[i] = new JCheckBox("Show zones for larva " + (i+1));
+            toggleZones[i].setVisible(false);
+            buttonPanel.add(toggleZones[i]);
+            toggleZoneActions[i] = new ToggleZoneAction(i);
+            toggleZones[i].addActionListener(toggleZoneActions[i]);
+        }
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -386,7 +397,7 @@ public class GUI extends JFrame {
             } else if (endValue > finalTime || endValue <= startValue) {
                 endValue = finalTime;
                 JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
-                                              endValue + ".");
+                        endValue + ".");
             }
 
             //Create new movie
@@ -687,7 +698,7 @@ public class GUI extends JFrame {
                     frames = larva.getCoordinates().size();
                 }
             }
-            CSVExport exporter = new CSVExport(movie, frames);
+            CSVExport exporter = new CSVExport(movie, frames, ZONE_RADIUS);
             exporter.export(file);
         }
     }
@@ -728,22 +739,32 @@ public class GUI extends JFrame {
         }
     }
 
-    private class ShowZoneAction implements ActionListener {
-        public ShowZoneAction(){
+    private class ToggleZoneAction implements ActionListener {
+        private int index;
 
+        public ToggleZoneAction(int index){
+            this.index = index;
         }
 
         public void actionPerformed(ActionEvent event) {
-            JCheckBox larva1 = new JCheckBox();
-            larva1.setSelected(true);
-            Object[] message = {
-                    "Select Larva",
-                    "Select full video:", larva1
-            };
+            frame.zoneToggled[index] = !frame.zoneToggled[index];
+            repaint();
+        }
+    }
 
-            JOptionPane.showMessageDialog(null, message);
+    private class ShowZoneAction implements ActionListener {
+        public ShowZoneAction(){}
 
+        public void actionPerformed(ActionEvent event) {
             frame.displayZones = !frame.displayZones;
+
+            for (int i = 0; i < movie.getLarva().size(); i++) {
+                toggleZones[i].setVisible(frame.displayZones);
+                toggleZones[i].setEnabled(frame.displayZones);
+                toggleZones[i].setSelected(false);
+                frame.zoneToggled[i] = false;
+
+            }
             repaint();
         }
     }
@@ -761,6 +782,7 @@ public class GUI extends JFrame {
         public int currentFrame;
         public boolean displayPaths;
         public boolean displayZones;
+        public boolean zoneToggled[] = new boolean[5];
         public boolean vidInitialized;
         public Video movie;
 
@@ -869,14 +891,15 @@ public class GUI extends JFrame {
                 double xScale = movie.getDimensions()[0]/mm;
                 double yScale = movie.getDimensions()[0]/mm;
                 for (Larva l : larvae) {
-                    g2.setColor(colors[larvae.indexOf(l)]);
-                    double initialRadius = 4.5;
-                    for (int i = 1; i < 13; i++) {
-                        double radius = initialRadius * i;
-                        double xRadius = radius*xScale/xratio;
-                        double yRadius = radius*yScale/yratio;
-                        g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - xRadius,
-                                (l.getPosition(0)[1] / yratio) - yRadius, xRadius*2, yRadius*2));
+                    if(zoneToggled[larvae.indexOf(l)]) {
+                        g2.setColor(colors[larvae.indexOf(l)]);
+                        for (int i = 1; i < 13; i++) {
+                            double radius = ZONE_RADIUS * i;
+                            double xRadius = radius * xScale / xratio;
+                            double yRadius = radius * yScale / yratio;
+                            g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - xRadius,
+                                    (l.getPosition(0)[1] / yratio) - yRadius, xRadius * 2, yRadius * 2));
+                        }
                     }
 
                 }
