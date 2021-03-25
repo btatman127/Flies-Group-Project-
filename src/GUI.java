@@ -606,9 +606,13 @@ public class GUI extends JFrame {
                     "Select ok and then select new point."
             };
 
-            JOptionPane.showMessageDialog(null, message);
-            gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
+            int result = JOptionPane.showConfirmDialog(null, message,
+                                                   "Select Larva", JOptionPane.OK_CANCEL_OPTION);
+            if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+                return;
+            }
 
+            gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
             frame.maxSquares = 1;
             setButtonStates(ProgramState.RETRACKING);
         }
