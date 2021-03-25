@@ -387,8 +387,13 @@ public class GUI extends JFrame {
                 e1.printStackTrace();
             }
 
+            tempLarvaIndex = -1;
+            history = new Stack<>();
+
             frame.movie = movie;
             frame.squares = new ArrayList<>();
+            frame.currentFrame = 0;
+            frame.vidInitialized = false;
 
             frame.displayPaths = false;
             displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
