@@ -4,17 +4,22 @@ import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.awt.geom.*;
+import java.util.List;
 
 public class GUI extends JFrame {
     private int currentFrame;
-    private String fileName;
-    private String movieDir;
+    private File originalMovie;
     private Video movie;
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
@@ -176,7 +181,7 @@ public class GUI extends JFrame {
         frame.setBorder(BorderFactory.createEtchedBorder());
 
         //create actions for the buttons
-        OpenL openAction = new OpenL();
+        VideoOpener openAction = new VideoOpener();
         Action nextAction = new StepAction(1);
         Action prevAction = new StepAction(-1);
         StartCropAction startCropAction = new StartCropAction();
@@ -199,6 +204,20 @@ public class GUI extends JFrame {
             toggleZoneActions[i] = new ToggleZoneAction(i);
             toggleZones[i].addActionListener(toggleZoneActions[i]);
         }
+
+        // Set drag-and-drop target
+        setDropTarget(new DropTarget() {
+            public synchronized void drop(DropTargetDropEvent event) {
+                try {
+                    event.acceptDrop(DnDConstants.ACTION_COPY);
+                    List<File> droppedFiles = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    File video = droppedFiles.get(0);
+                    setMovieVariables(video);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
         //this below is to make arrow keys work for changing frames
         //create a map of inputs and name them
@@ -242,10 +261,10 @@ public class GUI extends JFrame {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    if(frame.movie!= null) {
+                    if (frame.movie != null) {
                         frame.deleteDirectory(frame.movie.getImgDir());
-                        frame.deleteDirectory(frame.movie.getOutputPathLong());
                     }
+
                     System.exit(0);
                 }
             };
@@ -305,9 +324,9 @@ public class GUI extends JFrame {
         repaint();
     }
 
-    boolean deleteDirectory(String dirName) {
+    boolean deleteDirectory(Path dirName) {
         if (dirName == null) return false;
-        else return deleteDirectory(new File(dirName));
+        else return deleteDirectory(dirName.toFile());
     }
 
     boolean deleteDirectory(File directoryToBeDeleted) {
@@ -329,6 +348,94 @@ public class GUI extends JFrame {
         this.tempLarvaIndex = tempLarvaIndex;
     }
 
+    private int parseVideoLengthInput(String input) {
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException exception) {
+            return -1;
+        }
+    }
+
+
+    private void createMovie(int startValue, int endValue) {
+        try {
+            movie = new Video(originalMovie, startValue, endValue);
+        } catch (IOException | InterruptedException e1) {
+            e1.printStackTrace();
+        }
+
+        frame.movie = movie;
+        frame.squares = new ArrayList<>();
+
+        frame.displayPaths = false;
+        displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+        displayFrameNum.setEditable(false);
+        displayFrameNum.setVisible(true);
+
+        setButtonStates(ProgramState.PRE_CROP);
+        pack();
+        frame.setImage(movie.getPathToFrame(currentFrame));
+        validate();
+        repaint();
+    }
+
+    private void openMovieDurationDialog() {
+        int finalTime;
+        try {
+            finalTime = PreProcessor.getVideoDuration(originalMovie);
+        } catch (IOException error) {
+            JOptionPane.showMessageDialog(null, "Could not find video.");
+            return;
+        }
+
+        JTextField startTime = new JTextField();
+        JTextField endTime = new JTextField();
+        Object[] message = {
+                "Please enter Start and Stop time in seconds.",
+                "Leave blank to default to full video length.",
+                "Movie duration: " + finalTime + " seconds.",
+                "Start time:", startTime,
+                "End Time:", endTime
+        };
+
+        int result = JOptionPane.showConfirmDialog(null, message,
+                "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
+        if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+            return;
+        }
+
+        int startValue = parseVideoLengthInput(startTime.getText());
+
+        if (startTime.getText().equals("")) {
+            startValue = 0;
+        } else if (startValue < 0 || startValue >= finalTime) {
+            startValue = 0;
+            JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0.");
+        }
+
+        int endValue = parseVideoLengthInput(endTime.getText());
+        if (endTime.getText().equals("")) {
+            endValue = finalTime;
+        } else if (endValue > finalTime || endValue <= startValue) {
+            endValue = finalTime;
+            JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
+                    endValue + ".");
+        }
+
+        createMovie(startValue, endValue);
+    }
+
+    public void setMovieVariables(File video) {
+        if (movie != null) {
+            deleteDirectory(movie.getImgDir());
+        }
+
+        originalMovie = video;
+        currentFrame = 1;
+
+        openMovieDurationDialog();
+    }
+
     /**
      * Allows the user to select a file from the computer
      * Saves the file name to the global variable fileName
@@ -336,96 +443,18 @@ public class GUI extends JFrame {
      * If a file is selected then all other buttons are made visible and the initially useful ones are enabled
      * If cancel is selected nothing happens
      */
-    class OpenL implements ActionListener {
-        private int parseVideoLengthInput(String input) throws NumberFormatException{
-            int temp = -1;
-            try {
-                temp = Integer.parseInt(input);
-            } catch (NumberFormatException exception) {
-            }
-
-            return temp;
-        }
-
+    class VideoOpener implements ActionListener {
         public void actionPerformed(ActionEvent e) throws NumberFormatException{
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
-            String name = fd.getFile();
-            String dir = fd.getDirectory();
+            File[] files = fd.getFiles();
 
             //if user hits Cancel
-            if (name == null) {
+            if (files.length == 0) {
                 return;
             }
 
-            if (movie != null) {
-                deleteDirectory(frame.movie.getOutputPathLong());
-                deleteDirectory(movie.getImgDir());
-            }
-            fileName = name;
-            movieDir = dir;
-            currentFrame = 1;
-
-            //Double Option Test
-            JTextField startTime = new JTextField();
-            JTextField endTime = new JTextField();
-            Object[] message = {
-                    "Please enter Start and Stop time in seconds.\n Leave blank to default to full video length.",
-                    "Movie duration: " + PreProcessor.getDurationSeconds(movieDir, fileName) + " seconds.",
-                    "Start time:", startTime,
-                    "End Time:", endTime
-            };
-
-            int result = JOptionPane.showConfirmDialog(null, message,
-                    "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
-            if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
-                return;
-            }
-
-            int startValue = parseVideoLengthInput(startTime.getText());
-            int finalTime = parseVideoLengthInput(PreProcessor.getDurationSeconds(movieDir, fileName));
-            if (startTime.getText().equals("")) {
-                startValue = 0;
-            } else if (startValue < 0 || startValue >= finalTime) {
-                startValue = 0;
-                JOptionPane.showMessageDialog(null, "Invalid Start Time. Defaulting to 0.");
-            }
-
-            int endValue = parseVideoLengthInput(endTime.getText());
-            if (endTime.getText().equals("")) {
-                endValue = finalTime;
-            } else if (endValue > finalTime || endValue <= startValue) {
-                endValue = finalTime;
-                JOptionPane.showMessageDialog(null, "Invalid End Time. Defaulting to " +
-                        endValue + ".");
-            }
-
-            //Create new movie
-            try {
-                movie = new Video(movieDir, fileName, startValue, endValue);
-            } catch (IOException | InterruptedException e1) {
-                e1.printStackTrace();
-            }
-
-            tempLarvaIndex = -1;
-            history = new Stack<>();
-
-            frame.movie = movie;
-            frame.squares = new ArrayList<>();
-            frame.currentFrame = 0;
-            frame.vidInitialized = false;
-
-            frame.displayPaths = false;
-            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
-            displayFrameNum.setEditable(false);
-            displayFrameNum.setVisible(true);
-
-            setButtonStates(ProgramState.PRE_CROP);
-
-            pack();
-            frame.setImage(movie.getPathToFrame(currentFrame));
-            validate();
-            repaint();
+            setMovieVariables(files[0]);
         }
     }
 
@@ -487,7 +516,7 @@ public class GUI extends JFrame {
             if(frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
             try {
-                BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+                BufferedImage image = ImageIO.read(movie.getImgDir().resolve("img0001.png").toFile());
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -644,7 +673,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if(frame.squares.size() < frame.maxSquares) return;
             try {
-                BufferedImage image = ImageIO.read(new File(movie.getImgDir() + "/" + "img0001.png"));
+                BufferedImage image = ImageIO.read(movie.getImgDir().resolve("img0001.png").toFile());
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -653,10 +682,10 @@ public class GUI extends JFrame {
                     pt[0] = (frame.squares.get(0).getCenterX() * xratio);
                     pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
-                    movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
                     frame.remove(frame.squares.get(0));
                     frame.maxSquares = 0;
-                    movie.retrackLarvaPositiom(currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
                 }
 
                 setButtonStates(ProgramState.TRACKING);
@@ -717,7 +746,9 @@ public class GUI extends JFrame {
             String defaultName = movie.getOriginalMovieName() + ".frame_" + (currentFrame + 1) + ".png";
             fd.setFile(defaultName);
             fd.setVisible(true);
-            BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null), frame.getImage().getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null),
+                                                 frame.getImage().getHeight(null),
+                                                 BufferedImage.TYPE_INT_ARGB);
             Graphics g = bi.createGraphics();
             frame.paint(g);
             g.dispose();
@@ -729,7 +760,6 @@ public class GUI extends JFrame {
                 ImageIO.write(bi, "png", file);
             } catch (IOException e) {
                 e.printStackTrace();
-
             }
         }
     }
@@ -806,8 +836,8 @@ public class GUI extends JFrame {
             addMouseMotionListener(new MouseMotionHandler());
         }
 
-        public void setImage(String fileName) {
-            image = PreProcessor.scale(fileName, this.getWidth(), this.getHeight());
+        public void setImage(Path file) {
+            image = PreProcessor.scale(file, this.getWidth(), this.getHeight());
         }
 
         public Image getImage() {
@@ -995,14 +1025,11 @@ public class GUI extends JFrame {
                     int x = event.getX();
                     int y = event.getY();
 
-                    // drag the current rectangle to center it at (x, y)
                     currentMouseLocationRectangle.setFrame(x - SIDELENGTH / 2.0, y - SIDELENGTH / 2.0, SIDELENGTH, SIDELENGTH);
                     repaint();
                 }
             }
         }
     }
-
-
 }
 

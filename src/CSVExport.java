@@ -302,7 +302,7 @@ public class CSVExport {
                 break;
             }
         }
-        return getTotalDistance(larva)/(frames);
+        return getTotalDistance(larva) / frames;
     }
 
 }
