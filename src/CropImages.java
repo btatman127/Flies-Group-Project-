@@ -14,11 +14,11 @@ class CropImages {
     final int frames;
     Path directory;
 
-    public CropImages(int[] point1, int[] point2, int frames, String directory, JProgressBar progressBar) {
+    public CropImages(int[] point1, int[] point2, int frames, Path directory, JProgressBar progressBar) {
         this.point1 = point1.clone();
         this.point2 = point2.clone();
         this.frames = frames;
-        this.directory = Paths.get(directory);
+        this.directory = directory;
         this.progressBar = progressBar;
     }
 

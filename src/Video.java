@@ -51,7 +51,8 @@ public class Video {
         // Extract images with ffmpeg
         PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo());
         PreProcessor.extractFrames(getShortenedVideo(), outputPath, FPS);
-        numImages = imgDir.toFile().listFiles().length;
+        // Number of images is number of files minus one (temporary video).
+        numImages = imgDir.toFile().listFiles().length - 1;
     }
 
 
@@ -404,8 +405,8 @@ public class Video {
         return imgDir.resolve(String.format("img%04d.png", index)).toString();
     }
 
-    public String getImgDir() {
-        return imgDir.toString();
+    public Path getImgDir() {
+        return imgDir;
     }
 
     public String getOriginalMovieName() {

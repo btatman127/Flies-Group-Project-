@@ -243,10 +243,6 @@ public class GUI extends JFrame {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    if(frame.movie!= null) {
-                        frame.deleteDirectory(frame.movie.getImgDir());
-                        frame.deleteDirectory(frame.movie.getShortenedVideo());
-                    }
                     System.exit(0);
                 }
             };
@@ -301,22 +297,6 @@ public class GUI extends JFrame {
         pack();
         revalidate();
         repaint();
-    }
-
-    boolean deleteDirectory(String dirName) {
-        if (dirName == null) return false;
-        else return deleteDirectory(new File(dirName));
-    }
-
-    boolean deleteDirectory(File directoryToBeDeleted) {
-        if (!directoryToBeDeleted.exists()) return false;
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDirectory(file);
-            }
-        }
-        return directoryToBeDeleted.delete();
     }
 
     public int getTempLarvaIndex() {
@@ -405,11 +385,6 @@ public class GUI extends JFrame {
     }
 
     public void setMovieVariables(File video) {
-        if (movie != null) {
-            deleteDirectory(frame.movie.getShortenedVideo());
-            deleteDirectory(movie.getImgDir());
-        }
-
         originalMovie = video;
         currentFrame = 1;
 
@@ -496,7 +471,7 @@ public class GUI extends JFrame {
             if(frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
             try {
-                BufferedImage image = ImageIO.read(new File(Paths.get(movie.getImgDir()).resolve("img0001.png").toString()));
+                BufferedImage image = ImageIO.read(new File(movie.getImgDir().resolve("img0001.png").toString()));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -653,7 +628,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if(frame.squares.size() < frame.maxSquares) return;
             try {
-                BufferedImage image = ImageIO.read(new File(Paths.get(movie.getImgDir()).resolve("img0001.png").toString()));
+                BufferedImage image = ImageIO.read(new File(movie.getImgDir().resolve("img0001.png").toString()));
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
