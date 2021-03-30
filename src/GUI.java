@@ -12,7 +12,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.*;
 import java.awt.geom.*;
 import java.util.List;
@@ -471,7 +471,7 @@ public class GUI extends JFrame {
             if(frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
             try {
-                BufferedImage image = ImageIO.read(new File(movie.getImgDir().resolve("img0001.png").toString()));
+                BufferedImage image = ImageIO.read(movie.getImgDir().resolve("img0001.png").toFile());
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -628,7 +628,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if(frame.squares.size() < frame.maxSquares) return;
             try {
-                BufferedImage image = ImageIO.read(new File(movie.getImgDir().resolve("img0001.png").toString()));
+                BufferedImage image = ImageIO.read(movie.getImgDir().resolve("img0001.png").toFile());
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
                 double yratio = image.getHeight(null) / (double) frame.getImage().getHeight(null);
 
@@ -758,8 +758,8 @@ public class GUI extends JFrame {
             addMouseMotionListener(new MouseMotionHandler());
         }
 
-        public void setImage(String fileName) {
-            image = PreProcessor.scale(fileName, this.getWidth(), this.getHeight());
+        public void setImage(Path file) {
+            image = PreProcessor.scale(file, this.getWidth(), this.getHeight());
         }
 
         public Image getImage() {

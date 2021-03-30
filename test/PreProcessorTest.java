@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 
@@ -46,12 +47,11 @@ public class PreProcessorTest {
 	 	String dirName = "vidID" + l;
 	 	new File(dirName).mkdir();
 
-	 	String inputPath = Paths.get(System.getProperty("user.dir")).resolve("test.MOV").toString();
-	 	System.out.println(inputPath);
-	 	String outputPath = Paths.get(System.getProperty("user.dir")).resolve(dirName).resolve("img%04d.png").toString();
+	 	Path directory = Paths.get(System.getProperty("user.dir"));
+	 	String inputPath = directory.resolve("test.MOV").toString();
+	 	String outputPath = directory.resolve(dirName).resolve("img%04d.png").toString();
 	 	int fps = 1;
 
-	 	//call ffmpeg extractor
 	 	PreProcessor.extractFrames(inputPath, outputPath, fps);
 	 }
 

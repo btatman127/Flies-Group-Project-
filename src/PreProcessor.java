@@ -6,27 +6,27 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.io.InputStreamReader;
 import java.lang.Math;
+import java.nio.file.Path;
 import java.util.LinkedList;
-import java.nio.file.Paths;
 import java.util.Scanner;
 
 
 public class PreProcessor {
     /**
      *
-     * @param filename The file to scale
+     * @param file The file to scale
      * @param width The desired width
      * @param height The desired height
      * @return An image scaled to the specified width and height. The image remains in aspect, and is scaled to the largest it can be
      * without becoming stretched.
      */
-    public static Image scale(String filename, int width, int height) {
+    public static Image scale(Path file, int width, int height) {
         double displayAngle = Math.atan2(height, width);
         if (displayAngle < 0) {
             displayAngle += (2 * Math.PI);
         }
         try {
-            BufferedImage image = ImageIO.read(new File(filename));
+            BufferedImage image = ImageIO.read(file.toFile());
             double imageAngle = Math.atan2(image.getHeight(), image.getWidth());
             if (imageAngle < 0) {
                 imageAngle += (2 * Math.PI);
@@ -73,12 +73,12 @@ public class PreProcessor {
      * Carries out a color correction algorithm on the frames in a given directory.
      * @param frames The number of frames to modify.
      */
-    static void colorCorrectFrames(int frames, String directory) {
+    static void colorCorrectFrames(int frames, Path directory) {
         for (int i = 1; i <= frames; i++) {
             try {
-                BufferedImage image = ImageIO.read(new File(Paths.get(directory).resolve(String.format("img%04d.png", i)).toString()));
+                BufferedImage image = ImageIO.read(directory.resolve(String.format("img%04d.png", i)).toFile());
                 BufferedImage colorImage = colorCorrect(image);
-                ImageIO.write(colorImage, "png", new File(Paths.get(directory).resolve(String.format("cc%04d.png", i)).toString()));
+                ImageIO.write(colorImage, "png", directory.resolve(String.format("cc%04d.png", i)).toFile());
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }

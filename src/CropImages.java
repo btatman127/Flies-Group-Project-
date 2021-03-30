@@ -23,19 +23,16 @@ class CropImages {
     }
 
     public void run() {
-        int i = 1;
         progressBar.setVisible(true);
-        while (i <= frames) {
+        for (int i = 1; i <= frames; i++) {
             try {
-                final BufferedImage image = ImageIO.read(
-                        new File(directory.resolve(String.format("img%04d.png", i)).toString()));
+                final BufferedImage image = ImageIO.read(directory.resolve(String.format("img%04d.png", i)).toFile());
                 BufferedImage subimage = PreProcessor.cropImage(image, point1, point2);
-                ImageIO.write(subimage, "png",
-                        new File(directory.resolve(String.format("img%04d.png", i)).toString()));
+                ImageIO.write(subimage, "png", directory.resolve(String.format("img%04d.png", i)).toFile());
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-            progressBar.setValue(i++);
+            progressBar.setValue(i);
         }
 
         progressBar.setVisible(false);

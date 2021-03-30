@@ -4,11 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class Video {
     private static final int FPS = 1;
@@ -49,8 +46,8 @@ public class Video {
         String outputPath = imgDir.resolve("img%04d.png").toString();
 
         // Extract images with ffmpeg
-        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo());
-        PreProcessor.extractFrames(getShortenedVideo(), outputPath, FPS);
+        PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo().toString());
+        PreProcessor.extractFrames(getShortenedVideo().toString(), outputPath, FPS);
         // Number of images is number of files minus one (temporary video).
         numImages = imgDir.toFile().listFiles().length - 1;
     }
@@ -62,16 +59,16 @@ public class Video {
      */
     public boolean createFrames() {
         boolean collisionFound = false;
-        PreProcessor.colorCorrectFrames(numImages, imgDir.toString());
+        PreProcessor.colorCorrectFrames(numImages, imgDir);
         try {
-            BufferedImage im = ImageIO.read(new File(imgDir.resolve(String.format("img%04d.png", 1)).toString()));
+            BufferedImage im = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
             regionDim = im.getHeight() / 100; //should be a function of cc
             regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
             islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
 
             for (int f = 0; f < numImages; f++) {
-                BufferedImage image = ImageIO.read(new File(imgDir.resolve(String.format("cc%04d.png", f + 1)).toString()));
+                BufferedImage image = ImageIO.read(imgDir.resolve(String.format("cc%04d.png", f + 1)).toFile());
                 createRegions(f, image);
                 fillLarvaLoc(f);
 
@@ -401,8 +398,8 @@ public class Video {
         larvae.add(l);
     }
 
-    public String getPathToFrame(int index) {
-        return imgDir.resolve(String.format("img%04d.png", index)).toString();
+    public Path getPathToFrame(int index) {
+        return imgDir.resolve(String.format("img%04d.png", index));
     }
 
     public Path getImgDir() {
@@ -418,8 +415,8 @@ public class Video {
         return name.substring(0, lastDot);
     }
 
-    public String getShortenedVideo() {
-        return shortenedVideo.toString();
+    public Path getShortenedVideo() {
+        return shortenedVideo;
     }
 
     public int getNumImages() {
@@ -432,7 +429,7 @@ public class Video {
      */
     public double[] getDimensions() {
         try {
-            BufferedImage im = ImageIO.read(new File(imgDir.resolve(String.format("img%04d.png", 1)).toString()));
+            BufferedImage im = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
             return new double[]{im.getWidth(), im.getHeight()};
         } catch (IOException ioe) {
             ioe.printStackTrace();
