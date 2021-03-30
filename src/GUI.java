@@ -243,6 +243,10 @@ public class GUI extends JFrame {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
+                    if (frame.movie != null) {
+                        frame.deleteDirectory(frame.movie.getImgDir());
+                    }
+
                     System.exit(0);
                 }
             };
@@ -297,6 +301,22 @@ public class GUI extends JFrame {
         pack();
         revalidate();
         repaint();
+    }
+
+    boolean deleteDirectory(Path dirName) {
+        if (dirName == null) return false;
+        else return deleteDirectory(dirName.toFile());
+    }
+
+    boolean deleteDirectory(File directoryToBeDeleted) {
+        if (!directoryToBeDeleted.exists()) return false;
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
     }
 
     public int getTempLarvaIndex() {
@@ -385,6 +405,10 @@ public class GUI extends JFrame {
     }
 
     public void setMovieVariables(File video) {
+        if (movie != null) {
+            deleteDirectory(movie.getImgDir());
+        }
+
         originalMovie = video;
         currentFrame = 1;
 
