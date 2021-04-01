@@ -21,13 +21,14 @@ import java.util.List;
 
 public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
+    private final static double ZONE_RADIUS = 4.5;
+    private final static int MAX_LARVA = 5;
 
     private int currentFrame;
     private File originalMovie;
     private Video movie;
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
-    private final static double ZONE_RADIUS = 4.5;
 
     private final JPanel buttonPanel;
     private final JButton openMovie = new JButton("Open Movie");
@@ -178,6 +179,15 @@ public class GUI extends JFrame {
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
 
+        ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVA];
+        for (int i = 0; i < MAX_LARVA; i++) {
+            toggleZones[i] = new JCheckBox("Show zones for larva " + (i+1));
+            toggleZones[i].setVisible(false);
+            buttonPanel.add(toggleZones[i]);
+            toggleZoneActions[i] = new ToggleZoneAction(i);
+            toggleZones[i].addActionListener(toggleZoneActions[i]);
+        }
+
         setButtonStates(ProgramState.OPEN);
 
         //add the image component to the screen
@@ -200,14 +210,7 @@ public class GUI extends JFrame {
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
 
-        ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[5];
-        for (int i = 0; i < 5; i++) {
-            toggleZones[i] = new JCheckBox("Show zones for larva " + (i+1));
-            toggleZones[i].setVisible(false);
-            buttonPanel.add(toggleZones[i]);
-            toggleZoneActions[i] = new ToggleZoneAction(i);
-            toggleZones[i].addActionListener(toggleZoneActions[i]);
-        }
+
 
         // Set drag-and-drop target
         setDropTarget(new DropTarget() {
@@ -353,6 +356,18 @@ public class GUI extends JFrame {
         repaint();
     }
 
+    private void resetZoneButtons() {
+        if(toggleZones[0] != null && frame != null){
+            showZones.setSelected(false);
+            frame.displayZones = false;
+            for (int i = 0; i < MAX_LARVA; i++) {
+                toggleZones[i].setVisible(false);
+                toggleZones[i].setSelected(false);
+                frame.zoneToggled[i] = false;
+            }
+        }
+    }
+
     boolean deleteDirectory(Path dirName) {
         if (dirName == null) return false;
         else return deleteDirectory(dirName.toFile());
@@ -483,6 +498,7 @@ public class GUI extends JFrame {
                 return;
             }
 
+            resetZoneButtons();
             setMovieVariables(files[0]);
         }
     }
@@ -850,7 +866,7 @@ public class GUI extends JFrame {
         public int currentFrame;
         public boolean displayPaths;
         public boolean displayZones;
-        public boolean zoneToggled[] = new boolean[5];
+        public boolean[] zoneToggled = new boolean[5];
         public boolean vidInitialized;
         public Video movie;
 
