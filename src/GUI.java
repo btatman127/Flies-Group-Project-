@@ -476,6 +476,7 @@ public class GUI extends JFrame {
 
         originalMovie = video;
         currentFrame = 1;
+        frame.currentFrame = 0;
 
         openMovieDurationDialog();
     }
