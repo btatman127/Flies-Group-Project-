@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -138,13 +139,11 @@ public class CSVExport {
     }
 
     /**
-     * Makes a string that contains which x & y coordinate and zone each larva is for each frame.
-     * @param zoneRadius radius in mm for each zone
-     * @param larvaInZone 2D array with what zone each larvae is in at each frame
+     * Makes a string that contains which x & y coordinate each larva is for each frame.
      */
-    private String getFrameDataString(double zoneRadius, List<Larva> larvae, int[][] larvaInZone) {
+    private String getFrameDataString(List<Larva> larvae) {
         StringBuilder sb = new StringBuilder();
-        sb.append(addColumnLabels(larvae));
+        sb.append(addColumnLabels(larvae, new String[] {"x (mm)", "y (mm)"}));
 
         //add data
         sb.append("\n");
@@ -152,6 +151,36 @@ public class CSVExport {
             for (int coord = 0; coord < larvae.size(); coord++) {
                 String x = "";
                 String y = "";
+
+                if (row < larvae.get(coord).getPositionsSize()) {
+                    //Get pixel x and y positions and convert them into mm. Convert (0,0) from top left to bottom left.
+                    Double[] currentPosition = larvae.get(coord).getPosition(row);
+                    if(currentPosition != null) {
+                        x = String.format("%.2f", (currentPosition[0] * scaleX));
+                        y = String.format("%.2f", ((movie.getDimensions()[1] - currentPosition[1]) * scaleY));
+                    }
+                }
+                String frameData = x + "," + y + ",";
+                sb.append(frameData);
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Makes a string that contains which zone each larva is for each frame.
+     * @param zoneRadius radius in mm for each zone
+     * @param larvaInZone 2D array with what zone each larvae is in at each frame
+     */
+    private String getFrameZoneString(double zoneRadius, List<Larva> larvae, int[][] larvaInZone) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(addColumnLabels(larvae, new String[] {"zone"}));
+
+        //add data
+        sb.append("\n");
+        for (int row = 0; row < frames; row++) {
+            for (int coord = 0; coord < larvae.size(); coord++) {
                 String zoneString = "";
                 int zone;
 
@@ -160,20 +189,14 @@ public class CSVExport {
                     //Get pixel x and y positions and convert them into mm. Convert (0,0) from top left to bottom left.
                     Double[] currentPosition = larvae.get(coord).getPosition(row);
                     if(currentPosition != null) {
-                        x = String.format("%.2f", (currentPosition[0] * scaleX));
-                        y = String.format("%.2f", ((movie.getDimensions()[1] - currentPosition[1]) * scaleY));
-
                         zone = findZone(startPosition, currentPosition, zoneRadius);
                         zoneString = String.valueOf(zone + 1);
                         larvaInZone[coord][row] = zone;
 
-                    }
-                    else{
+                    } else {
                         larvaInZone[coord][row] = -1;
                     }
                 }
-                String frameData = x + "," + y + ",";
-                sb.append(frameData);
                 sb.append(zoneString);
                 if (coord != larvae.size() - 1) {
                     sb.append(",");
@@ -183,22 +206,26 @@ public class CSVExport {
         }
         return sb.toString();
     }
-
-    private StringBuilder addColumnLabels(List<Larva> larvae) {
+    private StringBuilder addColumnLabels(List<Larva> larvae, String[] subheadings) {
         StringBuilder sb = new StringBuilder();
         //add column labels for each larva
         for (int i = 0; i < larvae.size(); i++) {
             String larvaName = "larva" + (i + 1);
             sb.append(larvaName);
             if (i != larvae.size() - 1) {
-                sb.append(",,,");
+                for (String heading : subheadings) {
+                    sb.append(",");
+                }
             }
         }
 
         //add column labels for x and y
         sb.append("\n");
         for (int i = 0; i < larvae.size(); i++) {
-            sb.append("x (mm),y (mm), zone,");
+            for (String heading : subheadings) {
+                sb.append(heading);
+                sb.append(",");
+            }
         }
         return sb;
     }
@@ -227,11 +254,27 @@ public class CSVExport {
      * Exports and saves a CSV file containing position, distance, and velocity data for each larva.
      */
     public void export(File file) {
-        StringBuilder sb = new StringBuilder();
-        int[][] larvaInZone = new int [larvae.size()][frames];
-        sb.append(getFrameDataString(zoneRadius, larvae, larvaInZone));
+        try {
+            exportCoordinates(file);
+            exportZones(getZonesFileName(file));
+        } catch (IOException e) {
+            System.out.println("Could not write CSV.");
+        }
+    }
 
-        int[] furthestZone = getFurthestZone(frames, larvae, larvaInZone);
+    static File getZonesFileName(File file) {
+        String path = file.getAbsolutePath();
+        int i = path.lastIndexOf('.');
+        if (i == -1) {
+            i = path.length();
+        }
+        String prefix = path.substring(0, i);
+        return new File(prefix + "-zones.csv");
+    }
+
+    private void exportCoordinates(File file) throws FileNotFoundException {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getFrameDataString(larvae));
 
         sb.append("\n");
         sb.append(getTotalDistanceString(larvae));
@@ -239,22 +282,29 @@ public class CSVExport {
         sb.append("\n");
         sb.append(getAverageVelocityString(larvae));
 
-        sb.append("\n");
-        sb.append("\n");
+        String result = sb.toString();
+        PrintWriter out = new PrintWriter(file);
+        out.write(result);
+        out.close();
+    }
 
+    private void exportZones(File file) throws FileNotFoundException {
+        StringBuilder sb = new StringBuilder();
+        int[][] larvaInZone = new int[larvae.size()][frames];
+        int[] furthestZone = getFurthestZone(frames, larvae, larvaInZone);
+
+        sb.append(getFrameZoneString(zoneRadius, larvae, larvaInZone));
+
+        sb.append("\n");
         sb.append(getFurthestZoneString(larvae, furthestZone));
 
         sb.append("\n");
         sb.append(getTimeInZoneString(larvae, larvaInZone));
 
         String result = sb.toString();
-        try {
-            PrintWriter out = new PrintWriter(file);
-            out.write(result);
-            out.close();
-        } catch (IOException e) {
-            System.out.println("Wasn't able to save csv");
-        }
+        PrintWriter out = new PrintWriter(file);
+        out.write(result);
+        out.close();
     }
 
     /**
