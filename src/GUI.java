@@ -13,11 +13,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.awt.geom.*;
 import java.util.List;
 
 public class GUI extends JFrame {
+    private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
+
     private int currentFrame;
     private File originalMovie;
     private Video movie;
@@ -252,11 +256,36 @@ public class GUI extends JFrame {
         pack();
     }
 
+    private static boolean isffmpegInstalled()
+    {
+        try {
+            Runtime rt = Runtime.getRuntime();
+            rt.exec(new String[] {"ffmpeg"});
+            rt.exec(new String[] {"ffprobe"});
+        } catch (IOException e) {
+            return false;
+        }
+
+        return true;
+    }
+
     public static void main(String[] args) {
         EventQueue.invokeLater(() ->
         {
             GUI frame = new GUI();
-            frame.setTitle("The Larvae Tracker 5000");
+            frame.setTitle("The Larvae Tracker 6000");
+            if (!isffmpegInstalled()) {
+                try {
+                    Desktop.getDesktop().browse(new URL(DOCUMENTATION_URL).toURI());
+                    JOptionPane.showMessageDialog(null,
+                "ffmpeg is not installed.\nSee ffmpeg installation instructions.\nProgram exiting.");
+                } catch (IOException | URISyntaxException e) {
+                    // Ignore exceptions because we exit anyway.
+                } finally {
+                    System.exit(1);
+                }
+            }
+
             WindowListener exitListener = new WindowAdapter() {
 
                 @Override
@@ -655,9 +684,13 @@ public class GUI extends JFrame {
                     "Select ok and then select new point."
             };
 
-            JOptionPane.showMessageDialog(null, message);
-            gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
+            int result = JOptionPane.showConfirmDialog(null, message,
+                                                   "Select Larva", JOptionPane.OK_CANCEL_OPTION);
+            if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+                return;
+            }
 
+            gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
             frame.maxSquares = 1;
             setButtonStates(ProgramState.RETRACKING);
         }
