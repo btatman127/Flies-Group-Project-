@@ -139,6 +139,29 @@ public class CSVExport {
     }
 
     /**
+     * Makes a string that contains which x & y coordinate and zone each larva is for each frame.
+     * @param zoneRadius radius in mm for each zone
+     */
+    private int[][] getLarvaInZone(double zoneRadius, List<Larva> larvae) {
+        int[][] larvaInZone = new int[larvae.size()][frames];
+        for (int row = 0; row < frames; row++) {
+            for (int coord = 0; coord < larvae.size(); coord++) {
+                Double[] startPosition = larvae.get(coord).getPosition(0);
+                if (row < larvae.get(coord).getPositionsSize()) {
+                    //Get pixel x and y positions and convert them into mm. Convert (0,0) from top left to bottom left.
+                    Double[] currentPosition = larvae.get(coord).getPosition(row);
+                    if (currentPosition != null) {
+                        larvaInZone[coord][row] = findZone(startPosition, currentPosition, zoneRadius);
+                    } else {
+                        larvaInZone[coord][row] = -1;
+                    }
+                }
+            }
+        }
+        return larvaInZone;
+    }
+
+    /**
      * Makes a string that contains which x & y coordinate each larva is for each frame.
      */
     private String getFrameDataString(List<Larva> larvae) {
@@ -290,7 +313,7 @@ public class CSVExport {
 
     private void exportZones(File file) throws FileNotFoundException {
         StringBuilder sb = new StringBuilder();
-        int[][] larvaInZone = new int[larvae.size()][frames];
+        int[][] larvaInZone = getLarvaInZone(zoneRadius, larvae);
         int[] furthestZone = getFurthestZone(frames, larvae, larvaInZone);
 
         sb.append(getFrameZoneString(zoneRadius, larvae, larvaInZone));
