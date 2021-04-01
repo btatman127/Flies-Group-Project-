@@ -971,14 +971,17 @@ public class GUI extends JFrame {
                 double xScale = movie.getDimensions()[0]/mm;
                 double yScale = movie.getDimensions()[0]/mm;
                 for (Larva l : larvae) {
+                    double centerX = l.getPosition(0)[0] / xratio;
+                    double centerY = l.getPosition(0)[1] / yratio;
                     if(zoneToggled[larvae.indexOf(l)]) {
                         g2.setColor(colors[larvae.indexOf(l)]);
                         for (int i = 1; i < 13; i++) {
                             double radius = ZONE_RADIUS * i;
                             double xRadius = radius * xScale / xratio;
                             double yRadius = radius * yScale / yratio;
-                            g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - xRadius,
-                                    (l.getPosition(0)[1] / yratio) - yRadius, xRadius * 2, yRadius * 2));
+                            g2.drawString(String.valueOf(i), (int) centerX, (int) (centerY - yRadius + 15));
+                            g2.draw(new Ellipse2D.Double(centerX - xRadius, centerY - yRadius,
+                                    xRadius * 2, yRadius * 2));
                         }
                     }
 
