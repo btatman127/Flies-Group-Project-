@@ -21,13 +21,13 @@ import java.util.List;
 
 public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
+    private final static double ZONE_RADIUS = 4.5;
+    private final static int MAX_LARVAE = 5;
 
-    private int currentFrame;
     private File originalMovie;
     private Video movie;
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
-    private final static double ZONE_RADIUS = 4.5;
 
     private final JPanel buttonPanel;
     private final JButton openMovie = new JButton("Open Movie");
@@ -142,8 +142,6 @@ public class GUI extends JFrame {
 
         history = new Stack<>();
 
-        //construct components
-        currentFrame = 0;
         tempLarvaIndex = -1;
 
         cropProgress = new JProgressBar();
@@ -178,6 +176,15 @@ public class GUI extends JFrame {
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
 
+        ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVAE];
+        for (int i = 0; i < MAX_LARVAE; i++) {
+            toggleZones[i] = new JCheckBox("Show zones for larva " + (i+1));
+            toggleZones[i].setVisible(false);
+            buttonPanel.add(toggleZones[i]);
+            toggleZoneActions[i] = new ToggleZoneAction(i);
+            toggleZones[i].addActionListener(toggleZoneActions[i]);
+        }
+
         setButtonStates(ProgramState.OPEN);
 
         //add the image component to the screen
@@ -200,14 +207,7 @@ public class GUI extends JFrame {
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
 
-        ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[5];
-        for (int i = 0; i < 5; i++) {
-            toggleZones[i] = new JCheckBox("Show zones for larva " + (i+1));
-            toggleZones[i].setVisible(false);
-            buttonPanel.add(toggleZones[i]);
-            toggleZoneActions[i] = new ToggleZoneAction(i);
-            toggleZones[i].addActionListener(toggleZoneActions[i]);
-        }
+
 
         // Set drag-and-drop target
         setDropTarget(new DropTarget() {
@@ -353,6 +353,18 @@ public class GUI extends JFrame {
         repaint();
     }
 
+    private void resetZoneButtons() {
+        if(toggleZones[0] != null && frame != null){
+            showZones.setSelected(false);
+            frame.displayZones = false;
+            for (int i = 0; i < MAX_LARVAE; i++) {
+                toggleZones[i].setVisible(false);
+                toggleZones[i].setSelected(false);
+                frame.zoneToggled[i] = false;
+            }
+        }
+    }
+
     boolean deleteDirectory(Path dirName) {
         if (dirName == null) return false;
         else return deleteDirectory(dirName.toFile());
@@ -397,13 +409,13 @@ public class GUI extends JFrame {
         frame.squares = new ArrayList<>();
 
         frame.displayPaths = false;
-        displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+        displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
         displayFrameNum.setEditable(false);
         displayFrameNum.setVisible(true);
 
         setButtonStates(ProgramState.PRE_CROP);
         pack();
-        frame.setImage(movie.getPathToFrame(currentFrame));
+        frame.setImage(movie.getPathToFrame(frame.currentFrame));
         validate();
         repaint();
     }
@@ -460,7 +472,7 @@ public class GUI extends JFrame {
         }
 
         originalMovie = video;
-        currentFrame = 1;
+        frame.currentFrame = 1;
 
         openMovieDurationDialog();
     }
@@ -483,6 +495,7 @@ public class GUI extends JFrame {
                 return;
             }
 
+            resetZoneButtons();
             setMovieVariables(files[0]);
         }
     }
@@ -501,12 +514,11 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             if (!changeFrameEnabled) return;
 
-            if (currentFrame + number >= 0 && currentFrame + number < movie.getNumImages()) {
-                currentFrame += number;
-                frame.currentFrame = currentFrame;
-                frame.setImage(movie.getPathToFrame(currentFrame + 1));
+            if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
+                frame.currentFrame += number;
+                frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
 
-                displayFrameNum.setText("Frame " + (currentFrame + 1) + " of " + movie.getNumImages());
+                displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
                 pack();
                 revalidate();
                 repaint();
@@ -581,9 +593,9 @@ public class GUI extends JFrame {
                 System.out.println("Need to have 2 squares to crop the image.");
             }
 
-            currentFrame = 1;
-            frame.setImage(movie.getPathToFrame(currentFrame));
-            displayFrameNum.setText("Frame " + currentFrame + " of " + movie.getNumImages());
+            frame.currentFrame = 1;
+            frame.setImage(movie.getPathToFrame(frame.currentFrame));
+            displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
             revalidate();
             repaint();
 
@@ -602,9 +614,9 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            currentFrame = 0;
-            frame.setImage(movie.getPathToFrame(currentFrame + 1));
-            displayFrameNum.setText("Frame " + (currentFrame + 1) + " of " + movie.getNumImages());
+            frame.currentFrame = 0;
+            frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+            displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
             frame.maxSquares = 5;
             setButtonStates(ProgramState.SELECTING_LARVAE);
             pack();
@@ -715,10 +727,10 @@ public class GUI extends JFrame {
                     pt[0] = (frame.squares.get(0).getCenterX() * xratio);
                     pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
-                    movie.retrackLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(frame.currentFrame, gui.getTempLarvaIndex(), pt);
                     frame.remove(frame.squares.get(0));
                     frame.maxSquares = 0;
-                    movie.retrackLarvaPosition(currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(frame.currentFrame, gui.getTempLarvaIndex(), pt);
                 }
 
                 setButtonStates(ProgramState.TRACKING);
@@ -776,7 +788,7 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             FileDialog fd = new FileDialog(GUI.this, "Select where to save image", FileDialog.SAVE);
-            String defaultName = movie.getOriginalMovieName() + ".frame_" + (currentFrame + 1) + ".png";
+            String defaultName = movie.getOriginalMovieName() + ".frame_" + (frame.currentFrame + 1) + ".png";
             fd.setFile(defaultName);
             fd.setVisible(true);
             BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null),
@@ -850,7 +862,7 @@ public class GUI extends JFrame {
         public int currentFrame;
         public boolean displayPaths;
         public boolean displayZones;
-        public boolean zoneToggled[] = new boolean[5];
+        public boolean[] zoneToggled = new boolean[MAX_LARVAE];
         public boolean vidInitialized;
         public Video movie;
 
