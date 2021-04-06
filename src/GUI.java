@@ -55,7 +55,7 @@ public class GUI extends JFrame {
     public Stack<Integer> history;
     public final int CLICKING = 0;
 
-    private enum ButtonState{
+    private enum ButtonState {
         INVISIBLE(false, false),
         DISABLED(true, false),
         ENABLED(true, true);
@@ -69,34 +69,34 @@ public class GUI extends JFrame {
         }
     }
 
-    private enum ProgramState{
-        OPEN(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+    private enum ProgramState {
+        OPEN(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
-        PRE_CROP(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        CROPPING(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        PRE_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE),
+        CROPPING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.DISABLED),
-        POST_CROP(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.ENABLED,
+        POST_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        SELECTING_LARVAE(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        SELECTING_LARVAE(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.DISABLED),
         TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.ENABLED, ButtonState.ENABLED,  ButtonState.ENABLED, ButtonState.INVISIBLE,
+                ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE),
-        RETRACKING(ButtonState.ENABLED,  ButtonState.INVISIBLE, ButtonState.INVISIBLE,
+        RETRACKING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.ENABLED, ButtonState.INVISIBLE,  ButtonState.INVISIBLE, ButtonState.ENABLED,
+                ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.DISABLED);
 
         final ButtonState openMovie;
@@ -115,7 +115,7 @@ public class GUI extends JFrame {
         ProgramState(ButtonState openMovie, ButtonState changeFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
                      ButtonState showPaths, ButtonState showZones, ButtonState exportPaths,
-                     ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo){
+                     ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo) {
             this.openMovie = openMovie;
             this.changeFrame = changeFrame;
             this.startCrop = startCrop;
@@ -178,7 +178,7 @@ public class GUI extends JFrame {
 
         ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVAE];
         for (int i = 0; i < MAX_LARVAE; i++) {
-            toggleZones[i] = new JCheckBox("Show zones for larva " + (i+1));
+            toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
             toggleZones[i].setVisible(false);
             buttonPanel.add(toggleZones[i]);
             toggleZoneActions[i] = new ToggleZoneAction(i);
@@ -206,7 +206,6 @@ public class GUI extends JFrame {
         RetrackPositionAction retrackPositionAction = new RetrackPositionAction(this);
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
-
 
 
         // Set drag-and-drop target
@@ -256,12 +255,11 @@ public class GUI extends JFrame {
         pack();
     }
 
-    private static boolean isffmpegInstalled()
-    {
+    private static boolean isffmpegInstalled() {
         try {
             Runtime rt = Runtime.getRuntime();
-            rt.exec(new String[] {"ffmpeg"});
-            rt.exec(new String[] {"ffprobe"});
+            rt.exec(new String[]{"ffmpeg"});
+            rt.exec(new String[]{"ffprobe"});
         } catch (IOException e) {
             return false;
         }
@@ -278,7 +276,7 @@ public class GUI extends JFrame {
                 try {
                     Desktop.getDesktop().browse(new URL(DOCUMENTATION_URL).toURI());
                     JOptionPane.showMessageDialog(null,
-                "ffmpeg is not installed.\nSee ffmpeg installation instructions.\nProgram exiting.");
+                            "ffmpeg is not installed.\nSee ffmpeg installation instructions.\nProgram exiting.");
                 } catch (IOException | URISyntaxException e) {
                     // Ignore exceptions because we exit anyway.
                 } finally {
@@ -303,7 +301,7 @@ public class GUI extends JFrame {
         });
     }
 
-    private void setButtonStates(ProgramState programState){
+    private void setButtonStates(ProgramState programState) {
         openMovie.setVisible(programState.openMovie.visible);
         openMovie.setEnabled(programState.openMovie.enabled);
 
@@ -354,7 +352,7 @@ public class GUI extends JFrame {
     }
 
     private void resetZoneButtons() {
-        if(toggleZones[0] != null && frame != null){
+        if (toggleZones[0] != null && frame != null) {
             showZones.setSelected(false);
             frame.displayZones = false;
             for (int i = 0; i < MAX_LARVAE; i++) {
@@ -441,7 +439,7 @@ public class GUI extends JFrame {
 
         int result = JOptionPane.showConfirmDialog(null, message,
                 "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
-        if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+        if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
             return;
         }
 
@@ -485,7 +483,7 @@ public class GUI extends JFrame {
      * If cancel is selected nothing happens
      */
     class VideoOpener implements ActionListener {
-        public void actionPerformed(ActionEvent e) throws NumberFormatException{
+        public void actionPerformed(ActionEvent e) throws NumberFormatException {
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
             File[] files = fd.getFiles();
@@ -554,7 +552,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if(frame.squares.size() < frame.maxSquares) return;
+            if (frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
             try {
                 BufferedImage image = ImageIO.read(movie.getImgDir().resolve("img0001.png").toFile());
@@ -636,7 +634,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if(frame.squares.size() < 1) return;
+            if (frame.squares.size() < 1) return;
             boolean collisionFound;
             double xratio = movie.getDimensions()[0] / (double) frame.getImage().getWidth(null);
             double yratio = movie.getDimensions()[1] / (double) frame.getImage().getHeight(null);
@@ -697,8 +695,8 @@ public class GUI extends JFrame {
             };
 
             int result = JOptionPane.showConfirmDialog(null, message,
-                                                   "Select Larva", JOptionPane.OK_CANCEL_OPTION);
-            if(result==JOptionPane.CANCEL_OPTION || result==JOptionPane.CLOSED_OPTION){
+                    "Select Larva", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
                 return;
             }
 
@@ -716,7 +714,7 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if(frame.squares.size() < frame.maxSquares) return;
+            if (frame.squares.size() < frame.maxSquares) return;
             try {
                 BufferedImage image = ImageIO.read(movie.getImgDir().resolve("img0001.png").toFile());
                 double xratio = image.getWidth(null) / (double) frame.getImage().getWidth(null);
@@ -754,7 +752,9 @@ public class GUI extends JFrame {
             history.pop();
             frame.squares.remove(frame.squares.size() - 1);
             repaint();
-            if (history.isEmpty()) {undo.setEnabled(false);}
+            if (history.isEmpty()) {
+                undo.setEnabled(false);
+            }
         }
     }
 
@@ -792,8 +792,8 @@ public class GUI extends JFrame {
             fd.setFile(defaultName);
             fd.setVisible(true);
             BufferedImage bi = new BufferedImage(frame.getImage().getWidth(null),
-                                                 frame.getImage().getHeight(null),
-                                                 BufferedImage.TYPE_INT_ARGB);
+                    frame.getImage().getHeight(null),
+                    BufferedImage.TYPE_INT_ARGB);
             Graphics g = bi.createGraphics();
             frame.paint(g);
             g.dispose();
@@ -822,7 +822,7 @@ public class GUI extends JFrame {
     private class ToggleZoneAction implements ActionListener {
         private int index;
 
-        public ToggleZoneAction(int index){
+        public ToggleZoneAction(int index) {
             this.index = index;
         }
 
@@ -833,7 +833,8 @@ public class GUI extends JFrame {
     }
 
     private class ShowZoneAction implements ActionListener {
-        public ShowZoneAction(){}
+        public ShowZoneAction() {
+        }
 
         public void actionPerformed(ActionEvent event) {
             frame.displayZones = !frame.displayZones;
@@ -856,7 +857,10 @@ public class GUI extends JFrame {
 
         private static final int DEFAULT_WIDTH = 1000;
         private static final int DEFAULT_HEIGHT = 800;
+        private final Color[] LARVAE_COLORS = {Color.cyan, Color.blue, Color.orange, Color.green, Color.red};
         private static final int SIDELENGTH = 7;
+        private double xRatio;
+        private double yRatio;
         public int maxSquares;
         public ArrayList<Rectangle2D> squares;
         public int currentFrame;
@@ -890,7 +894,6 @@ public class GUI extends JFrame {
         }
 
         public void paintComponent(Graphics g) {
-            Color[] colors = {Color.cyan, Color.blue, Color.orange, Color.green, Color.red};
             if (image == null) return;
             // draw the image in the upper-left corner
 
@@ -904,84 +907,90 @@ public class GUI extends JFrame {
                 g2.draw(r);
             }
             ArrayList<Larva> larvae = new ArrayList<>();
-            double xratio = 0;
-            double yratio = 0;
-            if (movie!=null) {
+            if (movie != null) {
                 larvae = movie.getLarva();
-                xratio = movie.getDimensions()[0] / (double) image.getWidth(null);
-                yratio = movie.getDimensions()[1] / (double) image.getHeight(null);
+                xRatio = movie.getDimensions()[0] / (double) image.getWidth(null);
+                yRatio = movie.getDimensions()[1] / (double) image.getHeight(null);
             }
             //draw lines between larvae positions
             if (displayPaths) {
-                for (Larva l : larvae) {
-                    g2.setColor(colors[larvae.indexOf(l)]);
-                    for (int i = 0; i < currentFrame; i++) {
-
-                        //convert pt image space --> window space
-                        // img_pt * winWidth/imageWidth
-                        if (i + 1 >= l.getPositionsSize()) {
-                            break;
-                        }
-                        g2.setStroke(new BasicStroke(1));
-                        if (l.getPosition(i) != null) {
-                            if (l.getPosition(i + 1) != null) {
-                                g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3,
-                                        (l.getPosition(i)[1]) / yratio + 3,
-                                        (l.getPosition(i + 1)[0]) / xratio + 3,
-                                        (l.getPosition(i + 1)[1]) / yratio + 3));
-                                g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio,
-                                        (l.getPosition(i)[1]) / yratio, 6, 6));
-                                g2.draw(new Ellipse2D.Double((l.getPosition(i + 1)[0]) / xratio,
-                                        (l.getPosition(i + 1)[1]) / yratio, 6, 6));
-                            } else {
-                                for (int j = i + 2; j < l.getPositionsSize(); j++) {
-                                    if (l.getPosition(j) != null) {
-                                        Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT,
-                                                BasicStroke.JOIN_BEVEL, 0,
-                                                new float[]{9}, 0);
-                                        g2.setStroke(dashed);
-                                        g2.draw(new Line2D.Double((l.getPosition(i)[0]) / xratio + 3,
-                                                (l.getPosition(i)[1]) / yratio + 3,
-                                                (l.getPosition(j)[0]) / xratio + 3,
-                                                (l.getPosition(j)[1]) / yratio + 3));
-                                        g2.setStroke(new BasicStroke());
-                                        g2.draw(new Ellipse2D.Double((l.getPosition(i)[0]) / xratio,
-                                                (l.getPosition(i)[1]) / yratio, 6, 6));
-                                        g2.draw(new Ellipse2D.Double((l.getPosition(j)[0]) / xratio,
-                                                (l.getPosition(j)[1]) / yratio, 6, 6));
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
-                            g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
-                                    (int) ((l.getPosition(i + 1)[0]) / xratio - 3),
-                                    (int) ((l.getPosition(i + 1)[1]) / yratio - 3));
-                        }
-                    }
-                    g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xratio,
-                            l.getPosition(0)[1] / yratio, 6, 6));
-                }
+                drawPaths(g2, larvae);
             }
 
-            if (displayZones){
-                double mm = 76.2; //The grid is 3" by 3", which translates into about 76 mm.
-                assert movie != null;
-                double xScale = movie.getDimensions()[0]/mm;
-                double yScale = movie.getDimensions()[0]/mm;
-                for (Larva l : larvae) {
-                    if(zoneToggled[larvae.indexOf(l)]) {
-                        g2.setColor(colors[larvae.indexOf(l)]);
-                        for (int i = 1; i < 13; i++) {
-                            double radius = ZONE_RADIUS * i;
-                            double xRadius = radius * xScale / xratio;
-                            double yRadius = radius * yScale / yratio;
-                            g2.draw(new Ellipse2D.Double((l.getPosition(0)[0] / xratio) - xRadius,
-                                    (l.getPosition(0)[1] / yratio) - yRadius, xRadius * 2, yRadius * 2));
-                        }
+            if (displayZones) {
+                drawZones(g2, larvae);
+
+            }
+        }
+
+        private void drawPaths(Graphics2D g2, ArrayList<Larva> larvae) {
+            for (Larva l : larvae) {
+                g2.setColor(LARVAE_COLORS[larvae.indexOf(l)]);
+                for (int i = 0; i < currentFrame; i++) {
+
+                    //convert pt image space --> window space
+                    // img_pt * winWidth/imageWidth
+                    if (i + 1 >= l.getPositionsSize()) {
+                        break;
+                    }
+                    if (l.getPosition(i) != null) {
+                        paintPaths(g2, l, i);
+                    }
+                    if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
+                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
+                                (int) ((l.getPosition(i + 1)[0]) / xRatio - 3),
+                                (int) ((l.getPosition(i + 1)[1]) / yRatio - 3));
+                    }
+                }
+                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
+                        l.getPosition(0)[1] / yRatio, 6, 6));
+            }
+        }
+
+        private void paintPaths(Graphics2D g2, Larva l, int startFrame) {
+            for (int currentFrame = startFrame + 1; currentFrame < l.getPositionsSize(); currentFrame++) {
+                if (l.getPosition(currentFrame) != null) {
+                    if (currentFrame == startFrame + 1) {
+                        g2.setStroke(new BasicStroke(1));
+                    } else {
+                        g2.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT,
+                                BasicStroke.JOIN_BEVEL, 0,
+                                new float[]{9}, 0));
                     }
 
+                    g2.draw(new Line2D.Double((l.getPosition(startFrame)[0]) / xRatio + 3,
+                            (l.getPosition(startFrame)[1]) / yRatio + 3,
+                            (l.getPosition(currentFrame)[0]) / xRatio + 3,
+                            (l.getPosition(currentFrame)[1]) / yRatio + 3));
+                    g2.setStroke(new BasicStroke());
+
+                    int radius = 6;
+                    g2.draw(new Ellipse2D.Double((l.getPosition(startFrame)[0]) / xRatio,
+                            (l.getPosition(startFrame)[1]) / yRatio, radius, radius));
+                    g2.draw(new Ellipse2D.Double((l.getPosition(currentFrame)[0]) / xRatio,
+                            (l.getPosition(currentFrame)[1]) / yRatio, radius, radius));
+                    return;
+                }
+            }
+        }
+
+        private void drawZones(Graphics2D g2, ArrayList<Larva> larvae) {
+            double mm = 76.2; //The grid is 3" by 3", which translates into about 76 mm.
+            assert movie != null;
+
+            for (Larva l : larvae) {
+                double centerX = l.getPosition(0)[0] / xRatio;
+                double centerY = l.getPosition(0)[1] / yRatio;
+                if (zoneToggled[larvae.indexOf(l)]) {
+                    g2.setColor(LARVAE_COLORS[larvae.indexOf(l)]);
+                    for (int i = 1; i < 13; i++) {
+                        double radius = ZONE_RADIUS * i;
+                        double xRadius = radius * image.getWidth(null) / mm;
+                        double yRadius = radius * image.getHeight(null) / mm;
+                        g2.drawString(String.valueOf(i), (int) centerX, (int) (centerY - yRadius + 15));
+                        g2.draw(new Ellipse2D.Double(centerX - xRadius, centerY - yRadius,
+                                xRadius * 2, yRadius * 2));
+                    }
                 }
 
             }
