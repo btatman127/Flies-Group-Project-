@@ -677,13 +677,13 @@ public class GUI extends JFrame {
             setButtonStates(ProgramState.TRACKING);
 
             //Initializes the tracking process within the Video class
-            collisionFound = movie.createFrames();
-            if (collisionFound) {
-                Object[] message = {
-                        "A collision was detected at frame #" + (movie.getCollisionFrameIndex(0) + 1) + "."
-                };
-                JOptionPane.showMessageDialog(null, message);
+            try {
+                movie.initializeColorCorrectedFrames();
+                movie.createFrame(frame.currentFrame);
+            } catch (IOException ioe) {
+                //TODO Make error box
             }
+
             frame.vidInitialized = true;
             buttonPanel.requestFocus();
             repaint();

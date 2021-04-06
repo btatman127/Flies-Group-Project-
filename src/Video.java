@@ -57,43 +57,30 @@ public class Video {
         this.darknessThreshold = darknessThreshold;
     }
 
+    public void initializeColorCorrectedFrames() throws IOException {
+        PreProcessor.colorCorrectFrames(numImages, imgDir);
+        BufferedImage image = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
+
+        regionDim = image.getHeight() / 100; //should be a function of cc
+        regions = new Region[numImages][image.getWidth() / regionDim][image.getHeight() / regionDim];
+        larvaLoc = new boolean[numImages][image.getWidth() / regionDim][image.getHeight() / regionDim];
+        islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
+    }
+
     /**
      * Last step to initialize a movie.
      * Stores coordinates of each larva in each frame
      */
-    public boolean createFrames() {
-        boolean collisionFound = false;
-        PreProcessor.colorCorrectFrames(numImages, imgDir);
-        try {
-            BufferedImage im = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
-            regionDim = im.getHeight() / 100; //should be a function of cc
-            regions = new Region[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
-            larvaLoc = new boolean[numImages][im.getWidth() / regionDim][im.getHeight() / regionDim];
-            islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
+    public void createFrame(int currentFrame) throws IOException {
+        BufferedImage image = ImageIO.read(imgDir.resolve(String.format("cc%04d.png", currentFrame + 1)).toFile());
+        createRegions(currentFrame, image);
+        fillLarvaeLocation(currentFrame);
 
-            for (int f = 0; f < numImages; f++) {
-                BufferedImage image = ImageIO.read(imgDir.resolve(String.format("cc%04d.png", f + 1)).toFile());
-                createRegions(f, image);
-                fillLarvaLoc(f);
-
-                //Array of islands for each frame
-                //Array of (arraylists of (double arrays))
-                islands.add(getIslandList(f));
-            }
-
-            collisionFrameIndex = new ArrayList<>();
-
-            trackLarvae();
-
-            collisionFound = findCollisions();
-
-            videoInitialized = true;
-
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-        return collisionFound;
+        //Array of islands for each frame
+        //Array of (arraylists of (double arrays))
+        islands.add(getIslandList(currentFrame));
+        trackLarvae(currentFrame); //TODO make this work better, currently creates errors
+        videoInitialized = true;
     }
 
 
@@ -142,34 +129,6 @@ public class Video {
         }
     }
 
-    /**
-     * goes through larvae positions and checks for position overlap on same frames
-     **/
-    private boolean findCollisions() {
-        boolean collisionFound = false;
-        for (int f = 0; f < numImages; f++) {
-            //for each larva position
-            for (int i = 0; i < larvae.size() - 1; i++) {
-                if (larvae.get(i).getPositionsSize() <= f || larvae.get(i).getPosition(f) == null) {
-                    continue;
-                }
-                for (int j = i + 1; j < larvae.size(); j++) {
-                    if (larvae.get(j).getPositionsSize() <= f || larvae.get(j).getPosition(f) == null) {
-                        continue;
-                    }
-                    if (larvae.get(i).getPosition(f)[0].equals(larvae.get(j).getPosition(f)[0]) &&
-                        larvae.get(i).getPosition(f)[1].equals(larvae.get(j).getPosition(f)[1])) {
-                        collisionFrameIndex.add(f);
-                        collisionFound = true;
-                    }
-                }
-            }
-            // is there a duplicate?
-            //if so push frame number to collision frame index
-            //larva[f][][]
-        }
-        return collisionFound;
-    }
 
     /**
      * Splits an image into a set number of subimages called regions, which are stored in the Video's regions array.
@@ -210,7 +169,7 @@ public class Video {
      * @return A low-resolution representation of a frame, in pure black and white, where black areas are likely to be larvae
      * and white areas are not.
      */
-    private BufferedImage fillLarvaLoc(int frame) {
+    private BufferedImage fillLarvaeLocation(int frame) {
         BufferedImage array = new BufferedImage(regions[0].length, regions[0][0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
@@ -228,6 +187,7 @@ public class Video {
 
     /**
      * Searches a frame for islands.
+     * An island is a probable larva location
      *
      * @param frame The frame to search
      * @return An arraylist of Double array of length 3, where index 0 is the x-coordinate of the center,
@@ -353,35 +313,34 @@ public class Video {
 
 
     /**
-     * Loops over the frames of the video, and for each frame, locates the larva location closest to
-     * the last know larva location, using the first points clicked as a baseline.
+     * Locate the larva location closest to
+     * the last know larva location, using the user clicked points as a baseline.
+     * @param currentFrame
      */
-    private void trackLarvae() {
+    private void trackLarvae(int currentFrame) {
         //TODO Replace initial larva position (currently user-clicked) with true larva center locations
 
         for (Larva l : larvae) {
-            for (int i = 1; i < numImages; i++) {
-                Double[] old = l.getPosition(i - 1);
-                if(old == null){
-                    l.setNewPosition(null);
-                    continue;
-                }
-                double minDistance = 100000;
-                int minIndex = -1;
+            Double[] old = l.getPosition(currentFrame - 1);
+            if(old == null){
+                l.setNewPosition(null);
+                continue;
+            }
+            double minDistance = 100000;
+            int minIndex = -1;
 
-                for (int j = 0; j < islands.get(i).size(); j++) {
-                    double distance = distance(old, islands.get(i).get(j));
+            for (int j = 0; j < islands.get(currentFrame).size(); j++) {
+                double distance = distance(old, islands.get(currentFrame).get(j));
 
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        minIndex = j;
-                    }
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    minIndex = j;
                 }
-                if (minDistance < getDimensions()[1] / ISLAND_CONSTANT) {
-                    l.setNewPosition(islands.get(i).get(minIndex));
-                } else {
-                    l.setNewPosition(null);
-                }
+            }
+            if (minDistance < getDimensions()[1] / ISLAND_CONSTANT) {
+                l.setNewPosition(islands.get(currentFrame).get(minIndex));
+            } else {
+                l.setNewPosition(null);
             }
         }
     }
