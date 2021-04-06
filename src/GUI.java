@@ -46,6 +46,7 @@ public class GUI extends JFrame {
     private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
+    private final JSlider darknessThreshold = new JSlider(0, 100, 50);
     private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
@@ -73,31 +74,31 @@ public class GUI extends JFrame {
         OPEN(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         PRE_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         CROPPING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.DISABLED),
+                ButtonState.DISABLED, ButtonState.INVISIBLE),
         POST_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.ENABLED),
         SELECTING_LARVAE(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.DISABLED),
+                ButtonState.DISABLED, ButtonState.DISABLED),
         TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.ENABLED),
         RETRACKING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.DISABLED);
+                ButtonState.DISABLED, ButtonState.DISABLED);
 
         final ButtonState openMovie;
         final ButtonState changeFrame;
@@ -111,11 +112,13 @@ public class GUI extends JFrame {
         final ButtonState retrackPosition;
         final ButtonState confirmRetrackPosition;
         final ButtonState undo;
+        final ButtonState darknessThreshold;
 
         ProgramState(ButtonState openMovie, ButtonState changeFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
                      ButtonState showPaths, ButtonState showZones, ButtonState exportPaths,
-                     ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo) {
+                     ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo,
+                     ButtonState darknessThreshold) {
             this.openMovie = openMovie;
             this.changeFrame = changeFrame;
             this.startCrop = startCrop;
@@ -128,6 +131,7 @@ public class GUI extends JFrame {
             this.retrackPosition = retrackPosition;
             this.confirmRetrackPosition = confirmRetrackPosition;
             this.undo = undo;
+            this.darknessThreshold = darknessThreshold;
         }
     }
 
@@ -175,6 +179,7 @@ public class GUI extends JFrame {
         buttonPanel.add(displayFrameNum);
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
+        buttonPanel.add(darknessThreshold);
 
         ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVAE];
         for (int i = 0; i < MAX_LARVAE; i++) {
@@ -345,6 +350,9 @@ public class GUI extends JFrame {
 
         undo.setVisible(programState.undo.visible);
         undo.setEnabled(programState.undo.enabled);
+
+        darknessThreshold.setVisible(programState.darknessThreshold.visible);
+        darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
 
         pack();
         revalidate();
