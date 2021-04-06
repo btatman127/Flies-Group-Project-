@@ -21,7 +21,7 @@ import java.util.List;
 
 public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
-    private final static double ZONE_RADIUS = 4.5;
+    private double zoneRadius = 4.5;
     private final static int MAX_LARVAE = 5;
 
     private File originalMovie;
@@ -777,7 +777,7 @@ public class GUI extends JFrame {
                     frames = larva.getCoordinates().size();
                 }
             }
-            CSVExport exporter = new CSVExport(movie, frames, ZONE_RADIUS);
+            CSVExport exporter = new CSVExport(movie, frames, zoneRadius);
             exporter.export(file);
         }
     }
@@ -839,14 +839,34 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             frame.displayZones = !frame.displayZones;
 
+            if (frame.displayZones) {
+                setZoneRadius();
+            }
+
             for (int i = 0; i < movie.getLarva().size(); i++) {
                 toggleZones[i].setVisible(frame.displayZones);
                 toggleZones[i].setEnabled(frame.displayZones);
                 toggleZones[i].setSelected(false);
                 frame.zoneToggled[i] = false;
-
             }
             repaint();
+        }
+    }
+
+    private void setZoneRadius() {
+        JTextField radius = new JTextField(zoneRadius + "");
+        Object[] message = {"Enter a zone radius in millimeters.", radius};
+
+        int result = JOptionPane.showConfirmDialog(null, message,
+                "Zone Radius", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.CANCEL_OPTION && result == JOptionPane.CLOSED_OPTION) {
+            return;
+        }
+
+        try {
+            zoneRadius = Double.parseDouble(radius.getText());
+        } catch (NumberFormatException e) {
+            // Do nothing if the number is non-sensical.
         }
     }
 
@@ -984,7 +1004,7 @@ public class GUI extends JFrame {
                 if (zoneToggled[larvae.indexOf(l)]) {
                     g2.setColor(LARVAE_COLORS[larvae.indexOf(l)]);
                     for (int i = 1; i < 13; i++) {
-                        double radius = ZONE_RADIUS * i;
+                        double radius = zoneRadius * i;
                         double xRadius = radius * image.getWidth(null) / mm;
                         double yRadius = radius * image.getHeight(null) / mm;
                         g2.drawString(String.valueOf(i), (int) centerX, (int) (centerY - yRadius + 15));
