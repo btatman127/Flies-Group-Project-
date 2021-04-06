@@ -419,7 +419,7 @@ public class GUI extends JFrame {
 
     private void createMovie(int startValue, int endValue) {
         try {
-            movie = new Video(originalMovie, startValue, endValue);
+            movie = new Video(originalMovie, startValue, endValue, DEFAULT_DARKNESS_THRESHOLD);
         } catch (IOException | InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -787,7 +787,9 @@ public class GUI extends JFrame {
         public void stateChanged(ChangeEvent e) {
             JSlider source = (JSlider)e.getSource();
             if (!source.getValueIsAdjusting()) {
-                sliderValue.setText("Darkness Threshold = " + source.getValue() + ".");
+                int value = source.getValue();
+                sliderValue.setText("Darkness Threshold = " + value + ".");
+                movie.setDarknessThreshold(value);
             }
         }
 

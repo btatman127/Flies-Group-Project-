@@ -20,7 +20,7 @@ public class Video {
     //TRACKER
     private Region[][][] regions; //Region[frame number][x-coordinate][y-coordinate]
     private boolean[][][] larvaLoc;
-    private static final int THRESHOLD = 204;
+    private int darknessThreshold;
     private int regionDim;// = 8;
     //Array of islands for each frame
     //Array of (arraylists of (double arrays))
@@ -32,11 +32,12 @@ public class Video {
     // length and/or width of each grid square in mm
     private ArrayList<Larva> larvae;
 
-    public Video(File movie, int startTime, int endTime) throws
+    public Video(File movie, int startTime, int endTime, int darknessThreshold) throws
             IOException, InterruptedException {
         videoInitialized = false;
         originalVideo = movie;
         larvae = new ArrayList<>();
+        this.darknessThreshold = darknessThreshold;
 
         // Create input and output paths for ffmpeg to use
         this.imgDir = Files.createTempDirectory("fly_tracker");
@@ -52,6 +53,9 @@ public class Video {
         numImages = imgDir.toFile().listFiles().length - 1;
     }
 
+    public void setDarknessThreshold(int darknessThreshold) {
+        this.darknessThreshold = darknessThreshold;
+    }
 
     /**
      * Last step to initialize a movie.
@@ -211,7 +215,7 @@ public class Video {
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
-                larvaLoc[frame][i][j] = avg < THRESHOLD;
+                larvaLoc[frame][i][j] = avg < darknessThreshold;
                 int b = 255;
                 if (larvaLoc[frame][i][j]) {
                     b = 0;
