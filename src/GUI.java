@@ -25,6 +25,7 @@ public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
     private final static double ZONE_RADIUS = 4.5;
     private final static int MAX_LARVAE = 5;
+    private final static int DEFAULT_DARKNESS_THRESHOLD = 204;
 
     private File originalMovie;
     private Video movie;
@@ -48,7 +49,8 @@ public class GUI extends JFrame {
     private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
-    private final JSlider darknessThreshold = new JSlider(0, 100, 50);
+    private final JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
+    private final JLabel sliderValue = new JLabel();
     private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
@@ -182,6 +184,11 @@ public class GUI extends JFrame {
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
         buttonPanel.add(darknessThreshold);
+        buttonPanel.add(sliderValue);
+
+        darknessThreshold.setMajorTickSpacing(25);
+        darknessThreshold.setPaintLabels(true);
+        darknessThreshold.setPaintTicks(true);
 
         ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVAE];
         for (int i = 0; i < MAX_LARVAE; i++) {
@@ -214,7 +221,6 @@ public class GUI extends JFrame {
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
         SliderAction sliderAction = new SliderAction();
-
 
         // Set drag-and-drop target
         setDropTarget(new DropTarget() {
@@ -357,13 +363,16 @@ public class GUI extends JFrame {
 
         darknessThreshold.setVisible(programState.darknessThreshold.visible);
         darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
+        sliderValue.setVisible(programState.darknessThreshold.visible);
 
         pack();
         revalidate();
         repaint();
     }
 
-    private void resetZoneButtons() {
+    private void resetButtons() {
+        sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
+        darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
         if (toggleZones[0] != null && frame != null) {
             showZones.setSelected(false);
             frame.displayZones = false;
@@ -505,7 +514,7 @@ public class GUI extends JFrame {
                 return;
             }
 
-            resetZoneButtons();
+            resetButtons();
             setMovieVariables(files[0]);
         }
     }
@@ -771,10 +780,18 @@ public class GUI extends JFrame {
     }
 
     private class SliderAction implements ChangeListener {
+        public SliderAction() {
+        }
+
         @Override
         public void stateChanged(ChangeEvent e) {
-            System.out.println("I DID SOMETHING");
+            JSlider source = (JSlider)e.getSource();
+            if (!source.getValueIsAdjusting()) {
+                sliderValue.setText("Darkness Threshold = " + source.getValue() + ".");
+            }
         }
+
+
     }
 
     private class CSVExportAction implements ActionListener {
