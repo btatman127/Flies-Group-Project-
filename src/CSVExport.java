@@ -15,6 +15,7 @@ public class CSVExport {
     private final Video movie;
     private final List<Larva> larvae;
     private final double zoneRadius;
+    private int maximumZone = 0;
 
     public CSVExport(Video movie, int frames, double zoneRadius) {
         this.frames = frames;
@@ -127,6 +128,7 @@ public class CSVExport {
                     Double[] currentPosition = larvae.get(coord).getPosition(row);
                     if (currentPosition != null) {
                         larvaInZone[coord][row] = findZone(startPosition, currentPosition, zoneRadius);
+                        maximumZone = Math.max(larvaInZone[coord][row], maximumZone);
                     } else {
                         larvaInZone[coord][row] = -1;
                     }
@@ -193,16 +195,16 @@ public class CSVExport {
         return sb.toString();
     }
 
-    private String getFurthestZoneString(List<Larva> larvae, int[] furthestZone) {
+    private String getFurthestZoneString(List<Larva> larvae, int[] furthestZones) {
         StringBuilder sb = new StringBuilder();
         sb.append("Total number of Zones Occupied, Raw # of Larva, Proportion of Larva");
         sb.append("\n");
 
-        int[] numLarvaFurthestZone = new int[12];
+        int[] numLarvaFurthestZone = new int[maximumZone + 1];
         for (int i = 0; i < larvae.size(); i++) {
-            numLarvaFurthestZone[furthestZone[i]]++;
+            numLarvaFurthestZone[furthestZones[i]]++;
         }
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i <= maximumZone; i++) {
             sb.append(i + 1);
             sb.append(",");
             sb.append(numLarvaFurthestZone[i]);
@@ -269,8 +271,8 @@ public class CSVExport {
      * @param timeInZone portion of time each larvae spent in each zone
      */
     private int[] numberOfLarvaeAboveTimeThreshold(double[][] timeInZone, double threshold){
-        int[] portionOfTimeInZone = new int[12];
-        for (int i = 0; i < 12; i++) {
+        int[] portionOfTimeInZone = new int[maximumZone + 1];
+        for (int i = 0; i <= maximumZone; i++) {
             for(double[] portionOfTime : timeInZone) {
                 if (portionOfTime[i] >= threshold) {
                     portionOfTimeInZone[i]++;
@@ -285,7 +287,7 @@ public class CSVExport {
         sb.append("How many larva spent time in each zone?\n");
         sb.append(", Any amount,,At least half their time,,All their time,\n");
         sb.append(",count, proportion, count, proportion, count proportion\n");
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i <= maximumZone; i++) {
             sb.append("Zone ");
             sb.append(i + 1);
             sb.append(",");
@@ -306,7 +308,7 @@ public class CSVExport {
     }
 
     private double[] portionOfTimeInZone(int[] zoneAtFrame){
-        double[] timeInZone = new double[12];
+        double[] timeInZone = new double[maximumZone + 1];
         int framesTracked = 0;
         for (int zone : zoneAtFrame) {
             if(zone != -1){
@@ -314,7 +316,7 @@ public class CSVExport {
                 timeInZone[zone]++;
             }
         }
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i <= maximumZone; i++) {
             timeInZone[i] /= framesTracked;
         }
         return timeInZone;
