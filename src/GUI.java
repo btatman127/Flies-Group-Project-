@@ -1,6 +1,8 @@
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -211,6 +213,7 @@ public class GUI extends JFrame {
         RetrackPositionAction retrackPositionAction = new RetrackPositionAction(this);
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
+        SliderAction sliderAction = new SliderAction();
 
 
         // Set drag-and-drop target
@@ -253,6 +256,7 @@ public class GUI extends JFrame {
         exportCSV.addActionListener(exportAction);
         screenshot.addActionListener(screenshotAction);
         undo.addActionListener(undoAction);
+        darknessThreshold.addChangeListener(sliderAction);
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -763,6 +767,13 @@ public class GUI extends JFrame {
             if (history.isEmpty()) {
                 undo.setEnabled(false);
             }
+        }
+    }
+
+    private class SliderAction implements ChangeListener {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            System.out.println("I DID SOMETHING");
         }
     }
 
