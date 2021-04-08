@@ -50,6 +50,7 @@ public class GUI extends JFrame {
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
     private JTextPane displayFrameNum;
+    private JTextPane displayZoneRadius;
     private int[] point1;
     private int[] point2;
     private FileDialog fd;
@@ -150,12 +151,19 @@ public class GUI extends JFrame {
         cropProgress = new JProgressBar();
         cropProgress.setVisible(false);
 
-        DefaultStyledDocument sd = new DefaultStyledDocument();
-        displayFrameNum = new JTextPane(sd);
         SimpleAttributeSet as = new SimpleAttributeSet();
         StyleConstants.setAlignment(as, StyleConstants.ALIGN_CENTER);
+
+        displayFrameNum = new JTextPane(new DefaultStyledDocument());
         displayFrameNum.setParagraphAttributes(as, true);
         displayFrameNum.setVisible(false);
+        displayFrameNum.setEditable(false);
+
+        displayZoneRadius = new JTextPane(new DefaultStyledDocument());
+        displayZoneRadius.setParagraphAttributes(as, true);
+        displayZoneRadius.setVisible(false);
+        displayZoneRadius.setEditable(false);
+        displayZoneRadius.setText("Zone radius: " + zoneRadius + " mm");
 
         //make new panel for buttons
         buttonPanel = new JPanel();
@@ -180,6 +188,7 @@ public class GUI extends JFrame {
         buttonPanel.add(cropProgress);
 
         buttonPanel.add(setZoneRadius);
+        buttonPanel.add(displayZoneRadius);
         setZoneRadius.setVisible(false);
         for (int i = 0; i < MAX_LARVAE; i++) {
             toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
@@ -201,7 +210,7 @@ public class GUI extends JFrame {
                     event.acceptDrop(DnDConstants.ACTION_COPY);
                     List<File> droppedFiles = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     File video = droppedFiles.get(0);
-                    setMovieVariables(video);
+                    initializeMovie(video);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -223,7 +232,7 @@ public class GUI extends JFrame {
         amap.put("panel.prev", previousFrameAction);
 
         //attach the actions to the buttons
-        openMovie.addActionListener(new VideoOpener());
+        openMovie.addActionListener(new VideoSelectionAction());
         nextFrame.addActionListener(nextFrameAction);
         prevFrame.addActionListener(previousFrameAction);
         startCrop.addActionListener(new StartCropAction());
@@ -242,7 +251,7 @@ public class GUI extends JFrame {
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
         add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(800, 800));
-        pack();
+        render();
     }
 
     private static boolean isffmpegInstalled() {
@@ -336,13 +345,17 @@ public class GUI extends JFrame {
         undo.setVisible(programState.undo.visible);
         undo.setEnabled(programState.undo.enabled);
 
-        pack();
-        revalidate();
-        repaint();
+        if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
+            resetZoneButtons();
+        }
+
+        render();
     }
 
     private void resetZoneButtons() {
         if (toggleZones[0] != null && frame != null) {
+            setZoneRadius.setVisible(false);
+            displayZoneRadius.setVisible(false);
             showZones.setSelected(false);
             frame.displayZones = false;
             for (int i = 0; i < MAX_LARVAE; i++) {
@@ -402,10 +415,8 @@ public class GUI extends JFrame {
         displayFrameNum.setVisible(true);
 
         setButtonStates(ProgramState.PRE_CROP);
-        pack();
         frame.setImage(movie.getPathToFrame(frame.currentFrame));
-        validate();
-        repaint();
+        render();
     }
 
     private void openMovieDurationDialog() {
@@ -454,7 +465,7 @@ public class GUI extends JFrame {
         createMovie(startValue, endValue);
     }
 
-    public void setMovieVariables(File video) {
+    public void initializeMovie(File video) {
         if (movie != null) {
             deleteDirectory(movie.getImgDir());
         }
@@ -465,14 +476,17 @@ public class GUI extends JFrame {
         openMovieDurationDialog();
     }
 
+    private void render() {
+        pack();
+        validate();
+        repaint();
+    }
+
     /**
-     * Allows the user to select a file from the computer
-     * Saves the file name to the global variable fileName
-     * Saves the directory of the file to the global variable movieDir
-     * If a file is selected then all other buttons are made visible and the initially useful ones are enabled
-     * If cancel is selected nothing happens
+     * Opens a file dialog to let the user select a movie to open.
+     * Code that runs for both drag-and-drop and the file dialog should go in initializeMovie();
      */
-    private class VideoOpener implements ActionListener {
+    private class VideoSelectionAction implements ActionListener {
         public void actionPerformed(ActionEvent e) throws NumberFormatException {
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
@@ -483,8 +497,7 @@ public class GUI extends JFrame {
                 return;
             }
 
-            resetZoneButtons();
-            setMovieVariables(files[0]);
+            initializeMovie(files[0]);
         }
     }
 
@@ -507,9 +520,7 @@ public class GUI extends JFrame {
                 frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
 
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
-                pack();
-                revalidate();
-                repaint();
+                render();
             }
         }
     }
@@ -523,7 +534,7 @@ public class GUI extends JFrame {
             frame.maxSquares = 2;
             frame.squares = new ArrayList<>();
             setButtonStates(ProgramState.CROPPING);
-            repaint();
+            render();
         }
     }
 
@@ -555,15 +566,11 @@ public class GUI extends JFrame {
                 cropProgress.setVisible(true);
                 cropProgress.setMaximum(movie.getNumImages());
                 cropProgress.setMinimum(0);
-                pack();
-                revalidate();
-                repaint();
+                render();
 
                 new CropImages(point1, point2, movie.getNumImages(),
                         movie.getImgDir(), cropProgress).run();
-                pack();
-                revalidate();
-                repaint();
+                render();
 
                 setButtonStates(ProgramState.POST_CROP);
 
@@ -577,8 +584,7 @@ public class GUI extends JFrame {
             frame.currentFrame = 1;
             frame.setImage(movie.getPathToFrame(frame.currentFrame));
             displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
-            revalidate();
-            repaint();
+            render();
 
             history = new Stack<>();
             undo.setEnabled(false);
@@ -597,9 +603,7 @@ public class GUI extends JFrame {
             displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
             frame.maxSquares = 5;
             setButtonStates(ProgramState.SELECTING_LARVAE);
-            pack();
-            revalidate();
-            repaint();
+            render();
         }
     }
 
@@ -641,7 +645,7 @@ public class GUI extends JFrame {
             }
             frame.vidInitialized = true;
             buttonPanel.requestFocus();
-            repaint();
+            render();
         }
     }
 
@@ -699,8 +703,7 @@ public class GUI extends JFrame {
                 history = new Stack<>();
 
                 buttonPanel.requestFocus();
-                revalidate();
-                repaint();
+                render();
 
             } catch (IOException ioe) {
                 ioe.printStackTrace();
@@ -712,7 +715,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             history.pop();
             frame.squares.remove(frame.squares.size() - 1);
-            repaint();
+            render();
             if (history.isEmpty()) {
                 undo.setEnabled(false);
             }
@@ -767,7 +770,7 @@ public class GUI extends JFrame {
     private class ShowPathAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             frame.displayPaths = !frame.displayPaths;
-            repaint();
+            render();
         }
     }
 
@@ -780,7 +783,7 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             frame.zoneToggled[index] = !frame.zoneToggled[index];
-            repaint();
+            render();
         }
     }
 
@@ -789,14 +792,13 @@ public class GUI extends JFrame {
             frame.displayZones = !frame.displayZones;
 
             setZoneRadius.setVisible(frame.displayZones);
+            displayZoneRadius.setVisible(frame.displayZones);
 
             for (int i = 0; i < movie.getLarva().size(); i++) {
                 toggleZones[i].setVisible(frame.displayZones);
                 toggleZones[i].setEnabled(frame.displayZones);
-                toggleZones[i].setSelected(false);
-                frame.zoneToggled[i] = false;
             }
-            repaint();
+            render();
         }
     }
 
@@ -818,7 +820,8 @@ public class GUI extends JFrame {
                 // Do nothing if the number is non-sensical.
             }
 
-            repaint();
+            displayZoneRadius.setText("Zone radius: " + zoneRadius + " mm");
+            render();
         }
     }
 
@@ -999,7 +1002,7 @@ public class GUI extends JFrame {
             squares.add(currentMouseLocationRectangle);
             history.push(CLICKING);
             undo.setEnabled(true);
-            repaint();
+            render();
         }
 
         /**
@@ -1011,7 +1014,7 @@ public class GUI extends JFrame {
             if (s == null) return;
             if (s == currentMouseLocationRectangle) currentMouseLocationRectangle = null;
             squares.remove(s);
-            repaint();
+            render();
         }
 
         private class MouseHandler extends MouseAdapter {
@@ -1052,7 +1055,7 @@ public class GUI extends JFrame {
                     int y = event.getY();
 
                     currentMouseLocationRectangle.setFrame(x - SIDELENGTH / 2.0, y - SIDELENGTH / 2.0, SIDELENGTH, SIDELENGTH);
-                    repaint();
+                    render();
                 }
             }
         }
