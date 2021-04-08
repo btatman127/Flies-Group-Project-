@@ -181,13 +181,11 @@ public class GUI extends JFrame {
 
         buttonPanel.add(setZoneRadius);
         setZoneRadius.setVisible(false);
-        ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVAE];
         for (int i = 0; i < MAX_LARVAE; i++) {
             toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
             toggleZones[i].setVisible(false);
             buttonPanel.add(toggleZones[i]);
-            toggleZoneActions[i] = new ToggleZoneAction(i);
-            toggleZones[i].addActionListener(toggleZoneActions[i]);
+            toggleZones[i].addActionListener(new ToggleZoneAction(i));
         }
 
         setButtonStates(ProgramState.OPEN);
@@ -195,23 +193,6 @@ public class GUI extends JFrame {
         //add the image component to the screen
         frame = new ImageComponent("welcome.png");
         frame.setBorder(BorderFactory.createEtchedBorder());
-
-        //create actions for the buttons
-        VideoOpener openAction = new VideoOpener();
-        Action nextAction = new StepAction(1);
-        Action prevAction = new StepAction(-1);
-        StartCropAction startCropAction = new StartCropAction();
-        StopCropAction stopCropAction = new StopCropAction();
-        StartLarvaeAction startLarvaeAction = new StartLarvaeAction();
-        StopLarvaeAction stopLarvaeAction = new StopLarvaeAction();
-        ShowPathAction showPathAction = new ShowPathAction();
-        ShowZoneAction showZoneAction = new ShowZoneAction();
-        CSVExportAction exportAction = new CSVExportAction();
-        ScreenshotAction screenshotAction = new ScreenshotAction();
-        RetrackPositionAction retrackPositionAction = new RetrackPositionAction(this);
-        StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
-        UndoAction undoAction = new UndoAction();
-
 
         // Set drag-and-drop target
         setDropTarget(new DropTarget() {
@@ -233,27 +214,30 @@ public class GUI extends JFrame {
         imap.put(KeyStroke.getKeyStroke("RIGHT"), "panel.next");
         imap.put(KeyStroke.getKeyStroke("LEFT"), "panel.prev");
 
+
+        AbstractAction nextFrameAction = new StepAction(1);
+        AbstractAction previousFrameAction = new StepAction(-1);
         //map those names of inputs to actions
         ActionMap amap = buttonPanel.getActionMap();
-        amap.put("panel.next", nextAction);
-        amap.put("panel.prev", prevAction);
+        amap.put("panel.next", nextFrameAction);
+        amap.put("panel.prev", previousFrameAction);
 
         //attach the actions to the buttons
-        openMovie.addActionListener(openAction);
-        nextFrame.addActionListener(nextAction);
-        prevFrame.addActionListener(prevAction);
-        startCrop.addActionListener(startCropAction);
-        confirmCrop.addActionListener(stopCropAction);
-        startLarvaeSelection.addActionListener(startLarvaeAction);
-        confirmLarvaeSelection.addActionListener(stopLarvaeAction);
-        showPaths.addActionListener(showPathAction);
-        showZones.addActionListener(showZoneAction);
+        openMovie.addActionListener(new VideoOpener());
+        nextFrame.addActionListener(nextFrameAction);
+        prevFrame.addActionListener(previousFrameAction);
+        startCrop.addActionListener(new StartCropAction());
+        confirmCrop.addActionListener(new StopCropAction());
+        startLarvaeSelection.addActionListener(new StartLarvaeAction());
+        confirmLarvaeSelection.addActionListener(new StopLarvaeAction());
+        showPaths.addActionListener(new ShowPathAction());
+        showZones.addActionListener(new ShowZoneAction());
         setZoneRadius.addActionListener(new SetZoneRadiusAction());
-        retrackPosition.addActionListener(retrackPositionAction);
-        confirmRetrackPosition.addActionListener(stopRetrackAction);
-        exportCSV.addActionListener(exportAction);
-        screenshot.addActionListener(screenshotAction);
-        undo.addActionListener(undoAction);
+        retrackPosition.addActionListener(new RetrackPositionAction());
+        confirmRetrackPosition.addActionListener(new StopRetrackAction());
+        exportCSV.addActionListener(new CSVExportAction());
+        screenshot.addActionListener(new ScreenshotAction());
+        undo.addActionListener(new UndoAction());
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -488,7 +472,7 @@ public class GUI extends JFrame {
      * If a file is selected then all other buttons are made visible and the initially useful ones are enabled
      * If cancel is selected nothing happens
      */
-    class VideoOpener implements ActionListener {
+    private class VideoOpener implements ActionListener {
         public void actionPerformed(ActionEvent e) throws NumberFormatException {
             //File Dialog to Select Movie to Open
             fd.setVisible(true);
@@ -535,9 +519,6 @@ public class GUI extends JFrame {
      * Enables the end crop button, and disables the start crop button
      */
     private class StartCropAction implements ActionListener {
-        public StartCropAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             frame.maxSquares = 2;
             frame.squares = new ArrayList<>();
@@ -546,7 +527,6 @@ public class GUI extends JFrame {
         }
     }
 
-
     /**
      * Stores the location of the center of the two squares on the screen
      * Removes the squares from the image component and prevents more from being drawn
@@ -554,9 +534,6 @@ public class GUI extends JFrame {
      * Enables "Start Larvae Selection" and "Start Crop" buttons, and disables "End Crop" button
      */
     private class StopCropAction implements ActionListener {
-        public StopCropAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             if (frame.squares.size() < frame.maxSquares) return;
             cropProgress.setVisible(true);
@@ -614,9 +591,6 @@ public class GUI extends JFrame {
      * Enables "End Larvae" selection button
      */
     private class StartLarvaeAction implements ActionListener {
-        public StartLarvaeAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             frame.currentFrame = 0;
             frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
@@ -635,10 +609,6 @@ public class GUI extends JFrame {
      * Disable "Start Larvae Selection" and "End Larvae Selection" buttons
      */
     private class StopLarvaeAction implements ActionListener {
-
-        public StopLarvaeAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             if (frame.squares.size() < 1) return;
             boolean collisionFound;
@@ -676,12 +646,6 @@ public class GUI extends JFrame {
     }
 
     private class RetrackPositionAction implements ActionListener {
-        GUI gui;
-
-        public RetrackPositionAction(GUI gui) {
-            this.gui = gui;
-        }
-
         public void actionPerformed(ActionEvent event) {
             String[] larvaeNumber = new String[movie.getLarva().size()];
             for (int i = 0; i < movie.getLarva().size(); i++) {
@@ -692,7 +656,7 @@ public class GUI extends JFrame {
                 larvaeNumber[i] = "" + (i + 1);
             }
 
-            gui.setTempLarvaIndex(-1);
+            GUI.this.setTempLarvaIndex(-1);
             JComboBox larvaNumberOption = new JComboBox(larvaeNumber);
             Object[] message = {
                     "Please select larva number to retrack position.",
@@ -706,19 +670,13 @@ public class GUI extends JFrame {
                 return;
             }
 
-            gui.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
+            GUI.this.setTempLarvaIndex(larvaNumberOption.getSelectedIndex());
             frame.maxSquares = 1;
             setButtonStates(ProgramState.RETRACKING);
         }
     }
 
     private class StopRetrackAction implements ActionListener {
-        GUI gui;
-
-        public StopRetrackAction(GUI gui) {
-            this.gui = gui;
-        }
-
         public void actionPerformed(ActionEvent event) {
             if (frame.squares.size() < frame.maxSquares) return;
             try {
@@ -731,10 +689,10 @@ public class GUI extends JFrame {
                     pt[0] = (frame.squares.get(0).getCenterX() * xratio);
                     pt[1] = (frame.squares.get(0).getCenterY() * yratio);
 
-                    movie.retrackLarvaPosition(frame.currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(frame.currentFrame, GUI.this.getTempLarvaIndex(), pt);
                     frame.remove(frame.squares.get(0));
                     frame.maxSquares = 0;
-                    movie.retrackLarvaPosition(frame.currentFrame, gui.getTempLarvaIndex(), pt);
+                    movie.retrackLarvaPosition(frame.currentFrame, GUI.this.getTempLarvaIndex(), pt);
                 }
 
                 setButtonStates(ProgramState.TRACKING);
@@ -751,9 +709,6 @@ public class GUI extends JFrame {
     }
 
     private class UndoAction implements ActionListener {
-        public UndoAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             history.pop();
             frame.squares.remove(frame.squares.size() - 1);
@@ -765,9 +720,6 @@ public class GUI extends JFrame {
     }
 
     private class CSVExportAction implements ActionListener {
-        public CSVExportAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
 
             FileDialog fd = new FileDialog(GUI.this, "Select where to save csv", FileDialog.SAVE);
@@ -789,9 +741,6 @@ public class GUI extends JFrame {
     }
 
     private class ScreenshotAction implements ActionListener {
-        public ScreenshotAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             FileDialog fd = new FileDialog(GUI.this, "Select where to save image", FileDialog.SAVE);
             String defaultName = movie.getOriginalMovieName() + ".frame_" + (frame.currentFrame + 1) + ".png";
@@ -816,9 +765,6 @@ public class GUI extends JFrame {
     }
 
     private class ShowPathAction implements ActionListener {
-        public ShowPathAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             frame.displayPaths = !frame.displayPaths;
             repaint();
@@ -839,9 +785,6 @@ public class GUI extends JFrame {
     }
 
     private class ShowZoneAction implements ActionListener {
-        public ShowZoneAction() {
-        }
-
         public void actionPerformed(ActionEvent event) {
             frame.displayZones = !frame.displayZones;
 
