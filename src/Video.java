@@ -65,6 +65,7 @@ public class Video {
         islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
 
         islands.add(getIslandList(0));
+        createRegions(0, ImageIO.read(imgDir.resolve("cc0001.png").toFile()));
     }
 
     /**
