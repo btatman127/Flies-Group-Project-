@@ -14,7 +14,6 @@ public class Video {
     private final Path shortenedVideo;
     private final Path imgDir;
     private final int numImages;
-    private boolean videoInitialized;
 
 
     //TRACKER
@@ -34,7 +33,6 @@ public class Video {
 
     public Video(File movie, int startTime, int endTime, int darknessThreshold) throws
             IOException, InterruptedException {
-        videoInitialized = false;
         originalVideo = movie;
         larvae = new ArrayList<>();
         this.darknessThreshold = darknessThreshold;
@@ -65,6 +63,8 @@ public class Video {
         regions = new Region[numImages][image.getWidth() / regionDim][image.getHeight() / regionDim];
         larvaLoc = new boolean[numImages][image.getWidth() / regionDim][image.getHeight() / regionDim];
         islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
+
+        islands.add(getIslandList(0));
     }
 
     /**
@@ -79,54 +79,17 @@ public class Video {
         //Array of islands for each frame
         //Array of (arraylists of (double arrays))
         islands.add(getIslandList(currentFrame));
-        trackLarvae(currentFrame); //TODO make this work better, currently creates errors
-        videoInitialized = true;
+        trackLarvae(currentFrame);
     }
 
 
-    void retrackLarvaPosition(int firstFrame, int larvaIndex, Double[] pt) {
-        //starting and frameIndex
-        //overwrite position values for larvae[larvaIndex] for each frame
-        if (!videoInitialized) {
-            System.out.println("!!attempted to resetLarvaPosition before fully initializing video!!");
-            return;
-        }
-
+    void retrackLarvaPosition(int currentFrame, int larvaIndex, Double[] pt) {
         Larva l = larvae.get(larvaIndex);
 
-        l.trimPositions(firstFrame); // this will destroy the record of coordinates including and after the firstFrame
+        l.trimPositions(currentFrame); // this will destroy the record of coordinates including and after the currentFrame
 
         l.setNewPosition(pt);
 
-
-        for (int f = firstFrame + 1; f < numImages; f++) {
-            ArrayList<Double[]> currentIslands = islands.get(f);
-
-            Double[] previousPt = l.getPosition(f - 1);
-
-            if(previousPt == null){
-                l.setNewPosition(null);
-                continue;
-            }
-            double minDistance = 100000;
-            int minIndex = -1;
-
-            //for each island in currentIslands
-            for (int j = 0; j < currentIslands.size(); j++) {
-                double distance = distance(previousPt, islands.get(f).get(j));
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    minIndex = j;
-                }
-            }
-
-            if (minDistance < getDimensions()[1] / ISLAND_CONSTANT) {
-                l.setNewPosition(islands.get(f).get(minIndex));
-            } else {
-                l.setNewPosition(null);
-            }
-        }
     }
 
 
@@ -169,8 +132,8 @@ public class Video {
      * @return A low-resolution representation of a frame, in pure black and white, where black areas are likely to be larvae
      * and white areas are not.
      */
-    private BufferedImage fillLarvaeLocation(int frame) {
-        BufferedImage array = new BufferedImage(regions[0].length, regions[0][0].length, BufferedImage.TYPE_INT_RGB);
+    public BufferedImage fillLarvaeLocation(int frame) {
+        BufferedImage image = new BufferedImage(regions[0].length, regions[0][0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
@@ -179,10 +142,10 @@ public class Video {
                 if (larvaLoc[frame][i][j]) {
                     b = 0;
                 }
-                array.setRGB(i, j, new Color(b, b, b).getRGB());
+                image.setRGB(i, j, new Color(b, b, b).getRGB());
             }
         }
-        return array;
+        return image;
     }
 
     /**
@@ -315,7 +278,6 @@ public class Video {
     /**
      * Locate the larva location closest to
      * the last know larva location, using the user clicked points as a baseline.
-     * @param currentFrame
      */
     private void trackLarvae(int currentFrame) {
         //TODO Replace initial larva position (currently user-clicked) with true larva center locations

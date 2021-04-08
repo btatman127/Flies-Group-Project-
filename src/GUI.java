@@ -21,6 +21,8 @@ import java.util.*;
 import java.awt.geom.*;
 import java.util.List;
 
+import static java.lang.System.exit;
+
 public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
     private final static double ZONE_RADIUS = 4.5;
@@ -295,7 +297,7 @@ public class GUI extends JFrame {
                 } catch (IOException | URISyntaxException e) {
                     // Ignore exceptions because we exit anyway.
                 } finally {
-                    System.exit(1);
+                    exit(1);
                 }
             }
 
@@ -307,7 +309,7 @@ public class GUI extends JFrame {
                         frame.deleteDirectory(frame.movie.getImgDir());
                     }
 
-                    System.exit(0);
+                    exit(0);
                 }
             };
             frame.addWindowListener(exitListener);
@@ -538,6 +540,14 @@ public class GUI extends JFrame {
                 frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
 
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
+                if(number == 1){
+                    try {
+                        movie.createFrame(frame.currentFrame);
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(null, "Could not find image.");
+                        exit(1);
+                    }
+                }
                 pack();
                 revalidate();
                 repaint();
@@ -679,9 +689,9 @@ public class GUI extends JFrame {
             //Initializes the tracking process within the Video class
             try {
                 movie.initializeColorCorrectedFrames();
-                movie.createFrame(frame.currentFrame);
             } catch (IOException ioe) {
-                //TODO Make error box
+                JOptionPane.showMessageDialog(null,"Could not find image.");
+                exit(1);
             }
 
             frame.vidInitialized = true;
@@ -790,6 +800,9 @@ public class GUI extends JFrame {
                 int value = source.getValue();
                 sliderValue.setText("Darkness Threshold = " + value + ".");
                 movie.setDarknessThreshold(value);
+                BufferedImage image = movie.fillLarvaeLocation(frame.currentFrame);
+                frame.setImage(image);
+                repaint();
             }
         }
 
@@ -925,6 +938,10 @@ public class GUI extends JFrame {
 
         public void setImage(Path file) {
             image = PreProcessor.scale(file, this.getWidth(), this.getHeight());
+        }
+
+        public void setImage(Image image){
+            this.image = image;
         }
 
         public Image getImage() {
