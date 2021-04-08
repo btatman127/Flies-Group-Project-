@@ -163,6 +163,7 @@ public class CSVExport {
         StringBuilder sb = new StringBuilder();
         sb.append("Zones,Radius (mm):,");
         sb.append(zoneRadius);
+        sb.append("\n");
         sb.append(addColumnLabels(larvae, 1));
 
         //add data

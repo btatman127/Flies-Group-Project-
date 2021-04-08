@@ -21,13 +21,15 @@ import java.util.List;
 
 public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
-    private double zoneRadius = 4.5;
     private final static int MAX_LARVAE = 5;
+    //The grid is 3" by 3", and we convert to millimeters
+    private static final double GRID_DIMENSIONS = 76.2;
 
     private File originalMovie;
     private Video movie;
     private int tempLarvaIndex;
     private boolean changeFrameEnabled = false;
+    private double zoneRadius = 4.5;
 
     private final JPanel buttonPanel;
     private final JButton openMovie = new JButton("Open Movie");
@@ -40,6 +42,7 @@ public class GUI extends JFrame {
     private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
     private final JCheckBox showZones = new JCheckBox("Show Larvae Zones", false);
     private JCheckBox[] toggleZones = new JCheckBox[5];
+    private final JButton setZoneRadius = new JButton("Set zone radius");
     private final JButton exportCSV = new JButton(("Export as CSV file"));
     private final JButton screenshot = new JButton(("Screenshot current frame"));
     private final JButton retrackPosition = new JButton("Retrack Larva @ Current Frame");
@@ -176,6 +179,8 @@ public class GUI extends JFrame {
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
 
+        buttonPanel.add(setZoneRadius);
+        setZoneRadius.setVisible(false);
         ToggleZoneAction[] toggleZoneActions = new ToggleZoneAction[MAX_LARVAE];
         for (int i = 0; i < MAX_LARVAE; i++) {
             toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
@@ -243,6 +248,7 @@ public class GUI extends JFrame {
         confirmLarvaeSelection.addActionListener(stopLarvaeAction);
         showPaths.addActionListener(showPathAction);
         showZones.addActionListener(showZoneAction);
+        setZoneRadius.addActionListener(new SetZoneRadiusAction());
         retrackPosition.addActionListener(retrackPositionAction);
         confirmRetrackPosition.addActionListener(stopRetrackAction);
         exportCSV.addActionListener(exportAction);
@@ -839,9 +845,7 @@ public class GUI extends JFrame {
         public void actionPerformed(ActionEvent event) {
             frame.displayZones = !frame.displayZones;
 
-            if (frame.displayZones) {
-                setZoneRadius();
-            }
+            setZoneRadius.setVisible(frame.displayZones);
 
             for (int i = 0; i < movie.getLarva().size(); i++) {
                 toggleZones[i].setVisible(frame.displayZones);
@@ -853,20 +857,25 @@ public class GUI extends JFrame {
         }
     }
 
-    private void setZoneRadius() {
-        JTextField radius = new JTextField(zoneRadius + "");
-        Object[] message = {"Enter a zone radius in millimeters.", radius};
+    private class SetZoneRadiusAction implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            JTextField radius = new JTextField(zoneRadius + "");
+            Object[] message = {"Enter a zone radius in millimeters.", radius};
 
-        int result = JOptionPane.showConfirmDialog(null, message,
+            int result = JOptionPane.showConfirmDialog(null, message,
                 "Zone Radius", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.CANCEL_OPTION && result == JOptionPane.CLOSED_OPTION) {
-            return;
-        }
+            if (result == JOptionPane.CANCEL_OPTION && result == JOptionPane.CLOSED_OPTION) {
+                return;
+            }
 
-        try {
-            zoneRadius = Double.parseDouble(radius.getText());
-        } catch (NumberFormatException e) {
-            // Do nothing if the number is non-sensical.
+            try {
+                zoneRadius = Double.parseDouble(radius.getText());
+            } catch (NumberFormatException e) {
+                // Do nothing if the number is non-sensical.
+            }
+
+            repaint();
         }
     }
 
@@ -995,7 +1004,7 @@ public class GUI extends JFrame {
         }
 
         private void drawZones(Graphics2D g2, ArrayList<Larva> larvae) {
-            double mm = 76.2; //The grid is 3" by 3", which translates into about 76 mm.
+            int zones = (int) Math.ceil(GRID_DIMENSIONS * Math.sqrt(2) / zoneRadius);
             assert movie != null;
 
             for (Larva l : larvae) {
@@ -1003,10 +1012,10 @@ public class GUI extends JFrame {
                 double centerY = l.getPosition(0)[1] / yRatio;
                 if (zoneToggled[larvae.indexOf(l)]) {
                     g2.setColor(LARVAE_COLORS[larvae.indexOf(l)]);
-                    for (int i = 1; i < 13; i++) {
+                    for (int i = 1; i <= zones; i++) {
                         double radius = zoneRadius * i;
-                        double xRadius = radius * image.getWidth(null) / mm;
-                        double yRadius = radius * image.getHeight(null) / mm;
+                        double xRadius = radius * image.getWidth(null) / GRID_DIMENSIONS;
+                        double yRadius = radius * image.getHeight(null) / GRID_DIMENSIONS;
                         g2.drawString(String.valueOf(i), (int) centerX, (int) (centerY - yRadius + 15));
                         g2.draw(new Ellipse2D.Double(centerX - xRadius, centerY - yRadius,
                                 xRadius * 2, yRadius * 2));
