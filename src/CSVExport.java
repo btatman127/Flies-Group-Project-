@@ -45,7 +45,7 @@ public class CSVExport {
             int[][] larvaInZone = getLarvaInZone(zoneRadius, larvae);
             int[] furthestZone = getFurthestZone(frames, larvae, larvaInZone);
 
-            sb.append(getFrameZoneString(zoneRadius, larvae, larvaInZone));
+            sb.append(getFrameZoneString(larvae, larvaInZone));
 
             sb.append("\n");
             sb.append(getFurthestZoneString(larvae, furthestZone));
@@ -157,12 +157,12 @@ public class CSVExport {
 
     /**
      * Makes a string that contains which zone each larva is for each frame.
-     * @param zoneRadius radius in mm for each zone
      * @param larvaInZone 2D array with what zone each larvae is in at each frame
      */
-    private String getFrameZoneString(double zoneRadius, List<Larva> larvae, int[][] larvaInZone) {
+    private String getFrameZoneString(List<Larva> larvae, int[][] larvaInZone) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Zones\n");
+        sb.append("Zones,Radius (mm):,");
+        sb.append(zoneRadius);
         sb.append(addColumnLabels(larvae, 1));
 
         //add data
