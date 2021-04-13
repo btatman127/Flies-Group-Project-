@@ -13,46 +13,38 @@ import java.util.Scanner;
 
 public class PreProcessor {
     /**
-     *
-     * @param file The file to scale
-     * @param width The desired width
+     * @param width  The desired width
      * @param height The desired height
      * @return An image scaled to the specified width and height. The image remains in aspect, and is scaled to the largest it can be
      * without becoming stretched.
      */
-    public static Image scale(Path file, int width, int height) {
+    public static Image scale(Image image, int width, int height){
         double displayAngle = Math.atan2(height, width);
         if (displayAngle < 0) {
             displayAngle += (2 * Math.PI);
         }
-        try {
-            BufferedImage image = ImageIO.read(file.toFile());
-            double imageAngle = Math.atan2(image.getHeight(), image.getWidth());
-            if (imageAngle < 0) {
-                imageAngle += (2 * Math.PI);
-            }
-            Image scaleImage;
-
-            if (displayAngle >= imageAngle) {
-                //Giving -1 keeps the Image's original aspect ratio.
-                scaleImage = image.getScaledInstance(width, -1, Image.SCALE_DEFAULT);
-            } else {
-                scaleImage = image.getScaledInstance(-1, height, Image.SCALE_DEFAULT);
-            }
-            return scaleImage;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        double imageAngle = Math.atan2(image.getHeight(null), image.getWidth(null));
+        if (imageAngle < 0) {
+            imageAngle += (2 * Math.PI);
         }
-        return null;
+        Image scaleImage;
+
+        if (displayAngle >= imageAngle) {
+            //Giving -1 keeps the Image's original aspect ratio.
+            scaleImage = image.getScaledInstance(width, -1, Image.SCALE_DEFAULT);
+        } else {
+            scaleImage = image.getScaledInstance(-1, height, Image.SCALE_DEFAULT);
+        }
+        return scaleImage;
     }
 
     /**
      * @return An integer array {x,y} of the top left point, given any two points.
      */
     static int[] findTopLeftCropCorner(int[] point1, int[] point2) {
-        return new int[] {
-            Math.min(point1[0], point2[0]),
-            Math.min(point1[1], point2[1])
+        return new int[]{
+                Math.min(point1[0], point2[0]),
+                Math.min(point1[1], point2[1])
         };
     }
 
@@ -65,12 +57,13 @@ public class PreProcessor {
     static BufferedImage cropImage(BufferedImage image, int[] point1, int[] point2) {
         int[] topLeft = findTopLeftCropCorner(point1, point2);
         return image.getSubimage(topLeft[0], topLeft[1],
-                                 Math.abs(point1[0] - point2[0]), Math.abs(point1[1] -point2[1]));
+                Math.abs(point1[0] - point2[0]), Math.abs(point1[1] - point2[1]));
     }
 
 
     /**
      * Carries out a color correction algorithm on the frames in a given directory.
+     *
      * @param frames The number of frames to modify.
      */
     static void colorCorrectFrames(int frames, Path directory) {
@@ -87,6 +80,7 @@ public class PreProcessor {
 
     /**
      * For a specific image, color correct that image.
+     *
      * @param image The image to color correct.
      * @return A black and white image which attempts to correct for bad video quality to provide a clearer idea of
      * what is actually going on.
@@ -94,7 +88,7 @@ public class PreProcessor {
     static BufferedImage colorCorrect(BufferedImage image) {
         int height = image.getHeight();
         int width = image.getWidth();
-        LimitedQueue queue = new LimitedQueue(height/4);
+        LimitedQueue queue = new LimitedQueue(height / 4);
 
         double threshold = 0;
         for (int y = 0; y < height; y++) {
@@ -121,19 +115,20 @@ public class PreProcessor {
     }
 
 
-	/**
-	* Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
-	* @param inputPath the video from which to extract frames
-	* @param outputPath a format string for output image paths
-	* @param fps a value of 1 will extract 1 frame for each second of video
-	*/
+    /**
+     * Sends ffmpeg command to the shell to extract frames of a video as .png files in given directory
+     *
+     * @param inputPath  the video from which to extract frames
+     * @param outputPath a format string for output image paths
+     * @param fps        a value of 1 will extract 1 frame for each second of video
+     */
 
     public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
         String[] command = new String[]{
                 "ffmpeg", "-i", inputPath,
                 "-vf", "fps=" + fps, outputPath};
         Runtime.getRuntime().exec(command).waitFor();
-	}
+    }
 
 
     /**
@@ -150,11 +145,13 @@ public class PreProcessor {
         Runtime.getRuntime().exec(command).waitFor();
     }
 
-    /** Gets video duration in seconds from ffmpeg. **/
+    /**
+     * Gets video duration in seconds from ffmpeg.
+     **/
     public static int getVideoDuration(File movie) throws IOException {
         String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format",
-                                         "compact=print_section=0:nokey=1:escape=csv", "-show_entries",
-                                         "format=duration", movie.getAbsolutePath()};
+                "compact=print_section=0:nokey=1:escape=csv", "-show_entries",
+                "format=duration", movie.getAbsolutePath()};
 
         java.lang.Runtime rt2 = java.lang.Runtime.getRuntime();
         java.lang.Process p2 = rt2.exec(command2);

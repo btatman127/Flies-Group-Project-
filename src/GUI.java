@@ -437,7 +437,12 @@ public class GUI extends JFrame {
 
         setButtonStates(ProgramState.PRE_CROP);
         pack();
-        frame.setImage(movie.getPathToFrame(frame.currentFrame));
+        try {
+            frame.setImage(movie.getPathToFrame(frame.currentFrame));
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Could not find image.");
+            exit(1);
+        }
         validate();
         repaint();
     }
@@ -538,7 +543,12 @@ public class GUI extends JFrame {
 
             if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
                 frame.currentFrame += number;
-                frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+                try {
+                    frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Could not find image.");
+                    exit(1);
+                }
 
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
                 if(number == 1){
@@ -624,7 +634,12 @@ public class GUI extends JFrame {
             }
 
             frame.currentFrame = 1;
-            frame.setImage(movie.getPathToFrame(frame.currentFrame));
+            try {
+                frame.setImage(movie.getPathToFrame(frame.currentFrame));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Could not find image.");
+                exit(1);
+            }
             displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
             revalidate();
             repaint();
@@ -645,7 +660,12 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             frame.currentFrame = 0;
-            frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+            try {
+                frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Could not find image.");
+                exit(1);
+            }
             displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
             frame.maxSquares = 5;
             setButtonStates(ProgramState.SELECTING_LARVAE);
@@ -937,12 +957,13 @@ public class GUI extends JFrame {
             addMouseMotionListener(new MouseMotionHandler());
         }
 
-        public void setImage(Path file) {
-            image = PreProcessor.scale(file, this.getWidth(), this.getHeight());
+        public void setImage(Path file) throws IOException {
+            Image image = ImageIO.read(file.toFile());
+            this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
         public void setImage(Image image){
-            this.image = image;
+            this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());;
         }
 
         public Image getImage() {
