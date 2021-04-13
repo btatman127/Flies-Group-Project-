@@ -4,14 +4,19 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.io.InputStreamReader;
 import java.lang.Math;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Scanner;
 
 
 public class PreProcessor {
+    private static String ffmpegLocation = "ffmpeg";
+    private static String ffprobeLocation = "ffprobe";
     /**
      *
      * @param file The file to scale
@@ -130,7 +135,7 @@ public class PreProcessor {
 
     public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
         String[] command = new String[]{
-                "ffmpeg", "-i", inputPath,
+                ffmpegLocation, "-i", inputPath,
                 "-vf", "fps=" + fps, outputPath};
         Runtime.getRuntime().exec(command).waitFor();
 	}
@@ -142,7 +147,7 @@ public class PreProcessor {
     public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.io.IOException, java.lang.InterruptedException {
         int duration = endTime - startTime;
         String[] command = new String[]{
-                "ffmpeg", "-ss", String.valueOf(startTime),
+                ffmpegLocation, "-ss", String.valueOf(startTime),
                 "-i", inputPathLong,
                 "-c", "copy",
                 "-t", String.valueOf(duration),
@@ -152,7 +157,7 @@ public class PreProcessor {
 
     /** Gets video duration in seconds from ffmpeg. **/
     public static int getVideoDuration(File movie) throws IOException {
-        String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format",
+        String[] command2 = new String[]{ffprobeLocation, "-v", "quiet", "-print_format",
                                          "compact=print_section=0:nokey=1:escape=csv", "-show_entries",
                                          "format=duration", movie.getAbsolutePath()};
 
@@ -162,6 +167,28 @@ public class PreProcessor {
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(p2.getInputStream()));
         Scanner scanner = new Scanner(stdInput);
         return (int) scanner.nextDouble();
+    }
+
+    public static void setupFfmpeg() throws Exception {
+        Runtime rt = Runtime.getRuntime();
+        try {
+            rt.exec(ffmpegLocation);
+            rt.exec(ffprobeLocation);
+        } catch (IOException e) {
+            try {
+                Process p = rt.exec(new String[]{"which", "ffmpeg"});
+                BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                Scanner scanner = new Scanner(stdInput);
+                ffmpegLocation = scanner.nextLine();
+
+                p = rt.exec(new String[]{"which", "ffprobe"});
+                stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                scanner = new Scanner(stdInput);
+                ffprobeLocation = scanner.nextLine();
+            } catch (IOException ioException) {
+                throw new Exception("Cannot find ffmpeg and/or ffprobe");
+            }
+        }
     }
 }
 

@@ -10,8 +10,10 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -254,29 +256,19 @@ public class GUI extends JFrame {
         render();
     }
 
-    private static boolean isffmpegInstalled() {
-        try {
-            Runtime rt = Runtime.getRuntime();
-            rt.exec(new String[]{"ffmpeg"});
-            rt.exec(new String[]{"ffprobe"});
-        } catch (IOException e) {
-            return false;
-        }
-
-        return true;
-    }
-
     public static void main(String[] args) {
         EventQueue.invokeLater(() ->
         {
             GUI frame = new GUI();
             frame.setTitle("The Larvae Tracker 6000");
-            if (!isffmpegInstalled()) {
+            try {
+                PreProcessor.setupFfmpeg();
+            } catch (Exception e){
                 try {
                     Desktop.getDesktop().browse(new URL(DOCUMENTATION_URL).toURI());
                     JOptionPane.showMessageDialog(null,
                             "ffmpeg is not installed.\nSee ffmpeg installation instructions.\nProgram exiting.");
-                } catch (IOException | URISyntaxException e) {
+                } catch (IOException | URISyntaxException e2) {
                     // Ignore exceptions because we exit anyway.
                 } finally {
                     System.exit(1);
@@ -299,6 +291,7 @@ public class GUI extends JFrame {
             frame.setVisible(true);
         });
     }
+
 
     private void setButtonStates(ProgramState programState) {
         openMovie.setVisible(programState.openMovie.visible);
