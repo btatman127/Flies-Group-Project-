@@ -917,11 +917,11 @@ public class GUI extends JFrame {
 
         public void actionPerformed(ActionEvent event) {
             if(swapImage.getText().equals("Show detected larvae")){
-                frame.displayDefaultImage = false;
+                frame.displayLarvaLocationOverlay = true;
                 swapImage.setText("Hide detected larvae");
             }
             else{
-                frame.displayDefaultImage = true;
+                frame.displayLarvaLocationOverlay = false;
                 swapImage.setText("Show detected larvae");
             }
             repaint();
@@ -962,7 +962,7 @@ public class GUI extends JFrame {
         public int currentFrame;
         public boolean displayPaths;
         public boolean displayZones;
-        public boolean displayDefaultImage;
+        public boolean displayLarvaLocationOverlay;
         public boolean[] zoneToggled = new boolean[MAX_LARVAE];
         public boolean vidInitialized;
         public Video movie;
@@ -975,7 +975,7 @@ public class GUI extends JFrame {
             maxSquares = 0;
             displayPaths = false;
             displayZones = false;
-            displayDefaultImage = true;
+            displayLarvaLocationOverlay = false;
 
             image = new ImageIcon(getClass().getResource(fileName)).getImage();
             squares = new ArrayList<>();
@@ -997,13 +997,20 @@ public class GUI extends JFrame {
         }
 
         public void paintComponent(Graphics g) {
-            Image image = displayDefaultImage ? this.image : blackAndWhiteImage;
+            Image image = this.image;
             if (image == null) return;
             // draw the image in the upper-left corner
 
             g.drawImage(image, 0, 0, null);
             // tile the image across the component
             Graphics2D g2 = (Graphics2D) g;
+            if(displayLarvaLocationOverlay){
+                Image overlayImage = blackAndWhiteImage;
+                AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f);
+                ((Graphics2D) g).setComposite(ac);
+                g.drawImage(overlayImage, 0, 0, null);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+            }
             g2.setColor(Color.red);
 
             // draw all squares
