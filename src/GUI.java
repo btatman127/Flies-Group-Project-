@@ -1,6 +1,8 @@
 import java.awt.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -19,11 +21,14 @@ import java.util.*;
 import java.awt.geom.*;
 import java.util.List;
 
+import static java.lang.System.exit;
+
 public class GUI extends JFrame {
     private static final String DOCUMENTATION_URL = "https://docs.google.com/document/d/1sjLI7ZV7KjzImU58LhgWHW0HjSjJrRMwSgS6w88wju8/edit";
     private final static int MAX_LARVAE = 5;
     //The grid is 3" by 3", and we convert to millimeters
     private static final double GRID_DIMENSIONS = 76.2;
+    private final static int DEFAULT_DARKNESS_THRESHOLD = 204;
 
     private File originalMovie;
     private Video movie;
@@ -49,6 +54,9 @@ public class GUI extends JFrame {
     private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
+    private final JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
+    private final JLabel sliderValue = new JLabel();
+    private final JButton swapImage = new JButton("Show detected larvae");
     private JTextPane displayFrameNum;
     private JTextPane displayZoneRadius;
     private int[] point1;
@@ -77,31 +85,31 @@ public class GUI extends JFrame {
         OPEN(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         PRE_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         CROPPING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.DISABLED),
+                ButtonState.DISABLED, ButtonState.INVISIBLE),
         POST_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.DISABLED),
         SELECTING_LARVAE(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.DISABLED),
+                ButtonState.DISABLED, ButtonState.DISABLED),
         TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.ENABLED),
         RETRACKING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.DISABLED);
+                ButtonState.DISABLED, ButtonState.DISABLED);
 
         final ButtonState openMovie;
         final ButtonState changeFrame;
@@ -115,11 +123,13 @@ public class GUI extends JFrame {
         final ButtonState retrackPosition;
         final ButtonState confirmRetrackPosition;
         final ButtonState undo;
+        final ButtonState darknessThreshold;
 
         ProgramState(ButtonState openMovie, ButtonState changeFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
                      ButtonState showPaths, ButtonState showZones, ButtonState exportPaths,
-                     ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo) {
+                     ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo,
+                     ButtonState darknessThreshold) {
             this.openMovie = openMovie;
             this.changeFrame = changeFrame;
             this.startCrop = startCrop;
@@ -132,6 +142,7 @@ public class GUI extends JFrame {
             this.retrackPosition = retrackPosition;
             this.confirmRetrackPosition = confirmRetrackPosition;
             this.undo = undo;
+            this.darknessThreshold = darknessThreshold;
         }
     }
 
@@ -186,6 +197,13 @@ public class GUI extends JFrame {
         buttonPanel.add(displayFrameNum);
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
+        buttonPanel.add(swapImage);
+        buttonPanel.add(darknessThreshold);
+        buttonPanel.add(sliderValue);
+
+        darknessThreshold.setMajorTickSpacing(25);
+        darknessThreshold.setPaintLabels(true);
+        darknessThreshold.setPaintTicks(true);
 
         buttonPanel.add(setZoneRadius);
         buttonPanel.add(displayZoneRadius);
@@ -247,6 +265,8 @@ public class GUI extends JFrame {
         exportCSV.addActionListener(new CSVExportAction());
         screenshot.addActionListener(new ScreenshotAction());
         undo.addActionListener(new UndoAction());
+        darknessThreshold.addChangeListener(new SliderAction());
+        swapImage.addActionListener(new SwapAction());
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -279,7 +299,7 @@ public class GUI extends JFrame {
                 } catch (IOException | URISyntaxException e) {
                     // Ignore exceptions because we exit anyway.
                 } finally {
-                    System.exit(1);
+                    exit(1);
                 }
             }
 
@@ -291,7 +311,7 @@ public class GUI extends JFrame {
                         frame.deleteDirectory(frame.movie.getImgDir());
                     }
 
-                    System.exit(0);
+                    exit(0);
                 }
             };
             frame.addWindowListener(exitListener);
@@ -345,14 +365,25 @@ public class GUI extends JFrame {
         undo.setVisible(programState.undo.visible);
         undo.setEnabled(programState.undo.enabled);
 
+        darknessThreshold.setVisible(programState.darknessThreshold.visible);
+        darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
+
+        sliderValue.setVisible(programState.darknessThreshold.visible);
+        sliderValue.setEnabled(programState.darknessThreshold.enabled);
+
+        swapImage.setVisible(programState.darknessThreshold.visible);
+        swapImage.setEnabled(programState.darknessThreshold.enabled);
+
         if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
-            resetZoneButtons();
+            resetButtons();
         }
 
         render();
     }
 
-    private void resetZoneButtons() {
+    private void resetButtons() {
+        sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
+        darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
         if (toggleZones[0] != null && frame != null) {
             setZoneRadius.setVisible(false);
             displayZoneRadius.setVisible(false);
@@ -401,7 +432,7 @@ public class GUI extends JFrame {
 
     private void createMovie(int startValue, int endValue) {
         try {
-            movie = new Video(originalMovie, startValue, endValue);
+            movie = new Video(originalMovie, startValue, endValue, DEFAULT_DARKNESS_THRESHOLD);
         } catch (IOException | InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -415,7 +446,12 @@ public class GUI extends JFrame {
         displayFrameNum.setVisible(true);
 
         setButtonStates(ProgramState.PRE_CROP);
-        frame.setImage(movie.getPathToFrame(frame.currentFrame));
+        try {
+            frame.setImage(movie.getPathToFrame(frame.currentFrame));
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Could not find image.");
+            exit(1);
+        }
         render();
     }
 
@@ -473,6 +509,7 @@ public class GUI extends JFrame {
         originalMovie = video;
         frame.currentFrame = 1;
 
+        resetButtons();
         openMovieDurationDialog();
     }
 
@@ -516,10 +553,24 @@ public class GUI extends JFrame {
             if (!changeFrameEnabled) return;
 
             if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
+                if(number == -1) movie.deleteFrame(frame.currentFrame);
                 frame.currentFrame += number;
-                frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
-
+                try {
+                    frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Could not find image.");
+                    exit(1);
+                }
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
+                if(number == 1){
+                    try {
+                        movie.createFrame(frame.currentFrame);
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(null, "Could not find image.");
+                        exit(1);
+                    }
+                }
+                frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
                 render();
             }
         }
@@ -582,7 +633,12 @@ public class GUI extends JFrame {
             }
 
             frame.currentFrame = 1;
-            frame.setImage(movie.getPathToFrame(frame.currentFrame));
+            try {
+                frame.setImage(movie.getPathToFrame(frame.currentFrame));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Could not find image.");
+                exit(1);
+            }
             displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
             render();
 
@@ -599,7 +655,12 @@ public class GUI extends JFrame {
     private class StartLarvaeAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             frame.currentFrame = 0;
-            frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+            try {
+                frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Could not find image.");
+                exit(1);
+            }
             displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
             frame.maxSquares = 5;
             setButtonStates(ProgramState.SELECTING_LARVAE);
@@ -636,13 +697,14 @@ public class GUI extends JFrame {
             setButtonStates(ProgramState.TRACKING);
 
             //Initializes the tracking process within the Video class
-            collisionFound = movie.createFrames();
-            if (collisionFound) {
-                Object[] message = {
-                        "A collision was detected at frame #" + (movie.getCollisionFrameIndex(0) + 1) + "."
-                };
-                JOptionPane.showMessageDialog(null, message);
+            try {
+                movie.initializeColorCorrectedFrames();
+            } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(null,"Could not find image.");
+                exit(1);
             }
+            frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
+
             frame.vidInitialized = true;
             buttonPanel.requestFocus();
             render();
@@ -722,6 +784,25 @@ public class GUI extends JFrame {
         }
     }
 
+    private class SliderAction implements ChangeListener {
+        public SliderAction() {
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            JSlider source = (JSlider)e.getSource();
+            if (!source.getValueIsAdjusting()) {
+                int value = source.getValue();
+                sliderValue.setText("Darkness Threshold = " + value + ".");
+                movie.setDarknessThreshold(value);
+                frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
+                repaint();
+            }
+        }
+
+
+    }
+
     private class CSVExportAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
 
@@ -787,6 +868,23 @@ public class GUI extends JFrame {
         }
     }
 
+    private class SwapAction implements ActionListener {
+        public SwapAction() {
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            if(swapImage.getText().equals("Show detected larvae")){
+                frame.displayDefaultImage = false;
+                swapImage.setText("Hide detected larvae");
+            }
+            else{
+                frame.displayDefaultImage = true;
+                swapImage.setText("Show detected larvae");
+            }
+            repaint();
+        }
+    }
+
     private class ShowZoneAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             frame.displayZones = !frame.displayZones;
@@ -844,17 +942,20 @@ public class GUI extends JFrame {
         public int currentFrame;
         public boolean displayPaths;
         public boolean displayZones;
+        public boolean displayDefaultImage;
         public boolean[] zoneToggled = new boolean[MAX_LARVAE];
         public boolean vidInitialized;
         public Video movie;
 
         private Rectangle2D currentMouseLocationRectangle;
         private Image image;
+        private Image blackAndWhiteImage;
 
         public ImageComponent(String fileName) {
             maxSquares = 0;
             displayPaths = false;
             displayZones = false;
+            displayDefaultImage = true;
 
             image = new ImageIcon(getClass().getResource(fileName)).getImage();
             squares = new ArrayList<>();
@@ -863,15 +964,20 @@ public class GUI extends JFrame {
             addMouseMotionListener(new MouseMotionHandler());
         }
 
-        public void setImage(Path file) {
-            image = PreProcessor.scale(file, this.getWidth(), this.getHeight());
+        public void setImage(Path file) throws IOException {
+            Image image = ImageIO.read(file.toFile());
+            this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
+        public void setBlackAndWhiteImage(Image image){
+            this.blackAndWhiteImage = PreProcessor.scale(image, this.getWidth(), this.getHeight());
+        }
         public Image getImage() {
             return image;
         }
 
         public void paintComponent(Graphics g) {
+            Image image = displayDefaultImage ? this.image : blackAndWhiteImage;
             if (image == null) return;
             // draw the image in the upper-left corner
 
