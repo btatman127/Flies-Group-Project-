@@ -53,6 +53,7 @@ public class GUI extends JFrame {
     private final JProgressBar cropProgress;
     private final JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
     private final JLabel sliderValue = new JLabel();
+    private final JButton swapImage = new JButton("Show detected larvae");
     private JTextPane displayFrameNum;
     private int[] point1;
     private int[] point2;
@@ -185,6 +186,7 @@ public class GUI extends JFrame {
         buttonPanel.add(displayFrameNum);
         buttonPanel.add(undo);
         buttonPanel.add(cropProgress);
+        buttonPanel.add(swapImage);
         buttonPanel.add(darknessThreshold);
         buttonPanel.add(sliderValue);
 
@@ -223,6 +225,7 @@ public class GUI extends JFrame {
         StopRetrackAction stopRetrackAction = new StopRetrackAction(this);
         UndoAction undoAction = new UndoAction();
         SliderAction sliderAction = new SliderAction();
+        SwapAction swapAction = new SwapAction();
 
         // Set drag-and-drop target
         setDropTarget(new DropTarget() {
@@ -265,6 +268,7 @@ public class GUI extends JFrame {
         screenshot.addActionListener(screenshotAction);
         undo.addActionListener(undoAction);
         darknessThreshold.addChangeListener(sliderAction);
+        swapImage.addActionListener(swapAction);
 
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
@@ -367,6 +371,8 @@ public class GUI extends JFrame {
         darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
         sliderValue.setVisible(programState.darknessThreshold.visible);
         sliderValue.setEnabled(programState.darknessThreshold.enabled);
+        swapImage.setVisible(programState.darknessThreshold.visible);
+        swapImage.setEnabled(programState.darknessThreshold.enabled);
 
         pack();
         revalidate();
@@ -559,6 +565,7 @@ public class GUI extends JFrame {
                         exit(1);
                     }
                 }
+                frame.setBlackAndWhiteImage(movie.fillLarvaeLocation(frame.currentFrame));
                 pack();
                 revalidate();
                 repaint();
@@ -714,6 +721,7 @@ public class GUI extends JFrame {
                 JOptionPane.showMessageDialog(null,"Could not find image.");
                 exit(1);
             }
+            frame.setBlackAndWhiteImage(movie.fillLarvaeLocation(frame.currentFrame));
 
             frame.vidInitialized = true;
             buttonPanel.requestFocus();
@@ -821,8 +829,7 @@ public class GUI extends JFrame {
                 int value = source.getValue();
                 sliderValue.setText("Darkness Threshold = " + value + ".");
                 movie.setDarknessThreshold(value);
-                BufferedImage image = movie.fillLarvaeLocation(frame.currentFrame);
-                frame.setImage(image);
+                frame.setBlackAndWhiteImage(movie.fillLarvaeLocation(frame.currentFrame));
                 repaint();
             }
         }
@@ -904,6 +911,23 @@ public class GUI extends JFrame {
         }
     }
 
+    private class SwapAction implements ActionListener {
+        public SwapAction() {
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            if(swapImage.getText().equals("Show detected larvae")){
+                frame.displayDefaultImage = false;
+                swapImage.setText("Hide detected larvae");
+            }
+            else{
+                frame.displayDefaultImage = true;
+                swapImage.setText("Show detected larvae");
+            }
+            repaint();
+        }
+    }
+
     private class ShowZoneAction implements ActionListener {
         public ShowZoneAction() {
         }
@@ -938,17 +962,20 @@ public class GUI extends JFrame {
         public int currentFrame;
         public boolean displayPaths;
         public boolean displayZones;
+        public boolean displayDefaultImage;
         public boolean[] zoneToggled = new boolean[MAX_LARVAE];
         public boolean vidInitialized;
         public Video movie;
 
         private Rectangle2D currentMouseLocationRectangle;
         private Image image;
+        private Image blackAndWhiteImage;
 
         public ImageComponent(String fileName) {
             maxSquares = 0;
             displayPaths = false;
             displayZones = false;
+            displayDefaultImage = true;
 
             image = new ImageIcon(getClass().getResource(fileName)).getImage();
             squares = new ArrayList<>();
@@ -962,15 +989,15 @@ public class GUI extends JFrame {
             this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
-        public void setImage(Image image){
-            this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());;
+        public void setBlackAndWhiteImage(Image image){
+            this.blackAndWhiteImage = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
-
         public Image getImage() {
             return image;
         }
 
         public void paintComponent(Graphics g) {
+            Image image = displayDefaultImage ? this.image : blackAndWhiteImage;
             if (image == null) return;
             // draw the image in the upper-left corner
 
