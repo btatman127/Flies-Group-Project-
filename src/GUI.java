@@ -92,7 +92,7 @@ public class GUI extends JFrame {
         POST_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.ENABLED),
+                ButtonState.INVISIBLE, ButtonState.DISABLED),
         SELECTING_LARVAE(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
@@ -366,6 +366,7 @@ public class GUI extends JFrame {
         darknessThreshold.setVisible(programState.darknessThreshold.visible);
         darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
         sliderValue.setVisible(programState.darknessThreshold.visible);
+        sliderValue.setEnabled(programState.darknessThreshold.enabled);
 
         pack();
         revalidate();
