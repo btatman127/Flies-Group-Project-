@@ -548,6 +548,7 @@ public class GUI extends JFrame {
             if (!changeFrameEnabled) return;
 
             if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
+                if(number == -1) movie.deleteFrame(frame.currentFrame);
                 frame.currentFrame += number;
                 try {
                     frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
@@ -555,7 +556,6 @@ public class GUI extends JFrame {
                     JOptionPane.showMessageDialog(null, "Could not find image.");
                     exit(1);
                 }
-
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
                 if(number == 1){
                     try {
@@ -565,7 +565,7 @@ public class GUI extends JFrame {
                         exit(1);
                     }
                 }
-                frame.setBlackAndWhiteImage(movie.fillLarvaeLocation(frame.currentFrame));
+                frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
                 pack();
                 revalidate();
                 repaint();
@@ -721,7 +721,7 @@ public class GUI extends JFrame {
                 JOptionPane.showMessageDialog(null,"Could not find image.");
                 exit(1);
             }
-            frame.setBlackAndWhiteImage(movie.fillLarvaeLocation(frame.currentFrame));
+            frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
 
             frame.vidInitialized = true;
             buttonPanel.requestFocus();
@@ -829,7 +829,7 @@ public class GUI extends JFrame {
                 int value = source.getValue();
                 sliderValue.setText("Darkness Threshold = " + value + ".");
                 movie.setDarknessThreshold(value);
-                frame.setBlackAndWhiteImage(movie.fillLarvaeLocation(frame.currentFrame));
+                frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
                 repaint();
             }
         }

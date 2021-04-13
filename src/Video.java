@@ -6,30 +6,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Objects;
 
 public class Video {
     private static final int FPS = 1;
+    private static final double MAX_LARVA_SPEED = 5.0;
+    public static final int MIN_ISLAND_SIZE = 2;
 
     private final File originalVideo;
     private final Path shortenedVideo;
     private final Path imgDir;
     private final int numImages;
+    private final ArrayList<Larva> larvae;
 
-
-    //TRACKER
     private Region[][][] regions; //Region[frame number][x-coordinate][y-coordinate]
     private boolean[][][] larvaLoc;
     private int darknessThreshold;
-    private int regionDim;// = 8;
-    //Array of islands for each frame
-    //Array of (arraylists of (double arrays))
-    private ArrayList<ArrayList<Double[]>> islands;
-    private ArrayList<Integer> collisionFrameIndex;
-    private static final double ISLAND_CONSTANT = 24.0;
+    private int regionDim;
+    private ArrayList<Double[]> islands;
 
-
-    // length and/or width of each grid square in mm
-    private ArrayList<Larva> larvae;
 
     public Video(File movie, int startTime, int endTime, int darknessThreshold) throws
             IOException, InterruptedException {
@@ -47,8 +43,7 @@ public class Video {
         // Extract images with ffmpeg
         PreProcessor.cropVideo(startTime, endTime, originalVideo.getAbsolutePath(), getShortenedVideo().toString());
         PreProcessor.extractFrames(getShortenedVideo().toString(), outputPath, FPS);
-        // Number of images is number of files minus one (temporary video).
-        numImages = imgDir.toFile().listFiles().length - 1;
+        numImages = Objects.requireNonNull(imgDir.toFile().listFiles()).length - 1;
     }
 
     public void setDarknessThreshold(int darknessThreshold) {
@@ -59,12 +54,12 @@ public class Video {
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         BufferedImage image = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
 
-        regionDim = image.getHeight() / 100; //should be a function of cc
+        regionDim = image.getHeight() / 100;
         regions = new Region[numImages][image.getWidth() / regionDim][image.getHeight() / regionDim];
         larvaLoc = new boolean[numImages][image.getWidth() / regionDim][image.getHeight() / regionDim];
-        islands = new ArrayList<>(numImages);// islands[f][island][coordinate]
+        islands = new ArrayList<>();
 
-        islands.add(getIslandList(0));
+        islands = getIslandList(0);
         createRegions(0, ImageIO.read(imgDir.resolve("cc0001.png").toFile()));
     }
 
@@ -75,24 +70,26 @@ public class Video {
     public void createFrame(int currentFrame) throws IOException {
         BufferedImage image = ImageIO.read(imgDir.resolve(String.format("cc%04d.png", currentFrame + 1)).toFile());
         createRegions(currentFrame, image);
-        fillLarvaeLocation(currentFrame);
+        findLarvaeLocation(currentFrame);
 
-        //Array of islands for each frame
-        //Array of (arraylists of (double arrays))
-        islands.add(getIslandList(currentFrame));
+        islands = getIslandList(currentFrame);
         trackLarvae(currentFrame);
     }
 
 
-    void retrackLarvaPosition(int currentFrame, int larvaIndex, Double[] pt) {
+    public void retrackLarvaPosition(int currentFrame, int larvaIndex, Double[] pt) {
         Larva l = larvae.get(larvaIndex);
 
-        l.trimPositions(currentFrame); // this will destroy the record of coordinates including and after the currentFrame
+        l.trimPositions(currentFrame);
 
         l.setNewPosition(pt);
-
     }
 
+    public void deleteFrame(int currentFrame) {
+        for (Larva l : larvae) {
+            l.trimPositions(currentFrame);
+        }
+    }
 
     /**
      * Splits an image into a set number of subimages called regions, which are stored in the Video's regions array.
@@ -133,12 +130,12 @@ public class Video {
      * @return A low-resolution representation of a frame, in pure black and white, where black areas are likely to be larvae
      * and white areas are not.
      */
-    public BufferedImage fillLarvaeLocation(int frame) {
+    public BufferedImage findLarvaeLocation(int frame) {
         BufferedImage image = new BufferedImage(regions[0].length, regions[0][0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
                 int avg = getSample(frame, i, j);
-                larvaLoc[frame][i][j] = avg < darknessThreshold;
+                larvaLoc[frame][i][j] = (avg < darknessThreshold);
                 int b = 255;
                 if (larvaLoc[frame][i][j]) {
                     b = 0;
@@ -168,7 +165,7 @@ public class Video {
                 if (larvaLoc[frame][i][j] && !visited[i][j]) {
                     visited[i][j] = true;
                     Double[] island = getIsland(frame, i, j, visited);
-                    if (island[2] > 2) {
+                    if (island[2] > MIN_ISLAND_SIZE) {
                         coords.add(island);
                     }
 
@@ -178,7 +175,6 @@ public class Video {
 
             }
         }
-
         return coords;
     }
 
@@ -192,7 +188,7 @@ public class Video {
      * @return An array of length 3 of Doubles where index 0 is the x-coordinate of the center, index 1 is the y-coordinate of the center,
      * and index 2 is the mass of the island, ie, how many points made up the island.
      */
-    private Double[] getIsland(int frame, int x, int y, boolean[][] visited) { //cc as in contiguousCoords
+    private Double[] getIsland(int frame, int x, int y, boolean[][] visited) {
         Double[] island = new Double[3]; // island is defined as {x, y, mass}
         ArrayList<double[]> points = islandDFS(frame, x, y, visited, new ArrayList<>());
         double mass = points.size();
@@ -227,18 +223,17 @@ public class Video {
         //N
         xx = x;
         yy = y + 1;
-        if (validCoords(xx, yy)) {
+        if (isCoordValid(xx, yy)) {
             if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy]) {
                 visited[xx][yy] = true;
                 points = islandDFS(frame, xx, yy, visited, points);
             }
         }
 
-
         //E
         xx = x + 1;
         yy = y;
-        if (validCoords(xx, yy)) {
+        if (isCoordValid(xx, yy)) {
             if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy]) {
                 visited[xx][yy] = true;
                 points = islandDFS(frame, xx, yy, visited, points);
@@ -248,7 +243,7 @@ public class Video {
         //S
         xx = x;
         yy = y - 1;
-        if (validCoords(xx, yy)) {
+        if (isCoordValid(xx, yy)) {
             if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy]) {
                 visited[xx][yy] = true;
                 points = islandDFS(frame, xx, yy, visited, points);
@@ -258,20 +253,19 @@ public class Video {
         //W
         xx = x - 1;
         yy = 0;
-        if (validCoords(xx, yy)) {
+        if (isCoordValid(xx, yy)) {
             if (!(visited[xx][yy]) && larvaLoc[frame][xx][yy]) {
                 visited[xx][yy] = true;
                 points = islandDFS(frame, xx, yy, visited, points);
             }
         }
-
         return points;
     }
 
     /**
      * @return true only if (x,y) is a valid index into the Video's representation of a frame (regions and larvaLoc)
      */
-    private boolean validCoords(int x, int y) {
+    private boolean isCoordValid(int x, int y) {
         return x >= 0 && x < larvaLoc[0].length && y >= 0 && y < larvaLoc[0][0].length;
     }
 
@@ -281,31 +275,51 @@ public class Video {
      * the last know larva location, using the user clicked points as a baseline.
      */
     private void trackLarvae(int currentFrame) {
-        //TODO Replace initial larva position (currently user-clicked) with true larva center locations
+        if (currentFrame == 0) return;
 
-        for (Larva l : larvae) {
-            Double[] old = l.getPosition(currentFrame - 1);
-            if(old == null){
-                l.setNewPosition(null);
-                continue;
-            }
-            double minDistance = 100000;
-            int minIndex = -1;
+        //Double[] in hashmap represents {distance to larvae, island-x, island-y}
+        HashMap<Larva, Double[]> closestIsland = new HashMap<>();
 
-            for (int j = 0; j < islands.get(currentFrame).size(); j++) {
-                double distance = distance(old, islands.get(currentFrame).get(j));
+        //Finds the larva closest to each island
+        for (Double[] island : islands) {
+            double minDistance = Integer.MAX_VALUE;
+            Larva closestLarva = null;
 
-                if (distance < minDistance) {
+            for (Larva l : larvae) {
+                Double[] old = l.getPosition(currentFrame - 1);
+                if (old == null) {
+                    continue;
+                }
+
+                double distance = distance(old, island);
+                if (distance < minDistance && distance < getDimensions()[0] / MAX_LARVA_SPEED) {
                     minDistance = distance;
-                    minIndex = j;
+                    closestLarva = l;
                 }
             }
-            if (minDistance < getDimensions()[1] / ISLAND_CONSTANT) {
-                l.setNewPosition(islands.get(currentFrame).get(minIndex));
-            } else {
+            if(closestLarva != null){
+                //Check if another island has the same larva as its closest. Keep the closer island.
+                if(closestIsland.containsKey(closestLarva)){
+                    if(closestIsland.get(closestLarva)[0] > minDistance) {
+                        closestIsland.put(closestLarva, new Double[]{minDistance, island[0], island[1]});
+                    }
+                }
+                else{
+                    closestIsland.put(closestLarva, new Double[]{minDistance, island[0], island[1]});
+                }
+            }
+        }
+
+        for(Larva l : larvae){
+            if(closestIsland.containsKey(l)) {
+                Double[] position = closestIsland.get(l);
+                l.setNewPosition(new Double[]{position[1], position[2]});
+            }
+            else{
                 l.setNewPosition(null);
             }
         }
+
     }
 
     /**
@@ -362,9 +376,4 @@ public class Video {
         }
         return null;
     }
-
-    public int getCollisionFrameIndex(int index) {
-        return collisionFrameIndex.get(index);
-    }
-
 }
