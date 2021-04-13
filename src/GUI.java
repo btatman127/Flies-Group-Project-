@@ -815,9 +815,12 @@ public class GUI extends JFrame {
             }
 
             try {
-                zoneRadius = Double.parseDouble(radius.getText());
+                double newRadius = Double.parseDouble(radius.getText());
+                if (newRadius > 0) {
+                    zoneRadius = newRadius;
+                }
             } catch (NumberFormatException e) {
-                // Do nothing if the number is non-sensical.
+                // Do nothing if the number is nonsensical.
             }
 
             displayZoneRadius.setText("Zone radius: " + zoneRadius + " mm");
