@@ -29,8 +29,7 @@ public class CSVExport {
     /**
      * Exports and saves a CSV file containing position, distance, and velocity data for each larva.
      */
-    public void export(File file) {
-        try {
+    public void export(File file) throws IOException{
             StringBuilder sb = new StringBuilder();
             sb.append(getFrameDataString(larvae));
 
@@ -57,9 +56,6 @@ public class CSVExport {
             PrintWriter out = new PrintWriter(file);
             out.write(result);
             out.close();
-        } catch (IOException e) {
-            System.out.println("Could not write CSV.");
-        }
     }
 
     /**
@@ -72,6 +68,7 @@ public class CSVExport {
         //add data
         sb.append("\n");
         for (int row = 0; row < frames; row++) {
+            sb.append(row + 1 + ",");
             for (int coord = 0; coord < larvae.size(); coord++) {
                 String x = "";
                 String y = "";
@@ -163,12 +160,13 @@ public class CSVExport {
         StringBuilder sb = new StringBuilder();
         sb.append("Zones,Radius (mm):,");
         sb.append(zoneRadius);
-        sb.append("\n");
+        sb.append("\nFrame,");
         sb.append(addColumnLabels(larvae, 1));
 
         //add data
         sb.append("\n");
         for (int row = 0; row < frames; row++) {
+            sb.append(row + 1 + ",");
             for (int coord = 0; coord < larvae.size(); coord++) {
                 String zoneString = "";
                 int zone;
@@ -234,10 +232,14 @@ public class CSVExport {
 
     private StringBuilder addColumnLabels(List<Larva> larvae, String[] subheadings) {
         StringBuilder sb = new StringBuilder();
+        if (subheadings.length == 1) {
+            sb.append(",");
+        }
+
         sb.append(addColumnLabels(larvae, subheadings.length));
 
         //add column labels for x and y
-        sb.append("\n");
+        sb.append("\nFrame,");
         for (int i = 0; i < larvae.size(); i++) {
             for (String heading : subheadings) {
                 sb.append(heading);
