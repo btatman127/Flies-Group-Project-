@@ -1055,25 +1055,21 @@ public class GUI extends JFrame {
             for (int i = 0; i < larvae.size(); i++) {
                 Larva l = larvae.get(i);
                 g2.setColor(LARVAE_COLORS[i]);
-                for (int j = 0; j < currentFrame; j++) {
-
-                    //convert pt image space --> window space
-                    // img_pt * winWidth/imageWidth
-                    if (j + 1 >= l.getPositionsSize()) {
-                        break;
+                if (pathToggled[i]) {
+                    for (int j = 0; j < currentFrame; j++) {
+                        if (l.getPosition(j) != null) {
+                            paintPaths(g2, l, j);
+                        }
                     }
-                    if (l.getPosition(j) != null && pathToggled[i]) {
-                        paintPaths(g2, l, j);
+                    g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
+                            l.getPosition(0)[1] / yRatio, 6, 6));
                     }
-                    Double[] lastKnownPosition = l.getLastTrackedPosition();
-                    if (j == currentFrame - 1 && lastKnownPosition != null) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
-                                (int) ((lastKnownPosition[0]) / xRatio - 3),
-                                (int) ((lastKnownPosition[1]) / yRatio - 3));
-                    }
+                Double[] lastKnownPosition = l.getLastTrackedPosition();
+                if (lastKnownPosition != null) {
+                    g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
+                            (int) ((lastKnownPosition[0]) / xRatio - 3),
+                            (int) ((lastKnownPosition[1]) / yRatio - 3));
                 }
-                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
-                        l.getPosition(0)[1] / yRatio, 6, 6));
             }
         }
 
