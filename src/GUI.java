@@ -354,13 +354,6 @@ public class GUI extends JFrame {
         showPaths.setVisible(programState.showPaths.visible);
         showPaths.setEnabled(programState.showPaths.enabled);
 
-        if(programState.showPaths.visible && showPaths.isSelected()) {
-            for (int i = 0; i < movie.getLarva().size(); i++){
-                togglePaths[i].setVisible(true);
-                togglePaths[i].setEnabled(true);
-            }
-        }
-
         showZones.setVisible(programState.showZones.visible);
         showZones.setEnabled(programState.showZones.enabled);
 
@@ -388,7 +381,10 @@ public class GUI extends JFrame {
         swapImage.setVisible(programState.darknessThreshold.visible);
         swapImage.setEnabled(programState.darknessThreshold.enabled);
 
-        if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
+        if (programState == ProgramState.TRACKING) {
+            showPathCheckboxes();
+        }
+        else if(programState == ProgramState.PRE_CROP){
             resetButtons();
         }
 
@@ -398,27 +394,30 @@ public class GUI extends JFrame {
     private void resetButtons() {
         sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
         darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
-        if (frame != null) {
-            if(toggleZones[0] != null) {
-                frame.displayZones = false;
-                setZoneRadius.setVisible(frame.displayZones);
-                displayZoneRadius.setVisible(frame.displayZones);
-                showZones.setSelected(frame.displayZones);
-                for (int i = 0; i < MAX_LARVAE; i++) {
-                    toggleZones[i].setVisible(frame.displayZones);
-                    toggleZones[i].setSelected(frame.displayZones);
-                    frame.zoneToggled[i] = frame.displayZones;
-                }
-            }
-            if(togglePaths[0] != null){
-                frame.displayPaths = true;
-                showPaths.setSelected(frame.displayPaths);
-                for (int i = 0; i < MAX_LARVAE; i++) {
-                    togglePaths[i].setVisible(false);
-                    togglePaths[i].setSelected(frame.displayPaths);
-                    frame.pathToggled[i] = frame.displayPaths;
-                }
-            }
+
+        frame.displayZones = false;
+        setZoneRadius.setVisible(frame.displayZones);
+        displayZoneRadius.setVisible(frame.displayZones);
+        showZones.setSelected(frame.displayZones);
+
+        frame.displayPaths = true;
+        showPaths.setSelected(frame.displayPaths);
+        for (int i = 0; i < MAX_LARVAE; i++) {
+            toggleZones[i].setVisible(frame.displayZones);
+            toggleZones[i].setSelected(frame.displayZones);
+            frame.zoneToggled[i] = frame.displayZones;
+
+            togglePaths[i].setVisible(false);
+            togglePaths[i].setSelected(frame.displayPaths);
+            frame.pathToggled[i] = frame.displayPaths;
+        }
+
+    }
+
+    private void showPathCheckboxes() {
+        for (int i = 0; i < movie.getLarva().size(); i++) {
+            togglePaths[i].setVisible(true);
+            togglePaths[i].setEnabled(true);
         }
     }
 
@@ -499,11 +498,8 @@ public class GUI extends JFrame {
                 "End Time:", endTime
         };
 
-        int result = JOptionPane.showConfirmDialog(null, message,
-                "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
-            return;
-        }
+        JOptionPane.showConfirmDialog(null, message,
+                "Choose Movie Length", JOptionPane.DEFAULT_OPTION);
 
         int startValue = parseVideoLengthInput(startTime.getText());
 
@@ -534,7 +530,6 @@ public class GUI extends JFrame {
         originalMovie = video;
         frame.currentFrame = 1;
 
-        resetButtons();
         openMovieDurationDialog();
     }
 
@@ -558,7 +553,6 @@ public class GUI extends JFrame {
             if (files.length == 0) {
                 return;
             }
-
             initializeMovie(files[0]);
         }
     }
@@ -578,7 +572,7 @@ public class GUI extends JFrame {
             if (!changeFrameEnabled) return;
 
             if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
-                if(number == -1) movie.deleteFrame(frame.currentFrame);
+                if (number == -1) movie.deleteFrame(frame.currentFrame);
                 frame.currentFrame += number;
                 try {
                     frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
@@ -587,7 +581,7 @@ public class GUI extends JFrame {
                     exit(1);
                 }
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
-                if(number == 1){
+                if (number == 1) {
                     try {
                         movie.createFrame(frame.currentFrame);
                     } catch (IOException e) {
@@ -725,7 +719,7 @@ public class GUI extends JFrame {
             try {
                 movie.initializeColorCorrectedFrames();
             } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null,"Could not find image.");
+                JOptionPane.showMessageDialog(null, "Could not find image.");
                 exit(1);
             }
             frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
@@ -815,7 +809,7 @@ public class GUI extends JFrame {
 
         @Override
         public void stateChanged(ChangeEvent e) {
-            JSlider source = (JSlider)e.getSource();
+            JSlider source = (JSlider) e.getSource();
             if (!source.getValueIsAdjusting()) {
                 int value = source.getValue();
                 sliderValue.setText("Darkness Threshold = " + value + ".");
@@ -884,7 +878,7 @@ public class GUI extends JFrame {
         }
     }
 
-    private class TogglePathAction implements ActionListener{
+    private class TogglePathAction implements ActionListener {
         private int index;
 
         public TogglePathAction(int index) {
@@ -915,11 +909,10 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if(swapImage.getText().equals("Show detected larvae")){
+            if (swapImage.getText().equals("Show detected larvae")) {
                 frame.displayLarvaLocationOverlay = true;
                 swapImage.setText("Hide detected larvae");
-            }
-            else{
+            } else {
                 frame.displayLarvaLocationOverlay = false;
                 swapImage.setText("Show detected larvae");
             }
@@ -949,8 +942,8 @@ public class GUI extends JFrame {
             Object[] message = {"Enter a zone radius in millimeters.", radius};
 
             int result = JOptionPane.showConfirmDialog(null, message,
-                "Zone Radius", JOptionPane.OK_CANCEL_OPTION);
-            if (result == JOptionPane.CANCEL_OPTION && result == JOptionPane.CLOSED_OPTION) {
+                    "Zone Radius", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
                 return;
             }
 
@@ -1012,9 +1005,10 @@ public class GUI extends JFrame {
             this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
-        public void setBlackAndWhiteImage(Image image){
+        public void setBlackAndWhiteImage(Image image) {
             this.blackAndWhiteImage = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
+
         public Image getImage() {
             return image;
         }
@@ -1027,7 +1021,7 @@ public class GUI extends JFrame {
             g.drawImage(image, 0, 0, null);
             // tile the image across the component
             Graphics2D g2 = (Graphics2D) g;
-            if(displayLarvaLocationOverlay){
+            if (displayLarvaLocationOverlay) {
                 Image overlayImage = blackAndWhiteImage;
                 AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f);
                 ((Graphics2D) g).setComposite(ac);
