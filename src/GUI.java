@@ -45,6 +45,7 @@ public class GUI extends JFrame {
     private final JButton startLarvaeSelection = new JButton("Start Larvae Selection");
     private final JButton confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
     private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
+    private JCheckBox[] togglePaths = new JCheckBox[5];
     private final JCheckBox showZones = new JCheckBox("Show Larvae Zones", false);
     private JCheckBox[] toggleZones = new JCheckBox[5];
     private final JButton setZoneRadius = new JButton("Set zone radius");
@@ -189,7 +190,23 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(confirmLarvaeSelection);
         buttonPanel.add(showPaths);
+        for (int i = 0; i < MAX_LARVAE; i++) {
+            togglePaths[i] = new JCheckBox("Show path for larva " + (i + 1));
+            togglePaths[i].setSelected(true);
+            togglePaths[i].setVisible(false);
+            buttonPanel.add(togglePaths[i]);
+            togglePaths[i].addActionListener(new TogglePathAction(i));
+        }
         buttonPanel.add(showZones);
+        for (int i = 0; i < MAX_LARVAE; i++) {
+            toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
+            toggleZones[i].setVisible(false);
+            buttonPanel.add(toggleZones[i]);
+            toggleZones[i].addActionListener(new ToggleZoneAction(i));
+        }
+        buttonPanel.add(setZoneRadius);
+        buttonPanel.add(displayZoneRadius);
+        setZoneRadius.setVisible(false);
         buttonPanel.add(retrackPosition);
         buttonPanel.add(confirmRetrackPosition);
         buttonPanel.add(exportCSV);
@@ -204,16 +221,6 @@ public class GUI extends JFrame {
         darknessThreshold.setMajorTickSpacing(25);
         darknessThreshold.setPaintLabels(true);
         darknessThreshold.setPaintTicks(true);
-
-        buttonPanel.add(setZoneRadius);
-        buttonPanel.add(displayZoneRadius);
-        setZoneRadius.setVisible(false);
-        for (int i = 0; i < MAX_LARVAE; i++) {
-            toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
-            toggleZones[i].setVisible(false);
-            buttonPanel.add(toggleZones[i]);
-            toggleZones[i].addActionListener(new ToggleZoneAction(i));
-        }
 
         setButtonStates(ProgramState.OPEN);
 
@@ -347,6 +354,13 @@ public class GUI extends JFrame {
         showPaths.setVisible(programState.showPaths.visible);
         showPaths.setEnabled(programState.showPaths.enabled);
 
+        if(programState.showPaths.visible && showPaths.isSelected()) {
+            for (int i = 0; i < movie.getLarva().size(); i++){
+                togglePaths[i].setVisible(true);
+                togglePaths[i].setEnabled(true);
+            }
+        }
+
         showZones.setVisible(programState.showZones.visible);
         showZones.setEnabled(programState.showZones.enabled);
 
@@ -384,15 +398,26 @@ public class GUI extends JFrame {
     private void resetButtons() {
         sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
         darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
-        if (toggleZones[0] != null && frame != null) {
-            setZoneRadius.setVisible(false);
-            displayZoneRadius.setVisible(false);
-            showZones.setSelected(false);
-            frame.displayZones = false;
-            for (int i = 0; i < MAX_LARVAE; i++) {
-                toggleZones[i].setVisible(false);
-                toggleZones[i].setSelected(false);
-                frame.zoneToggled[i] = false;
+        if (frame != null) {
+            if(toggleZones[0] != null) {
+                frame.displayZones = false;
+                setZoneRadius.setVisible(frame.displayZones);
+                displayZoneRadius.setVisible(frame.displayZones);
+                showZones.setSelected(frame.displayZones);
+                for (int i = 0; i < MAX_LARVAE; i++) {
+                    toggleZones[i].setVisible(frame.displayZones);
+                    toggleZones[i].setSelected(frame.displayZones);
+                    frame.zoneToggled[i] = frame.displayZones;
+                }
+            }
+            if(togglePaths[0] != null){
+                frame.displayPaths = true;
+                showPaths.setSelected(frame.displayPaths);
+                for (int i = 0; i < MAX_LARVAE; i++) {
+                    togglePaths[i].setVisible(false);
+                    togglePaths[i].setSelected(frame.displayPaths);
+                    frame.pathToggled[i] = frame.displayPaths;
+                }
             }
         }
     }
@@ -851,6 +876,23 @@ public class GUI extends JFrame {
     private class ShowPathAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             frame.displayPaths = !frame.displayPaths;
+            for (int i = 0; i < movie.getLarva().size(); i++) {
+                togglePaths[i].setVisible(frame.displayPaths);
+                togglePaths[i].setEnabled(frame.displayPaths);
+            }
+            render();
+        }
+    }
+
+    private class TogglePathAction implements ActionListener{
+        private int index;
+
+        public TogglePathAction(int index) {
+            this.index = index;
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            frame.pathToggled[index] = !frame.pathToggled[index];
             render();
         }
     }
@@ -943,6 +985,7 @@ public class GUI extends JFrame {
         public boolean displayPaths;
         public boolean displayZones;
         public boolean displayLarvaLocationOverlay;
+        public boolean[] pathToggled = new boolean[MAX_LARVAE];
         public boolean[] zoneToggled = new boolean[MAX_LARVAE];
         public boolean vidInitialized;
         public Video movie;
@@ -1015,22 +1058,24 @@ public class GUI extends JFrame {
         }
 
         private void drawPaths(Graphics2D g2, ArrayList<Larva> larvae) {
-            for (Larva l : larvae) {
-                g2.setColor(LARVAE_COLORS[larvae.indexOf(l)]);
-                for (int i = 0; i < currentFrame; i++) {
+            for (int i = 0; i < larvae.size(); i++) {
+                Larva l = larvae.get(i);
+                g2.setColor(LARVAE_COLORS[i]);
+                for (int j = 0; j < currentFrame; j++) {
 
                     //convert pt image space --> window space
                     // img_pt * winWidth/imageWidth
-                    if (i + 1 >= l.getPositionsSize()) {
+                    if (j + 1 >= l.getPositionsSize()) {
                         break;
                     }
-                    if (l.getPosition(i) != null) {
-                        paintPaths(g2, l, i);
+                    if (l.getPosition(j) != null && pathToggled[i]) {
+                        paintPaths(g2, l, j);
                     }
-                    if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
+                    Double[] lastKnownPosition = l.getLastTrackedPosition();
+                    if (j == currentFrame - 1 && lastKnownPosition != null) {
                         g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
-                                (int) ((l.getPosition(i + 1)[0]) / xRatio - 3),
-                                (int) ((l.getPosition(i + 1)[1]) / yRatio - 3));
+                                (int) ((lastKnownPosition[0]) / xRatio - 3),
+                                (int) ((lastKnownPosition[1]) / yRatio - 3));
                     }
                 }
                 g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
