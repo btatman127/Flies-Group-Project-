@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -63,7 +62,7 @@ public class CSVExport {
      */
     private String getFrameDataString(List<Larva> larvae) {
         StringBuilder sb = new StringBuilder();
-        sb.append(addColumnLabels(larvae, new String[] {"x (mm)", "y (mm)"}));
+        sb.append(addColumnHeadingsWithSubheadings(larvae, new String[] {"x (mm)", "y (mm)"}));
 
         //add data
         sb.append("\n");
@@ -161,7 +160,7 @@ public class CSVExport {
         sb.append("Zones,Radius (mm):,");
         sb.append(zoneRadius);
         sb.append("\nFrame,");
-        sb.append(addColumnLabels(larvae, 1));
+        sb.append(addColumnHeadingsWithoutSubheadings(larvae, 1));
 
         //add data
         sb.append("\n");
@@ -230,13 +229,19 @@ public class CSVExport {
         return buildTimeInZoneTable(larvae, anyTimeInZone, halfTimeInZone, allTimeInZone);
     }
 
-    private StringBuilder addColumnLabels(List<Larva> larvae, String[] subheadings) {
+    private StringBuilder addColumnHeadingsWithSubheadings(List<Larva> larvae, String[] subheadings) {
         StringBuilder sb = new StringBuilder();
-        if (subheadings.length == 1) {
-            sb.append(",");
-        }
 
-        sb.append(addColumnLabels(larvae, subheadings.length));
+        sb.append(" ,");
+        for (int i = 0; i < larvae.size(); i++) {
+            String larvaName = "larva" + (i + 1);
+            sb.append(larvaName);
+            if (i != larvae.size() - 1) {
+                for (int j = 0; j < subheadings.length; j++) {
+                    sb.append(",");
+                }
+            }
+        }
 
         //add column labels for x and y
         sb.append("\nFrame,");
@@ -249,7 +254,7 @@ public class CSVExport {
         return sb;
     }
 
-    private StringBuilder addColumnLabels(List<Larva> larvae, int subheadings) {
+    private StringBuilder addColumnHeadingsWithoutSubheadings(List<Larva> larvae, int subheadings) {
         StringBuilder sb = new StringBuilder();
         //add column labels for each larva
         for (int i = 0; i < larvae.size(); i++) {
@@ -289,7 +294,7 @@ public class CSVExport {
         StringBuilder sb = new StringBuilder();
         sb.append("How many larva spent time in each zone?\n");
         sb.append(", Any amount,,At least half their time,,All their time,\n");
-        sb.append(",count, proportion, count, proportion, count proportion\n");
+        sb.append(",count,proportion,count,proportion,count,proportion\n");
         for (int i = 0; i <= maximumZone; i++) {
             sb.append("Zone ");
             sb.append(i + 1);
