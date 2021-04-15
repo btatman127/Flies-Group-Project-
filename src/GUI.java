@@ -11,6 +11,7 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
+import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -933,7 +934,7 @@ public class GUI extends JFrame {
 
         private static final int DEFAULT_WIDTH = 1000;
         private static final int DEFAULT_HEIGHT = 800;
-        private final Color[] LARVAE_COLORS = {Color.cyan, Color.blue, Color.orange, Color.green, Color.red};
+        private final Color[] LARVAE_COLORS = {Color.cyan, Color.blue, Color.magenta, Color.green, Color.red};
         private static final int SIDELENGTH = 7;
         private double xRatio;
         private double yRatio;
@@ -1028,10 +1029,11 @@ public class GUI extends JFrame {
                         paintPaths(g2, l, i);
                     }
                     if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
-                        g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
+                        g2.setFont(new Font("Times New Roman", Font.BOLD, 30));
+                        g2.drawString(String.valueOf(larvae.indexOf(l) +1),
                                 (int) ((l.getPosition(i + 1)[0]) / xRatio - 3),
                                 (int) ((l.getPosition(i + 1)[1]) / yRatio - 3));
-                    }
+                        }
                 }
                 g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
                         l.getPosition(0)[1] / yRatio, 6, 6));
@@ -1078,6 +1080,7 @@ public class GUI extends JFrame {
                         double radius = zoneRadius * i;
                         double xRadius = radius * image.getWidth(null) / GRID_DIMENSIONS;
                         double yRadius = radius * image.getHeight(null) / GRID_DIMENSIONS;
+                        g2.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         g2.drawString(String.valueOf(i), (int) centerX, (int) (centerY - yRadius + 15));
                         g2.draw(new Ellipse2D.Double(centerX - xRadius, centerY - yRadius,
                                 xRadius * 2, yRadius * 2));
