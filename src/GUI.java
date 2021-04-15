@@ -441,6 +441,8 @@ public class GUI extends JFrame {
         frame.squares = new ArrayList<>();
 
         frame.displayPaths = false;
+        frame.displayLarvaLocationOverlay = false;
+        swapImage.setText("Show detected larvae");
         displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
         displayFrameNum.setEditable(false);
         displayFrameNum.setVisible(true);
