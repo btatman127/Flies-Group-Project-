@@ -54,7 +54,7 @@ public class GUI extends JFrame {
     private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
-    private final JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
+    private JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
     private final JLabel sliderValue = new JLabel();
     private final JButton swapImage = new JButton("Show detected larvae");
     private JTextPane displayFrameNum;
@@ -365,8 +365,14 @@ public class GUI extends JFrame {
         undo.setVisible(programState.undo.visible);
         undo.setEnabled(programState.undo.enabled);
 
+        if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
+            resetButtons();
+        }
+
         darknessThreshold.setVisible(programState.darknessThreshold.visible);
         darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
+        darknessThreshold.setPaintLabels(programState.darknessThreshold.visible);
+        darknessThreshold.setPaintTicks(programState.darknessThreshold.visible);
 
         sliderValue.setVisible(programState.darknessThreshold.visible);
         sliderValue.setEnabled(programState.darknessThreshold.enabled);
@@ -374,16 +380,12 @@ public class GUI extends JFrame {
         swapImage.setVisible(programState.darknessThreshold.visible);
         swapImage.setEnabled(programState.darknessThreshold.enabled);
 
-        if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
-            resetButtons();
-        }
-
         render();
     }
 
     private void resetButtons() {
-        sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
-        darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
+        resetSliderState();
+
         if (toggleZones[0] != null && frame != null) {
             setZoneRadius.setVisible(false);
             displayZoneRadius.setVisible(false);
@@ -395,6 +397,17 @@ public class GUI extends JFrame {
                 frame.zoneToggled[i] = false;
             }
         }
+    }
+
+    private void resetSliderState() {
+        buttonPanel.remove(sliderValue);
+        buttonPanel.remove(darknessThreshold);
+        darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
+        sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
+        buttonPanel.add(darknessThreshold);
+        buttonPanel.add(sliderValue);
+        darknessThreshold.addChangeListener(new SliderAction());
+        darknessThreshold.setMajorTickSpacing(25);
     }
 
     boolean deleteDirectory(Path dirName) {
