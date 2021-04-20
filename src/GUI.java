@@ -64,6 +64,8 @@ public class GUI extends JFrame {
     private FileDialog fd;
     public ImageComponent frame;
 
+    private boolean sliderUseable = false;
+
     public Stack<Integer> history;
     public final int CLICKING = 0;
 
@@ -373,6 +375,7 @@ public class GUI extends JFrame {
         darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
         darknessThreshold.setPaintLabels(programState.darknessThreshold.visible);
         darknessThreshold.setPaintTicks(programState.darknessThreshold.visible);
+        sliderUseable = programState.darknessThreshold.visible;
 
         sliderValue.setVisible(programState.darknessThreshold.visible);
         sliderValue.setEnabled(programState.darknessThreshold.enabled);
@@ -400,14 +403,9 @@ public class GUI extends JFrame {
     }
 
     private void resetSliderState() {
-        buttonPanel.remove(sliderValue);
-        buttonPanel.remove(darknessThreshold);
-        darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
+        sliderUseable = false;
+        darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
         sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
-        buttonPanel.add(darknessThreshold);
-        buttonPanel.add(sliderValue);
-        darknessThreshold.addChangeListener(new SliderAction());
-        darknessThreshold.setMajorTickSpacing(25);
     }
 
     boolean deleteDirectory(Path dirName) {
@@ -805,6 +803,10 @@ public class GUI extends JFrame {
 
         @Override
         public void stateChanged(ChangeEvent e) {
+            if (!sliderUseable) {
+                return;
+            }
+
             JSlider source = (JSlider)e.getSource();
             if (!source.getValueIsAdjusting()) {
                 int value = source.getValue();
