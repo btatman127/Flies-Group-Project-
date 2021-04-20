@@ -45,9 +45,19 @@ public class GUI extends JFrame {
     private final JButton startLarvaeSelection = new JButton("Start Larvae Selection");
     private final JButton confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
     private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
-    private JCheckBox[] togglePaths = new JCheckBox[5];
+    private final CheckboxPanel pathCheckboxes = new CheckboxPanel(
+        MAX_LARVAE,
+        true,
+        i -> "Show path for larva " + (i + 1),
+        TogglePathAction::new
+    );
     private final JCheckBox showZones = new JCheckBox("Show Larvae Zones", false);
-    private JCheckBox[] toggleZones = new JCheckBox[5];
+    private final CheckboxPanel zoneCheckboxes = new CheckboxPanel(
+        MAX_LARVAE,
+        false,
+        i -> "Show zones for larva " + (i + 1),
+        ToggleZoneAction::new
+    );
     private final JButton setZoneRadius = new JButton("Set zone radius");
     private final JButton exportCSV = new JButton(("Export as CSV file"));
     private final JButton screenshot = new JButton(("Screenshot current frame"));
@@ -190,23 +200,16 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(confirmLarvaeSelection);
         buttonPanel.add(showPaths);
-        for (int i = 0; i < MAX_LARVAE; i++) {
-            togglePaths[i] = new JCheckBox("Show path for larva " + (i + 1));
-            togglePaths[i].setSelected(true);
-            togglePaths[i].setVisible(false);
-            buttonPanel.add(togglePaths[i]);
-            togglePaths[i].addActionListener(new TogglePathAction(i));
-        }
+        buttonPanel.add(pathCheckboxes);
+        pathCheckboxes.setVisible(false);
+
         buttonPanel.add(showZones);
-        for (int i = 0; i < MAX_LARVAE; i++) {
-            toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
-            toggleZones[i].setVisible(false);
-            buttonPanel.add(toggleZones[i]);
-            toggleZones[i].addActionListener(new ToggleZoneAction(i));
-        }
+        buttonPanel.add(zoneCheckboxes);
+        zoneCheckboxes.setVisible(false);
         buttonPanel.add(setZoneRadius);
         buttonPanel.add(displayZoneRadius);
         setZoneRadius.setVisible(false);
+
         buttonPanel.add(retrackPosition);
         buttonPanel.add(confirmRetrackPosition);
         buttonPanel.add(exportCSV);
@@ -382,7 +385,10 @@ public class GUI extends JFrame {
         swapImage.setEnabled(programState.darknessThreshold.enabled);
 
         if (programState == ProgramState.TRACKING) {
-            showPathCheckboxes();
+            pathCheckboxes.setVisible(frame.displayPaths);
+            pathCheckboxes.reset(movie.getLarva().size());
+            zoneCheckboxes.setVisible(frame.displayZones);
+            zoneCheckboxes.reset(movie.getLarva().size());
         }
         else if(programState == ProgramState.PRE_CROP){
             resetButtons();
@@ -402,23 +408,16 @@ public class GUI extends JFrame {
 
         frame.displayPaths = true;
         showPaths.setSelected(frame.displayPaths);
-        for (int i = 0; i < MAX_LARVAE; i++) {
-            toggleZones[i].setVisible(frame.displayZones);
-            toggleZones[i].setSelected(frame.displayZones);
-            frame.zoneToggled[i] = frame.displayZones;
+        zoneCheckboxes.setVisible(false);
+        pathCheckboxes.setVisible(false);
+        zoneCheckboxes.reset(MAX_LARVAE);
+        pathCheckboxes.reset(MAX_LARVAE);
 
-            togglePaths[i].setVisible(false);
-            togglePaths[i].setSelected(frame.displayPaths);
+        for (int i = 0; i < MAX_LARVAE; i++) {
+            frame.zoneToggled[i] = frame.displayZones;
             frame.pathToggled[i] = frame.displayPaths;
         }
 
-    }
-
-    private void showPathCheckboxes() {
-        for (int i = 0; i < movie.getLarva().size(); i++) {
-            togglePaths[i].setVisible(true);
-            togglePaths[i].setEnabled(true);
-        }
     }
 
     boolean deleteDirectory(Path dirName) {
@@ -870,10 +869,7 @@ public class GUI extends JFrame {
     private class ShowPathAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             frame.displayPaths = !frame.displayPaths;
-            for (int i = 0; i < movie.getLarva().size(); i++) {
-                togglePaths[i].setVisible(frame.displayPaths);
-                togglePaths[i].setEnabled(frame.displayPaths);
-            }
+            pathCheckboxes.setVisible(frame.displayPaths);
             render();
         }
     }
@@ -926,11 +922,8 @@ public class GUI extends JFrame {
 
             setZoneRadius.setVisible(frame.displayZones);
             displayZoneRadius.setVisible(frame.displayZones);
+            zoneCheckboxes.setVisible(frame.displayZones);
 
-            for (int i = 0; i < movie.getLarva().size(); i++) {
-                toggleZones[i].setVisible(frame.displayZones);
-                toggleZones[i].setEnabled(frame.displayZones);
-            }
             render();
         }
     }
