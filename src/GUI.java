@@ -11,7 +11,6 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
-import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -46,8 +45,19 @@ public class GUI extends JFrame {
     private final JButton startLarvaeSelection = new JButton("Start Larvae Selection");
     private final JButton confirmLarvaeSelection = new JButton("Confirm Larvae Selection");
     private final JCheckBox showPaths = new JCheckBox("Show Larvae Paths", true);
+    private final CheckboxPanel pathCheckboxes = new CheckboxPanel(
+        MAX_LARVAE,
+        true,
+        i -> "Show path for larva " + (i + 1),
+        TogglePathAction::new
+    );
     private final JCheckBox showZones = new JCheckBox("Show Larvae Zones", false);
-    private JCheckBox[] toggleZones = new JCheckBox[5];
+    private final CheckboxPanel zoneCheckboxes = new CheckboxPanel(
+        MAX_LARVAE,
+        false,
+        i -> "Show zones for larva " + (i + 1),
+        ToggleZoneAction::new
+    );
     private final JButton setZoneRadius = new JButton("Set zone radius");
     private final JButton exportCSV = new JButton(("Export as CSV file"));
     private final JButton screenshot = new JButton(("Screenshot current frame"));
@@ -193,7 +203,16 @@ public class GUI extends JFrame {
         buttonPanel.add(startLarvaeSelection);
         buttonPanel.add(confirmLarvaeSelection);
         buttonPanel.add(showPaths);
+        buttonPanel.add(pathCheckboxes);
+        pathCheckboxes.setVisible(false);
+
         buttonPanel.add(showZones);
+        buttonPanel.add(zoneCheckboxes);
+        zoneCheckboxes.setVisible(false);
+        buttonPanel.add(setZoneRadius);
+        buttonPanel.add(displayZoneRadius);
+        setZoneRadius.setVisible(false);
+
         buttonPanel.add(retrackPosition);
         buttonPanel.add(confirmRetrackPosition);
         buttonPanel.add(stopTracking);
@@ -209,16 +228,6 @@ public class GUI extends JFrame {
         darknessThreshold.setMajorTickSpacing(25);
         darknessThreshold.setPaintLabels(true);
         darknessThreshold.setPaintTicks(true);
-
-        buttonPanel.add(setZoneRadius);
-        buttonPanel.add(displayZoneRadius);
-        setZoneRadius.setVisible(false);
-        for (int i = 0; i < MAX_LARVAE; i++) {
-            toggleZones[i] = new JCheckBox("Show zones for larva " + (i + 1));
-            toggleZones[i].setVisible(false);
-            buttonPanel.add(toggleZones[i]);
-            toggleZones[i].addActionListener(new ToggleZoneAction(i));
-        }
 
         setButtonStates(ProgramState.OPEN);
 
@@ -383,7 +392,13 @@ public class GUI extends JFrame {
         swapImage.setVisible(programState.darknessThreshold.visible);
         swapImage.setEnabled(programState.darknessThreshold.enabled);
 
-        if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
+        if (programState == ProgramState.TRACKING) {
+            pathCheckboxes.setVisible(frame.displayPaths);
+            pathCheckboxes.reset(movie.getLarva().size());
+            zoneCheckboxes.setVisible(frame.displayZones);
+            zoneCheckboxes.reset(movie.getLarva().size());
+        }
+        else if(programState == ProgramState.PRE_CROP){
             resetButtons();
         }
 
@@ -393,17 +408,24 @@ public class GUI extends JFrame {
     private void resetButtons() {
         sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
         darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
-        if (toggleZones[0] != null && frame != null) {
-            setZoneRadius.setVisible(false);
-            displayZoneRadius.setVisible(false);
-            showZones.setSelected(false);
-            frame.displayZones = false;
-            for (int i = 0; i < MAX_LARVAE; i++) {
-                toggleZones[i].setVisible(false);
-                toggleZones[i].setSelected(false);
-                frame.zoneToggled[i] = false;
-            }
+
+        frame.displayZones = false;
+        setZoneRadius.setVisible(frame.displayZones);
+        displayZoneRadius.setVisible(frame.displayZones);
+        showZones.setSelected(frame.displayZones);
+
+        frame.displayPaths = true;
+        showPaths.setSelected(frame.displayPaths);
+        zoneCheckboxes.setVisible(false);
+        pathCheckboxes.setVisible(false);
+        zoneCheckboxes.reset(MAX_LARVAE);
+        pathCheckboxes.reset(MAX_LARVAE);
+
+        for (int i = 0; i < MAX_LARVAE; i++) {
+            frame.zoneToggled[i] = frame.displayZones;
+            frame.pathToggled[i] = frame.displayPaths;
         }
+
     }
 
     boolean deleteDirectory(Path dirName) {
@@ -483,11 +505,8 @@ public class GUI extends JFrame {
                 "End Time:", endTime
         };
 
-        int result = JOptionPane.showConfirmDialog(null, message,
-                "Choose Movie Length", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
-            return;
-        }
+        JOptionPane.showConfirmDialog(null, message,
+                "Choose Movie Length", JOptionPane.DEFAULT_OPTION);
 
         int startValue = parseVideoLengthInput(startTime.getText());
 
@@ -518,7 +537,6 @@ public class GUI extends JFrame {
         originalMovie = video;
         frame.currentFrame = 1;
 
-        resetButtons();
         openMovieDurationDialog();
     }
 
@@ -542,7 +560,6 @@ public class GUI extends JFrame {
             if (files.length == 0) {
                 return;
             }
-
             initializeMovie(files[0]);
         }
     }
@@ -562,7 +579,7 @@ public class GUI extends JFrame {
             if (!changeFrameEnabled) return;
 
             if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
-                if(number == -1) movie.deleteFrame(frame.currentFrame);
+                if (number == -1) movie.deleteFrame(frame.currentFrame);
                 frame.currentFrame += number;
                 try {
                     frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
@@ -571,7 +588,7 @@ public class GUI extends JFrame {
                     exit(1);
                 }
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
-                if(number == 1){
+                if (number == 1) {
                     try {
                         movie.createFrame(frame.currentFrame);
                     } catch (IOException e) {
@@ -709,7 +726,7 @@ public class GUI extends JFrame {
             try {
                 movie.initializeColorCorrectedFrames();
             } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null,"Could not find image.");
+                JOptionPane.showMessageDialog(null, "Could not find image.");
                 exit(1);
             }
             frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));
@@ -829,7 +846,7 @@ public class GUI extends JFrame {
 
         @Override
         public void stateChanged(ChangeEvent e) {
-            JSlider source = (JSlider)e.getSource();
+            JSlider source = (JSlider) e.getSource();
             if (!source.getValueIsAdjusting()) {
                 int value = source.getValue();
                 sliderValue.setText("Darkness Threshold = " + value + ".");
@@ -894,6 +911,20 @@ public class GUI extends JFrame {
     private class ShowPathAction implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             frame.displayPaths = !frame.displayPaths;
+            pathCheckboxes.setVisible(frame.displayPaths);
+            render();
+        }
+    }
+
+    private class TogglePathAction implements ActionListener {
+        private int index;
+
+        public TogglePathAction(int index) {
+            this.index = index;
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            frame.pathToggled[index] = !frame.pathToggled[index];
             render();
         }
     }
@@ -916,11 +947,10 @@ public class GUI extends JFrame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            if(swapImage.getText().equals("Show detected larvae")){
+            if (swapImage.getText().equals("Show detected larvae")) {
                 frame.displayLarvaLocationOverlay = true;
                 swapImage.setText("Hide detected larvae");
-            }
-            else{
+            } else {
                 frame.displayLarvaLocationOverlay = false;
                 swapImage.setText("Show detected larvae");
             }
@@ -934,11 +964,8 @@ public class GUI extends JFrame {
 
             setZoneRadius.setVisible(frame.displayZones);
             displayZoneRadius.setVisible(frame.displayZones);
+            zoneCheckboxes.setVisible(frame.displayZones);
 
-            for (int i = 0; i < movie.getLarva().size(); i++) {
-                toggleZones[i].setVisible(frame.displayZones);
-                toggleZones[i].setEnabled(frame.displayZones);
-            }
             render();
         }
     }
@@ -950,8 +977,8 @@ public class GUI extends JFrame {
             Object[] message = {"Enter a zone radius in millimeters.", radius};
 
             int result = JOptionPane.showConfirmDialog(null, message,
-                "Zone Radius", JOptionPane.OK_CANCEL_OPTION);
-            if (result == JOptionPane.CANCEL_OPTION && result == JOptionPane.CLOSED_OPTION) {
+                    "Zone Radius", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
                 return;
             }
 
@@ -986,6 +1013,7 @@ public class GUI extends JFrame {
         public boolean displayPaths;
         public boolean displayZones;
         public boolean displayLarvaLocationOverlay;
+        public boolean[] pathToggled = new boolean[MAX_LARVAE];
         public boolean[] zoneToggled = new boolean[MAX_LARVAE];
         public boolean vidInitialized;
         public Video movie;
@@ -1012,9 +1040,10 @@ public class GUI extends JFrame {
             this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
-        public void setBlackAndWhiteImage(Image image){
+        public void setBlackAndWhiteImage(Image image) {
             this.blackAndWhiteImage = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
+
         public Image getImage() {
             return image;
         }
@@ -1027,7 +1056,7 @@ public class GUI extends JFrame {
             g.drawImage(image, 0, 0, null);
             // tile the image across the component
             Graphics2D g2 = (Graphics2D) g;
-            if(displayLarvaLocationOverlay){
+            if (displayLarvaLocationOverlay) {
                 Image overlayImage = blackAndWhiteImage;
                 AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f);
                 ((Graphics2D) g).setComposite(ac);
@@ -1058,27 +1087,25 @@ public class GUI extends JFrame {
         }
 
         private void drawPaths(Graphics2D g2, ArrayList<Larva> larvae) {
-            for (Larva l : larvae) {
-                g2.setColor(LARVAE_COLORS[larvae.indexOf(l)]);
-                for (int i = 0; i < currentFrame; i++) {
-
-                    //convert pt image space --> window space
-                    // img_pt * winWidth/imageWidth
-                    if (i + 1 >= l.getPositionsSize()) {
-                        break;
-                    }
-                    if (l.getPosition(i) != null) {
-                        paintPaths(g2, l, i);
-                    }
-                    if (i == currentFrame - 1 && l.getPosition(i + 1) != null) {
-                        g2.setFont(new Font("Times New Roman", Font.BOLD, 30));
-                        g2.drawString(String.valueOf(larvae.indexOf(l) +1),
-                                (int) ((l.getPosition(i + 1)[0]) / xRatio - 3),
-                                (int) ((l.getPosition(i + 1)[1]) / yRatio - 3));
+            for (int i = 0; i < larvae.size(); i++) {
+                Larva l = larvae.get(i);
+                g2.setColor(LARVAE_COLORS[i]);
+                if (pathToggled[i]) {
+                    for (int j = 0; j < currentFrame; j++) {
+                        if (l.getPosition(j) != null) {
+                            paintPaths(g2, l, j);
                         }
+                    }
+                    g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
+                            l.getPosition(0)[1] / yRatio, 6, 6));
+                    }
+                Double[] lastKnownPosition = l.getLastTrackedPosition();
+                if (lastKnownPosition != null) {
+                    g2.setFont(new Font("Times New Roman", Font.BOLD, 30));
+                    g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
+                            (int) ((lastKnownPosition[0]) / xRatio - 3),
+                            (int) ((lastKnownPosition[1]) / yRatio - 3));
                 }
-                g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
-                        l.getPosition(0)[1] / yRatio, 6, 6));
             }
         }
 
