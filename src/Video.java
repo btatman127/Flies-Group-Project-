@@ -50,6 +50,8 @@ public class Video {
         this.darknessThreshold = darknessThreshold;
     }
 
+    public ArrayList<Larva> getLarvae() { return this.larvae; }
+
     public void initializeColorCorrectedFrames() throws IOException {
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         BufferedImage image = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
@@ -76,13 +78,18 @@ public class Video {
         trackLarvae(currentFrame);
     }
 
-
     public void retrackLarvaPosition(int currentFrame, int larvaIndex, Double[] pt) {
         Larva l = larvae.get(larvaIndex);
 
         l.trimPositions(currentFrame);
 
         l.setNewPosition(pt);
+    }
+
+    public void stopTracking(int larvaIndex, int frame) {
+        Larva l = larvae.get(larvaIndex);
+        l.trimPositions(frame - 1);
+        l.setNewPosition(null);
     }
 
     public void deleteFrame(int currentFrame) {
@@ -94,7 +101,7 @@ public class Video {
     /**
      * Splits an image into a set number of subimages called regions, which are stored in the Video's regions array.
      *
-     * @param frame The frame number of the image.
+     * @param frame The Fframe number of the image.
      * @param image An image to create regions on.
      */
     private void createRegions(int frame, BufferedImage image) {
