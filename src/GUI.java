@@ -821,7 +821,11 @@ public class GUI extends JFrame {
                 }
             }
             CSVExport exporter = new CSVExport(movie, frames, zoneRadius);
-            exporter.export(file);
+            try {
+                exporter.export(file);
+            } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(null, "Could not Export CSV");
+            }
         }
     }
 
