@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 public class Larva {
-	public ArrayList<Double[]> positions;
+	private ArrayList<Double[]> positions;
 
 	public Larva(Double xInitial, Double yInitial){
 		positions = new ArrayList<Double[]>();

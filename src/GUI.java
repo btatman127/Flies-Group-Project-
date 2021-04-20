@@ -802,6 +802,9 @@ public class GUI extends JFrame {
 
             if (frame.currentFrame == 0) {
                 movie.getLarvae().remove(larvaNumberOption.getSelectedIndex());
+                if (movie.getLarvae().size() == 0) {
+                    setButtonStates(ProgramState.POST_CROP);
+                }
             } else {
                 movie.stopTracking(larvaNumberOption.getSelectedIndex(), frame.currentFrame + 1);
             }
