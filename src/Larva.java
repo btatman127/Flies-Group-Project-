@@ -37,7 +37,6 @@ public class Larva {
 	/**
 	 * Removes all frames from given frame to the end.
 	 */
-
 	public void trimPositions(int frame){
 		while(positions.size() > frame){
 			positions.remove(positions.size()-1);

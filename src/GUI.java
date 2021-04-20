@@ -52,6 +52,7 @@ public class GUI extends JFrame {
     private final JButton exportCSV = new JButton(("Export as CSV file"));
     private final JButton screenshot = new JButton(("Screenshot current frame"));
     private final JButton retrackPosition = new JButton("Retrack Larva @ Current Frame");
+    private final JButton stopTracking = new JButton("Stop Tracking Larva");
     private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
@@ -86,31 +87,31 @@ public class GUI extends JFrame {
         OPEN(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         PRE_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.INVISIBLE),
+                ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         CROPPING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.DISABLED, ButtonState.INVISIBLE),
+                ButtonState.DISABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE),
         POST_CROP(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.DISABLED),
+                ButtonState.INVISIBLE, ButtonState.DISABLED, ButtonState.INVISIBLE),
         SELECTING_LARVAE(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
-                ButtonState.DISABLED, ButtonState.DISABLED),
+                ButtonState.DISABLED, ButtonState.DISABLED, ButtonState.INVISIBLE),
         TRACKING(ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.ENABLED, ButtonState.INVISIBLE,
-                ButtonState.INVISIBLE, ButtonState.ENABLED),
+                ButtonState.INVISIBLE, ButtonState.ENABLED, ButtonState.ENABLED),
         RETRACKING(ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE,
                 ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
                 ButtonState.ENABLED, ButtonState.INVISIBLE, ButtonState.INVISIBLE, ButtonState.ENABLED,
-                ButtonState.DISABLED, ButtonState.DISABLED);
+                ButtonState.DISABLED, ButtonState.DISABLED, ButtonState.INVISIBLE);
 
         final ButtonState openMovie;
         final ButtonState changeFrame;
@@ -125,12 +126,13 @@ public class GUI extends JFrame {
         final ButtonState confirmRetrackPosition;
         final ButtonState undo;
         final ButtonState darknessThreshold;
+        final ButtonState stopTracking;
 
         ProgramState(ButtonState openMovie, ButtonState changeFrame, ButtonState startCrop,
                      ButtonState confirmCrop, ButtonState startLarvaeSelection, ButtonState confirmLarvaeSelection,
                      ButtonState showPaths, ButtonState showZones, ButtonState exportPaths,
                      ButtonState retrackPosition, ButtonState confirmRetrackPosition, ButtonState undo,
-                     ButtonState darknessThreshold) {
+                     ButtonState darknessThreshold, ButtonState stopTracking) {
             this.openMovie = openMovie;
             this.changeFrame = changeFrame;
             this.startCrop = startCrop;
@@ -144,6 +146,7 @@ public class GUI extends JFrame {
             this.confirmRetrackPosition = confirmRetrackPosition;
             this.undo = undo;
             this.darknessThreshold = darknessThreshold;
+            this.stopTracking = stopTracking;
         }
     }
 
@@ -193,6 +196,7 @@ public class GUI extends JFrame {
         buttonPanel.add(showZones);
         buttonPanel.add(retrackPosition);
         buttonPanel.add(confirmRetrackPosition);
+        buttonPanel.add(stopTracking);
         buttonPanel.add(exportCSV);
         buttonPanel.add(screenshot);
         buttonPanel.add(displayFrameNum);
@@ -262,6 +266,7 @@ public class GUI extends JFrame {
         showZones.addActionListener(new ShowZoneAction());
         setZoneRadius.addActionListener(new SetZoneRadiusAction());
         retrackPosition.addActionListener(new RetrackPositionAction());
+        stopTracking.addActionListener(new StopTrackingAction());
         confirmRetrackPosition.addActionListener(new StopRetrackAction());
         exportCSV.addActionListener(new CSVExportAction());
         screenshot.addActionListener(new ScreenshotAction());
@@ -359,6 +364,9 @@ public class GUI extends JFrame {
 
         retrackPosition.setVisible(programState.retrackPosition.visible);
         retrackPosition.setEnabled(programState.retrackPosition.enabled);
+
+        stopTracking.setVisible(programState.stopTracking.visible);
+        stopTracking.setEnabled(programState.stopTracking.enabled);
 
         confirmRetrackPosition.setVisible(programState.confirmRetrackPosition.visible);
         confirmRetrackPosition.setEnabled(programState.confirmRetrackPosition.enabled);
@@ -719,10 +727,6 @@ public class GUI extends JFrame {
                 larvaeNumber[i] = "" + (i + 1);
             }
 
-            for (int i = 0; i < movie.getLarva().size(); i++) {
-                larvaeNumber[i] = "" + (i + 1);
-            }
-
             GUI.this.setTempLarvaIndex(-1);
             JComboBox larvaNumberOption = new JComboBox(larvaeNumber);
             Object[] message = {
@@ -771,6 +775,40 @@ public class GUI extends JFrame {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
+        }
+    }
+
+    private class StopTrackingAction implements ActionListener {
+        public StopTrackingAction() {}
+        public void actionPerformed(ActionEvent event) {
+            String[] larvaeNumber = new String[movie.getLarva().size()];
+            for (int i = 0; i < movie.getLarva().size(); i++) {
+                larvaeNumber[i] = "" + (i + 1);
+            }
+
+            JComboBox larvaNumberOption = new JComboBox(larvaeNumber);
+            Object[] message = {
+                    "Please select larva number to stop tracking.",
+                    "This will remove current position",
+                    "and future positions.",
+                    larvaNumberOption,
+            };
+
+            int result = JOptionPane.showConfirmDialog(null, message,
+                    "Select Larva", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
+                return;
+            }
+
+            if (frame.currentFrame == 0) {
+                movie.getLarvae().remove(larvaNumberOption.getSelectedIndex());
+                if (movie.getLarvae().size() == 0) {
+                    setButtonStates(ProgramState.POST_CROP);
+                }
+            } else {
+                movie.stopTracking(larvaNumberOption.getSelectedIndex(), frame.currentFrame + 1);
+            }
+            render();
         }
     }
 
