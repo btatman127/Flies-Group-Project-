@@ -294,10 +294,13 @@ public class GUI extends JFrame {
 
     private static boolean isffmpegInstalled() {
         try {
-            Runtime rt = Runtime.getRuntime();
-            rt.exec(new String[]{"ffmpeg"});
-            rt.exec(new String[]{"ffprobe"});
-        } catch (IOException e) {
+            String[] args = new String[]{"/bin/bash", "-c", "ffmpeg"};
+            Process p = new ProcessBuilder(args).start();
+            p.waitFor();
+//            Runtime rt = Runtime.getRuntime();
+//            rt.exec(new String[]{"/bin/bash -c ffmpeg"});
+//            rt.exec(new String[]{"ffprobe"});
+        } catch (IOException | InterruptedException e) {
             return false;
         }
 
