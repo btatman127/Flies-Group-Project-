@@ -497,6 +497,7 @@ public class GUI extends JFrame {
             frame.setImage(movie.getPathToFrame(frame.currentFrame));
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Could not find image.");
+            e.printStackTrace();
             exit(1);
         }
         render();
@@ -508,6 +509,7 @@ public class GUI extends JFrame {
             finalTime = PreProcessor.getVideoDuration(originalMovie);
         } catch (IOException error) {
             JOptionPane.showMessageDialog(null, "Could not find video.");
+            error.printStackTrace();
             return;
         }
 
@@ -601,6 +603,7 @@ public class GUI extends JFrame {
                     frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(null, "Could not find image.");
+                    e.printStackTrace();
                     exit(1);
                 }
                 displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
@@ -609,6 +612,7 @@ public class GUI extends JFrame {
                         movie.createFrame(frame.currentFrame);
                     } catch (IOException e) {
                         JOptionPane.showMessageDialog(null, "Could not find image.");
+                        e.printStackTrace();
                         exit(1);
                     }
                 }
@@ -679,6 +683,7 @@ public class GUI extends JFrame {
                 frame.setImage(movie.getPathToFrame(frame.currentFrame));
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Could not find image.");
+                e.printStackTrace();
                 exit(1);
             }
             displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
@@ -701,6 +706,7 @@ public class GUI extends JFrame {
                 frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Could not find image.");
+                e.printStackTrace();
                 exit(1);
             }
             displayFrameNum.setText("Frame " + (frame.currentFrame + 1) + " of " + movie.getNumImages());
@@ -743,6 +749,7 @@ public class GUI extends JFrame {
                 movie.initializeColorCorrectedFrames();
             } catch (IOException ioe) {
                 JOptionPane.showMessageDialog(null, "Could not find image.");
+                ioe.printStackTrace();
                 exit(1);
             }
             frame.setBlackAndWhiteImage(movie.findLarvaeLocation(frame.currentFrame));

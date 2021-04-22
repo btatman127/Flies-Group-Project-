@@ -22,6 +22,7 @@ public class Video {
 
     private Region[][][] regions; //Region[frame number][x-coordinate][y-coordinate]
     private boolean[][][] larvaLoc;
+    private int[][][] avgDarkness;
     private int darknessThreshold;
     private int regionDim;
     private ArrayList<Double[]> islands;
@@ -62,7 +63,10 @@ public class Video {
         islands = new ArrayList<>();
 
         islands = getIslandList(0);
-        createRegions(0, ImageIO.read(imgDir.resolve("cc0001.png").toFile()));
+        for (int i = 0; i < numImages; i++) {
+            createRegions(i, ImageIO.read(imgDir.resolve(String.format("cc%04d.png", i+1)).toFile()));
+        }
+        avgDarkness = getAvgDarkness(numImages);
     }
 
     /**
@@ -70,10 +74,7 @@ public class Video {
      * Stores coordinates of each larva in each frame
      */
     public void createFrame(int currentFrame) throws IOException {
-        BufferedImage image = ImageIO.read(imgDir.resolve(String.format("cc%04d.png", currentFrame + 1)).toFile());
-        createRegions(currentFrame, image);
         findLarvaeLocation(currentFrame);
-
         islands = getIslandList(currentFrame);
         trackLarvae(currentFrame);
     }
@@ -113,6 +114,18 @@ public class Video {
         }
     }
 
+    private int[][][] getAvgDarkness(int numFrames){
+        int[][][] avgDarkness = new int[numFrames][larvaLoc[0].length][larvaLoc[0][0].length];
+        for(int i = 0; i < numFrames; i++){
+            for(int j = 0; j < larvaLoc[0].length; j++){
+                for (int k = 0; k < larvaLoc[0][0].length; k++) {
+                    avgDarkness[i][j][k] = getSample(i, j, k);
+                }
+            }
+        }
+        return avgDarkness;
+    }
+
     private int getSample(int frame, int x, int y) {
         int average = 0;
         int count = 0;
@@ -138,10 +151,11 @@ public class Video {
      * and white areas are not.
      */
     public BufferedImage findLarvaeLocation(int frame) {
+        if(regions == null) return null;
         BufferedImage image = new BufferedImage(regions[0].length, regions[0][0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < larvaLoc[0].length; i++) {
             for (int j = 0; j < larvaLoc[0][0].length; j++) {
-                int avg = getSample(frame, i, j);
+                int avg = avgDarkness[frame][i][j];
                 larvaLoc[frame][i][j] = (avg < darknessThreshold);
                 int b = 255;
                 if (larvaLoc[frame][i][j]) {
