@@ -7,11 +7,32 @@ import javax.imageio.ImageIO;
 import java.io.InputStreamReader;
 import java.lang.Math;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-
 public class PreProcessor {
+    private static boolean isMac;
+
+    public PreProcessor(boolean isMac) {
+        this.isMac = isMac;
+    }
+
+    private static Process runProcess(String... args) {
+        try {
+            if (isMac) {
+                String[] newArgs = new String[]{"/bin/bash", "-c"};
+                String[] both = Arrays.copyOf(newArgs, newArgs.length + args.length);
+                System.arraycopy(args, 0, both, newArgs.length, args.length);
+                return new ProcessBuilder(both).start();
+            } else {
+                return Runtime.getRuntime().exec(args);
+            }
+        } catch (IOException e) {}
+
+        return null;
+    }
+
     /**
      * @param width  The desired width
      * @param height The desired height
@@ -123,40 +144,36 @@ public class PreProcessor {
      * @param fps        a value of 1 will extract 1 frame for each second of video
      */
 
-    public static void extractFrames(String inputPath, String outputPath, int fps) throws java.io.IOException, java.lang.InterruptedException {
-        String[] command = new String[]{
-                "ffmpeg", "-i", inputPath,
-                "-vf", "fps=" + fps, outputPath};
-        Runtime.getRuntime().exec(command).waitFor();
+    public static void extractFrames(String inputPath, String outputPath, int fps) throws java.lang.InterruptedException {
+        Process p = runProcess("ffmpeg", "-i", inputPath,
+                "-vf", "fps=" + fps, outputPath);
+        p.waitFor();
     }
 
 
     /**
      * Takes a start time and end time and tells ffmpeg to trim video before images are extracted
      **/
-    public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.io.IOException, java.lang.InterruptedException {
+    public static void cropVideo(int startTime, int endTime, String inputPathLong, String outputPathLong) throws java.lang.InterruptedException {
         int duration = endTime - startTime;
-        String[] command = new String[]{
+        Process p = runProcess(
                 "ffmpeg", "-ss", String.valueOf(startTime),
                 "-i", inputPathLong,
                 "-c", "copy",
                 "-t", String.valueOf(duration),
-                outputPathLong};
-        Runtime.getRuntime().exec(command).waitFor();
+                outputPathLong);
+        p.waitFor();
     }
 
     /**
      * Gets video duration in seconds from ffmpeg.
      **/
     public static int getVideoDuration(File movie) throws IOException {
-        String[] command2 = new String[]{"ffprobe", "-v", "quiet", "-print_format",
+        Process p = runProcess("ffprobe", "-v", "quiet", "-print_format",
                 "compact=print_section=0:nokey=1:escape=csv", "-show_entries",
-                "format=duration", movie.getAbsolutePath()};
+                "format=duration", movie.getAbsolutePath());
 
-        java.lang.Runtime rt2 = java.lang.Runtime.getRuntime();
-        java.lang.Process p2 = rt2.exec(command2);
-
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
         Scanner scanner = new Scanner(stdInput);
         return (int) scanner.nextDouble();
     }

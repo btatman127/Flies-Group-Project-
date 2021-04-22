@@ -81,6 +81,9 @@ public class GUI extends JFrame {
     public Stack<Integer> history;
     public final int CLICKING = 0;
 
+    public static boolean isMac;
+    private static PreProcessor processor;
+
     private enum ButtonState {
         INVISIBLE(false, false),
         DISABLED(true, false),
@@ -301,6 +304,7 @@ public class GUI extends JFrame {
             return false;
         }
 
+        isMac = true;
         return true;
     }
 
@@ -312,14 +316,17 @@ public class GUI extends JFrame {
             return false;
         }
 
+        isMac = false;
         return true;
     }
+
     private static boolean isffmpegInstalled() {
         if ((runProcess("ffmpeg") || runExec("ffmpeg")) &&
-                (runProcess("ffprobe") || runExec("ffmpeg"))) {
+                (runProcess("ffprobe") || runExec("ffprobe"))) {
             return true;
         }
 
+        processor = new PreProcessor(isMac);
         return false;
     }
 
@@ -524,7 +531,7 @@ public class GUI extends JFrame {
     private void openMovieDurationDialog() {
         int finalTime;
         try {
-            finalTime = PreProcessor.getVideoDuration(originalMovie);
+            finalTime = processor.getVideoDuration(originalMovie);
         } catch (IOException error) {
             JOptionPane.showMessageDialog(null, "Could not find video.");
             return;
@@ -1076,11 +1083,11 @@ public class GUI extends JFrame {
 
         public void setImage(Path file) throws IOException {
             Image image = ImageIO.read(file.toFile());
-            this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
+            this.image = processor.scale(image, this.getWidth(), this.getHeight());
         }
 
         public void setBlackAndWhiteImage(Image image) {
-            this.blackAndWhiteImage = PreProcessor.scale(image, this.getWidth(), this.getHeight());
+            this.blackAndWhiteImage = processor.scale(image, this.getWidth(), this.getHeight());
         }
 
         public Image getImage() {
