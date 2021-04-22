@@ -66,7 +66,7 @@ public class GUI extends JFrame {
     private final JButton confirmRetrackPosition = new JButton("Confirm Larva Retrack");
     private final JButton undo = new JButton("Undo");
     private final JProgressBar cropProgress;
-    private final JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
+    private JSlider darknessThreshold = new JSlider(0, 255, DEFAULT_DARKNESS_THRESHOLD);
     private final JLabel sliderValue = new JLabel();
     private final JButton swapImage = new JButton("Show detected larvae");
     private JTextPane displayFrameNum;
@@ -75,6 +75,8 @@ public class GUI extends JFrame {
     private int[] point2;
     private FileDialog fd;
     public ImageComponent frame;
+
+    private boolean sliderUseable = false;
 
     public Stack<Integer> history;
     public final int CLICKING = 0;
@@ -229,8 +231,6 @@ public class GUI extends JFrame {
         darknessThreshold.setPaintLabels(true);
         darknessThreshold.setPaintTicks(true);
 
-        setButtonStates(ProgramState.OPEN);
-
         //add the image component to the screen
         frame = new ImageComponent("welcome.png");
         frame.setBorder(BorderFactory.createEtchedBorder());
@@ -286,6 +286,9 @@ public class GUI extends JFrame {
         //add our components and panels as a gridbag layout
         add(buttonPanel, new GBC(1, 0).setFill(GBC.EAST).setWeight(100, 0).setInsets(1));
         add(frame, new GBC(2, 0, 1, 4).setFill(GBC.BOTH).setWeight(800, 800));
+
+        setButtonStates(ProgramState.OPEN);
+        
         render();
     }
 
@@ -383,8 +386,15 @@ public class GUI extends JFrame {
         undo.setVisible(programState.undo.visible);
         undo.setEnabled(programState.undo.enabled);
 
+        if (programState != ProgramState.TRACKING && programState != ProgramState.RETRACKING) {
+            resetButtons();
+        }
+
         darknessThreshold.setVisible(programState.darknessThreshold.visible);
         darknessThreshold.setEnabled(programState.darknessThreshold.enabled);
+        darknessThreshold.setPaintLabels(programState.darknessThreshold.visible);
+        darknessThreshold.setPaintTicks(programState.darknessThreshold.visible);
+        sliderUseable = programState.darknessThreshold.visible;
 
         sliderValue.setVisible(programState.darknessThreshold.visible);
         sliderValue.setEnabled(programState.darknessThreshold.enabled);
@@ -406,26 +416,30 @@ public class GUI extends JFrame {
     }
 
     private void resetButtons() {
-        sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
-        darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
+        frame.displayPaths = true;
+        showPaths.setSelected(frame.displayPaths);
+        pathCheckboxes.setVisible(false);
+        pathCheckboxes.reset(MAX_LARVAE);
 
         frame.displayZones = false;
         setZoneRadius.setVisible(frame.displayZones);
         displayZoneRadius.setVisible(frame.displayZones);
         showZones.setSelected(frame.displayZones);
-
-        frame.displayPaths = true;
-        showPaths.setSelected(frame.displayPaths);
         zoneCheckboxes.setVisible(false);
-        pathCheckboxes.setVisible(false);
         zoneCheckboxes.reset(MAX_LARVAE);
-        pathCheckboxes.reset(MAX_LARVAE);
 
         for (int i = 0; i < MAX_LARVAE; i++) {
             frame.zoneToggled[i] = frame.displayZones;
             frame.pathToggled[i] = frame.displayPaths;
         }
+        resetSliderState();
 
+    }
+
+    private void resetSliderState() {
+        sliderUseable = false;
+        darknessThreshold.setValue(DEFAULT_DARKNESS_THRESHOLD);
+        sliderValue.setText("Darkness Threshold = " + DEFAULT_DARKNESS_THRESHOLD + ".");
     }
 
     boolean deleteDirectory(Path dirName) {
@@ -472,6 +486,8 @@ public class GUI extends JFrame {
         frame.squares = new ArrayList<>();
 
         frame.displayPaths = false;
+        frame.displayLarvaLocationOverlay = false;
+        swapImage.setText("Show detected larvae");
         displayFrameNum.setText("Frame " + frame.currentFrame + " of " + movie.getNumImages());
         displayFrameNum.setEditable(false);
         displayFrameNum.setVisible(true);
@@ -846,7 +862,11 @@ public class GUI extends JFrame {
 
         @Override
         public void stateChanged(ChangeEvent e) {
-            JSlider source = (JSlider) e.getSource();
+            if (!sliderUseable) {
+                return;
+            }
+
+            JSlider source = (JSlider)e.getSource();
             if (!source.getValueIsAdjusting()) {
                 int value = source.getValue();
                 sliderValue.setText("Darkness Threshold = " + value + ".");
