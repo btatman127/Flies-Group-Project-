@@ -81,9 +81,6 @@ public class GUI extends JFrame {
     public Stack<Integer> history;
     public final int CLICKING = 0;
 
-    public static boolean isMac;
-    private static PreProcessor processor;
-
     private enum ButtonState {
         INVISIBLE(false, false),
         DISABLED(true, false),
@@ -295,47 +292,12 @@ public class GUI extends JFrame {
         render();
     }
 
-    private static boolean runProcess(String processName) {
-        try {
-            String[] args = new String[]{"/bin/bash", "-c", processName};
-            Process p = new ProcessBuilder(args).start();
-            p.waitFor();
-        } catch (IOException | InterruptedException e) {
-            return false;
-        }
-
-        isMac = true;
-        return true;
-    }
-
-    private static boolean runExec(String name) {
-        try {
-            Runtime rt = Runtime.getRuntime();
-            rt.exec(new String[] {name});
-        } catch (IOException e) {
-            return false;
-        }
-
-        isMac = false;
-        return true;
-    }
-
-    private static boolean isffmpegInstalled() {
-        if ((runProcess("ffmpeg") || runExec("ffmpeg")) &&
-                (runProcess("ffprobe") || runExec("ffprobe"))) {
-            return true;
-        }
-
-        processor = new PreProcessor(isMac);
-        return false;
-    }
-
     public static void main(String[] args) {
         EventQueue.invokeLater(() ->
         {
             GUI frame = new GUI();
             frame.setTitle("The Larvae Tracker 6000");
-            if (!isffmpegInstalled()) {
+            if (!PreProcessor.isffmpegInstalled()) {
                 try {
                     Desktop.getDesktop().browse(new URL(DOCUMENTATION_URL).toURI());
                     JOptionPane.showMessageDialog(null,
@@ -531,7 +493,7 @@ public class GUI extends JFrame {
     private void openMovieDurationDialog() {
         int finalTime;
         try {
-            finalTime = processor.getVideoDuration(originalMovie);
+            finalTime = PreProcessor.getVideoDuration(originalMovie);
         } catch (IOException error) {
             JOptionPane.showMessageDialog(null, "Could not find video.");
             return;
@@ -1083,11 +1045,11 @@ public class GUI extends JFrame {
 
         public void setImage(Path file) throws IOException {
             Image image = ImageIO.read(file.toFile());
-            this.image = processor.scale(image, this.getWidth(), this.getHeight());
+            this.image = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
         public void setBlackAndWhiteImage(Image image) {
-            this.blackAndWhiteImage = processor.scale(image, this.getWidth(), this.getHeight());
+            this.blackAndWhiteImage = PreProcessor.scale(image, this.getWidth(), this.getHeight());
         }
 
         public Image getImage() {

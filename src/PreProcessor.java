@@ -10,13 +10,49 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.lang.System;
+
 
 public class PreProcessor {
-    private static boolean isMac;
 
-    public PreProcessor(boolean isMac) {
-        this.isMac = isMac;
+    private static final boolean isMac = System.getProperty("os.name").toLowerCase().matches("darwin|mac");
+
+    private static boolean checkProcess(String processName) {
+        try {
+            String[] args = new String[]{"/bin/bash", "-c", processName};
+            Process p = new ProcessBuilder(args).start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            return false;
+        }
+
+        return true;
     }
+
+    private static boolean checkExec(String name) {
+        try {
+            Runtime rt = Runtime.getRuntime();
+            rt.exec(new String[] {name});
+        } catch (IOException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean isffmpegInstalled() {
+        if (isMac) {
+            if (!(checkProcess("ffmpeg") && checkProcess("ffprobe")))
+                return false;
+        } else {
+            if (!(checkExec("ffmpeg") && checkExec("ffprobe"))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
     private static Process runProcess(String... args) {
         try {
