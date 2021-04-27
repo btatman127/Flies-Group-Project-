@@ -12,10 +12,9 @@ import java.util.LinkedList;
 import java.util.Scanner;
 import java.lang.System;
 
-
 public class PreProcessor {
 
-    private static final boolean isMac = System.getProperty("os.name").toLowerCase().matches("darwin|mac");
+    private static final boolean isMac = System.getProperty("os.name").toLowerCase().matches("(.*)darwin(.*)|(.*)mac(.*)");
 
     private static boolean checkProcess(String processName) {
         try {
