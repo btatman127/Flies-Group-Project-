@@ -9,7 +9,6 @@ import java.io.File;
 
 public class Video {
     private static final int FPS = 1;
-    private static final int TRACKING_RESOLUTION = 100;
     private static final int MIN_FRAMES_TO_TRAVEL_ACROSS_SCREEN = 6;
     public static final int MIN_ISLAND_SIZE = 2;
 
@@ -24,7 +23,8 @@ public class Video {
     private int[][][] avgDarkness;
     private int darknessThreshold;
     private int regionDim;
-
+    private int numRegionsX;
+    private int numRegionsY;
 
     public Video(File movie, int startTime, int endTime, int darknessThreshold) throws
             IOException, InterruptedException {
@@ -55,9 +55,11 @@ public class Video {
         PreProcessor.colorCorrectFrames(numImages, imgDir);
         BufferedImage image = ImageIO.read(imgDir.resolve(String.format("img%04d.png", 1)).toFile());
 
-        regionDim = image.getHeight() / TRACKING_RESOLUTION;
-        regions = new Region[numImages][TRACKING_RESOLUTION][TRACKING_RESOLUTION];
-        larvaLoc = new boolean[numImages][TRACKING_RESOLUTION][TRACKING_RESOLUTION];
+        regionDim = image.getHeight() / 100;
+        numRegionsX = image.getWidth() / regionDim;
+        numRegionsY = image.getHeight()/regionDim;
+        regions = new Region[numImages][numRegionsX][numRegionsY];
+        larvaLoc = new boolean[numImages][numRegionsX][numRegionsY];
 
         for (int i = 0; i < numImages; i++) {
             createRegions(i, ImageIO.read(imgDir.resolve(String.format("cc%04d.png", i+1)).toFile()));
@@ -101,8 +103,8 @@ public class Video {
      * @param image An image to create regions on.
      */
     private void createRegions(int frame, BufferedImage image) {
-        for (int i = 0; i < TRACKING_RESOLUTION; i++) {
-            for (int j = 0; j < TRACKING_RESOLUTION; j++) {
+        for (int i = 0; i < numRegionsX; i++) {
+            for (int j = 0; j < numRegionsY; j++) {
                 Region region = new Region(image.getSubimage(i * regionDim, j * regionDim, regionDim, regionDim));
                 regions[frame][i][j] = region;
             }
@@ -110,10 +112,10 @@ public class Video {
     }
 
     private int[][][] getAvgDarkness(int numFrames){
-        int[][][] avgDarkness = new int[numFrames][TRACKING_RESOLUTION][TRACKING_RESOLUTION];
+        int[][][] avgDarkness = new int[numFrames][numRegionsX][numRegionsY];
         for(int i = 0; i < numFrames; i++){
-            for(int j = 0; j < TRACKING_RESOLUTION; j++){
-                for (int k = 0; k < TRACKING_RESOLUTION; k++) {
+            for(int j = 0; j < numRegionsX; j++){
+                for (int k = 0; k < numRegionsY; k++) {
                     avgDarkness[i][j][k] = getSample(i, j, k);
                 }
             }
@@ -126,9 +128,9 @@ public class Video {
         int count = 0;
         int kernelSize = 3;
         for (int i = x - (kernelSize / 2); i <= x + (kernelSize / 2); i++) {
-            if (i >= 0 && i < TRACKING_RESOLUTION) {
+            if (i >= 0 && i < numRegionsX) {
                 for (int j = y - (kernelSize / 2); j <= y + (kernelSize / 2); j++) {
-                    if (j >= 0 && j < TRACKING_RESOLUTION) {
+                    if (j >= 0 && j < numRegionsY) {
                         count++;
                         average += regions[frame][i][j].getAvgValue();
                     }
@@ -147,9 +149,9 @@ public class Video {
      */
     public BufferedImage findLarvaeLocation(int frame) {
         if(regions == null) return null;
-        BufferedImage image = new BufferedImage(TRACKING_RESOLUTION, TRACKING_RESOLUTION, BufferedImage.TYPE_INT_RGB);
-        for (int i = 0; i < TRACKING_RESOLUTION; i++) {
-            for (int j = 0; j < TRACKING_RESOLUTION; j++) {
+        BufferedImage image = new BufferedImage(numRegionsX, numRegionsY, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < numRegionsX; i++) {
+            for (int j = 0; j < numRegionsY; j++) {
                 int avg = avgDarkness[frame][i][j];
                 larvaLoc[frame][i][j] = (avg < darknessThreshold);
                 int b = 255;
@@ -250,7 +252,7 @@ public class Video {
      * @return true only if (x,y) is a valid index into the Video's representation of a frame (regions and larvaLoc)
      */
     private boolean isCoordValid(int x, int y) {
-        return x >= 0 && x < TRACKING_RESOLUTION && y >= 0 && y < TRACKING_RESOLUTION;
+        return x >= 0 && x < numRegionsX && y >= 0 && y < numRegionsY;
     }
 
 
@@ -277,12 +279,12 @@ public class Video {
 
     private Double[] findClosestIsland(int currentFrame, int r, int c) {
         PriorityQueue<double[]> locations = new PriorityQueue<>(Comparator.comparingDouble(a -> a[2]));
-        boolean[][] visited = new boolean[TRACKING_RESOLUTION][TRACKING_RESOLUTION];
+        boolean[][] visited = new boolean[numRegionsX][numRegionsY];
         locations.add(new double[]{r, c, 0});
         visited[r][c] = true;
 
         double[] originalLoc = {r, c};
-        double maxDistance = (double) TRACKING_RESOLUTION / MIN_FRAMES_TO_TRAVEL_ACROSS_SCREEN;
+        double maxDistance = (double) numRegionsX / MIN_FRAMES_TO_TRAVEL_ACROSS_SCREEN;
 
         int[] dRow = { -1, 0, 1, 0 };
         int[] dCol = { 0, 1, 0, -1 };
@@ -303,7 +305,7 @@ public class Video {
                     visited[newRow][newCol] = true;
 
                     if(larvaLoc[currentFrame][newRow][newCol]){
-                        Double[] island = getIsland(currentFrame, newRow, newCol, new boolean[TRACKING_RESOLUTION][TRACKING_RESOLUTION]);
+                        Double[] island = getIsland(currentFrame, newRow, newCol, new boolean[numRegionsX][numRegionsY]);
                         if(island[2] > MIN_ISLAND_SIZE){
                             return island;
                         }
