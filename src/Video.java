@@ -90,16 +90,10 @@ public class Video {
         l.setNewPosition(null);
     }
 
-    public void deleteFrame(int currentFrame) {
-        for (Larva l : larvae) {
-            l.trimPositions(currentFrame);
-        }
-    }
-
     /**
      * Splits an image into a set number of subimages called regions, which are stored in the Video's regions array.
      *
-     * @param frame The Fframe number of the image.
+     * @param frame The frame number of the image.
      * @param image An image to create regions on.
      */
     private void createRegions(int frame, BufferedImage image) {

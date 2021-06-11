@@ -28,8 +28,11 @@ public class Larva {
 		}
     }
 
-    public Double[] getLastTrackedPosition(){
-		return positions.get(lastTrackedFrame);
+    /** Returns the last known position no later than maxFrame */
+    public Double[] getLastTrackedPosition(int maxFrame) {
+		int frame = Math.min(maxFrame, lastTrackedFrame);
+		while (frame > 0 && positions.get(frame) == null) frame--;
+		return positions.get(frame);
 	}
 
     public int getPositionsSize(){ return positions.size(); }

@@ -597,7 +597,6 @@ public class GUI extends JFrame {
             if (!changeFrameEnabled) return;
 
             if (frame.currentFrame + number >= 0 && frame.currentFrame + number < movie.getNumImages()) {
-                if (number == -1) movie.deleteFrame(frame.currentFrame);
                 frame.currentFrame += number;
                 try {
                     frame.setImage(movie.getPathToFrame(frame.currentFrame + 1));
@@ -1126,7 +1125,7 @@ public class GUI extends JFrame {
                     g2.fill(new Ellipse2D.Double(l.getPosition(0)[0] / xRatio,
                             l.getPosition(0)[1] / yRatio, 6, 6));
                     }
-                Double[] lastKnownPosition = l.getLastTrackedPosition();
+                Double[] lastKnownPosition = l.getLastTrackedPosition(currentFrame);
                 if (lastKnownPosition != null) {
                     g2.setFont(new Font("Times New Roman", Font.BOLD, 30));
                     g2.drawString(String.valueOf(larvae.indexOf(l) + 1),
