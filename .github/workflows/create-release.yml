@@ -1,0 +1,50 @@
+# See https://docs.oracle.com/javase/tutorial/deployment/jar/signing.html
+name: Create release and build from tag
+
+# Run on any tag that looks like a version number or an iteration number
+on:
+  push:
+    tags: [ "v[0-9]*",  "iteration*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+          java-package: jdk
+          architecture: x64
+
+      - name: Compile
+        run: javac -Xlint:unchecked src/*.java
+
+      - name: Copy image for build
+        run: cp resources/welcome.png src/welcome.png
+
+      - name: Create JAR
+        run: jar cvfe ../flies.jar GUI *.class welcome.png
+        working-directory: ./src
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+
+      - name: Upload build to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: flies.jar
+          asset_name: flies.jar
+          asset_content_type: application/java-archive
